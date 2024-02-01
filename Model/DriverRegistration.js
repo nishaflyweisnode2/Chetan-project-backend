@@ -2,29 +2,31 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-
-
 const Driver = mongoose.Schema({
+    collectionBoyId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "driver",
+    },
     name: {
-        type: String, 
+        type: String,
         require: false
-    }, 
+    },
     password: {
-        type: String, 
+        type: String,
         require: false
-    }, 
+    },
     phone: {
-        type: String, 
+        type: String,
         require: false
-    }, 
+    },
     email: {
-        type: String, 
+        type: String,
         require: false
-    }, 
+    },
     image: {
-        type: String, 
+        type: String,
         require: false
-    }, 
+    },
     otp: {
         type: String,
         require: true
@@ -35,10 +37,11 @@ const Driver = mongoose.Schema({
     },
     role: {
         type: String,
-        role:"driver"
+        enum: ["driver", "collectionBoy"],
+        default: "driver",
     }
 })
 
-const driver  = mongoose.model('driver', Driver);
+const driver = mongoose.model('driver', Driver);
 
 module.exports = driver;

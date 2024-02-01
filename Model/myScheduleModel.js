@@ -12,7 +12,6 @@ const scheduleSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId
   }
 });
-
 // Save the model schema
 module.exports = mongoose.model('Schedule', scheduleSchema);
                            

@@ -46,7 +46,7 @@ const DriverOrders = mongoose.Schema({
     },
     userMobile: {
         type: String
-    }
+    },
 })
 
 

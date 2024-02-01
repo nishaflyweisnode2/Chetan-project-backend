@@ -6,6 +6,14 @@ const subscriptionSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
+  driverId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "driver",
+  },
+  collectionBoyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "driver",
+  },
   orderId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Order',

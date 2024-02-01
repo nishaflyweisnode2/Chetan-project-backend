@@ -101,40 +101,29 @@ exports.registerEmailUser = catchAsyncErrors(async (req, res, next) => {
 });
 
 exports.loginUser = catchAsyncErrors(async (req, res, next) => {
-  console.log('hi');
-  const { phone } = req.body;
-
-  if (!phone) {
-    return next(new Error('Please provide your Phone No.', 400));
-  }
-
   try {
+    console.log('hi');
+    const { phone } = req.body;
+    if (!phone) {
+      return next(new Error('Please provide your Phone No.', 400));
+    }
     const user = await User.findOne({ phone, role: 'User' });
-
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-
     const otp = await OTP.generateOTP();
-
-    // Send OTP via Twilio SMS
     const message = `Your OTP is: ${otp}`;
 
-    const twilioResponse = await twilioClient.messages.create({
-      body: message,
-      from: process.env.TWILIO_PHONE_NUMBER,
-      to: '+91' + phone,
+    // const twilioResponse = await twilioClient.messages.create({
+    //   body: message,
+    //   from: process.env.TWILIO_PHONE_NUMBER,
+    //   to: '+91' + phone,
 
-    });
+    // });
 
-    console.log(`SMS sent with SID: ${twilioResponse.sid}`);
+    // console.log(`SMS sent with SID: ${twilioResponse.sid}`);
 
-    let update = await User.findByIdAndUpdate(
-      { _id: user._id },
-      { $set: { otp: otp } },
-      { new: true }
-    );
-
+    let update = await User.findByIdAndUpdate({ _id: user._id }, { $set: { otp: otp } }, { new: true });
     return res.status(201).json({ success: true, Id: update._id, otp: otp });
   } catch (error) {
     console.error('Error sending OTP via Twilio:', error);

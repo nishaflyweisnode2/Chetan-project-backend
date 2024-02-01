@@ -1,20 +1,5 @@
 const express = require("express");
-const {
-  searchAllProducts,
-  createProduct,
-  updateProduct,
-  deleteProduct,
-  getProductDetails,
-  createProductReview,
-  getProductReviews,
-  deleteReview,
-  getAdminProducts,
-  createWishlist,
-  removeFromWishlist,
-  myWishlist,
-  checkDelivery,
-  getProductByCategory
-} = require("../Controller/ProductCtrl");
+const { searchAllProducts, createProduct, updateProduct, deleteProduct, getProductDetails, createProductReview, getProductReviews, deleteReview, getAdminProducts, createWishlist, removeFromWishlist, myWishlist, checkDelivery, getProductByCategory } = require("../Controller/ProductCtrl");
 const { isAuthenticatedUser, authorizeRoles } = require("../Middleware/auth");
 const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
@@ -34,28 +19,20 @@ const storage = new CloudinaryStorage({
 const upload = multer({ storage: storage });
 const router = express.Router();
 
-router.get("/search", searchAllProducts);
-
-router.get("/by/category/:id", getProductByCategory);
-router.post("/add/wishlist/:id", isAuthenticatedUser, createWishlist);
-router.put("/remove/wishlist/:id", isAuthenticatedUser, removeFromWishlist);
-router.get("/wishlist/me", isAuthenticatedUser, myWishlist);
-
-router.get("/admin/products", getAdminProducts);
-
-router.post("/admin/product/new", upload.array("image"), createProduct);
-
-router.put("/update/:id", upload.array("image"), updateProduct)
-router.delete("/delete/:id", deleteProduct);
-
-router.get("/:id", getProductDetails);
-
-router.put("/review", isAuthenticatedUser, createProductReview);
-
-router.get("/reviews", getProductReviews)
-router.delete("/reviews", isAuthenticatedUser, deleteReview);
-
-router.post("/checkDelivery/:productId", checkDelivery);
+router.get("/api/v1/product/search", searchAllProducts);
+router.get("/api/v1/product/by/category/:id", getProductByCategory);
+router.post("/api/v1/product/add/wishlist/:id", isAuthenticatedUser, createWishlist);
+router.put("/api/v1/product/remove/wishlist/:id", isAuthenticatedUser, removeFromWishlist);
+router.get("/api/v1/product/wishlist/me", isAuthenticatedUser, myWishlist);
+router.get("/api/v1/product/admin/products", getAdminProducts);
+router.post("/api/v1/product/admin/product/new", upload.array("image"), createProduct);
+router.put("/api/v1/product/update/:id", upload.array("image"), updateProduct)
+router.delete("/api/v1/product/delete/:id", deleteProduct);
+router.get("/api/v1/product/:id", getProductDetails);
+router.put("/api/v1/product/review", isAuthenticatedUser, createProductReview);
+router.get("/api/v1/product/reviews", getProductReviews)
+router.delete("/api/v1/product/reviews", isAuthenticatedUser, deleteReview);
+router.post("/api/v1/product/checkDelivery/:productId", checkDelivery);
 
 module.exports = router;
 

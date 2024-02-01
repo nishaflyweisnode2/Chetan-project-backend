@@ -10,8 +10,6 @@ const storage = new CloudinaryStorage({
   },
 });
 const upload = multer({ storage: storage });
-
-
 const userCtrl = require("../Controller/userCtrl");
 const router = require("express").Router();
 // const imagePattern = "[^\\s]+(.*?)\\.(jpg|jpeg|png|gif|JPG|JPEG|PNG|GIF)$";
@@ -27,14 +25,14 @@ const router = require("express").Router();
 // });
 // const upload = multer({ storage: storage });
 const { isAuthenticatedUser } = require("../Middleware/auth");
-router.route("/google/login").post(userCtrl.socialLogin);
+router.route("/api/v1/user/google/login").post(userCtrl.socialLogin);
 router.post("/api/v1/user/create", userCtrl.registerUser);
-router.put("/email/:id", userCtrl.registerEmailUser);
-router.put("/mobile/:id", userCtrl.UpdatePhoneUser);
-router.post("/login", userCtrl.loginUser);
-router.delete("/delete/my/account", isAuthenticatedUser, userCtrl.deletemyAccount);
-router.post("/verify-otp/:id", userCtrl.verifyOTP);
-router.route("/update/:userId").put(upload.single('profilePicture'), userCtrl.userPhoto)
-router.get("/all", userCtrl.getAllUser);
-router.get("/:id", userCtrl.getUserbyId);
+router.put("/api/v1/user/email/:id", userCtrl.registerEmailUser);
+router.put("/api/v1/user/mobile/:id", userCtrl.UpdatePhoneUser);
+router.post("/api/v1/user/login", userCtrl.loginUser);
+router.delete("/api/v1/user/delete/my/account", isAuthenticatedUser, userCtrl.deletemyAccount);
+router.post("/api/v1/user/verify-otp/:id", userCtrl.verifyOTP);
+router.route("/api/v1/user/update/:userId").put(upload.single('profilePicture'), userCtrl.userPhoto)
+router.get("/api/v1/user/all", userCtrl.getAllUser);
+router.get("/api/v1/user/:id", userCtrl.getUserbyId);
 module.exports = router;

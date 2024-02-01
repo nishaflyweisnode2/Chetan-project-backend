@@ -6,8 +6,8 @@ const {
     deleteContactUs,
 } = require("../Controller/contactUsCtrl");
 
-router.post("/", create);
-router.get("/", getContactUs);
-router.delete("/:id", deleteContactUs);
+router.post("/api/v1/contactUs/", create);
+router.get("/api/v1/contactUs/", getContactUs);
+router.delete("/api/v1/contactUs/:id", deleteContactUs);
 
 module.exports = router;

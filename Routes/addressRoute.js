@@ -7,8 +7,8 @@ const {
     deleteAddress,
 } = require("../Controller/addressCtrl");
 
-router.post("/",isAuthenticatedUser, createAddress);
-router.get("/", isAuthenticatedUser,getAddressById);
-router.put("/:id", updateAddress);
-router.delete("/:id", deleteAddress);
+router.post("/api/v1/address/", isAuthenticatedUser, createAddress);
+router.get("/api/v1/address/", isAuthenticatedUser, getAddressById);
+router.put("/api/v1/address/:id", updateAddress);
+router.delete("/api/v1/address/:id", deleteAddress);
 module.exports = router;

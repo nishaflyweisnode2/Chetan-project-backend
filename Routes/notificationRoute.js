@@ -6,10 +6,10 @@ const router = express();
 
 
 
-router.post('/', notify.AddNotification);
-router.get('/', notify.GetAllNotification);
-router.get('/get/:id', notify.GetBYNotifyID);
-router.delete('/delete/:id', notify.deleteNotification);
+router.post('/api/v1/notify/', notify.AddNotification);
+router.get('/api/v1/notify/', notify.GetAllNotification);
+router.get('/api/v1/notify/get/:id', notify.GetBYNotifyID);
+router.delete('/api/v1/notify/delete/:id', notify.deleteNotification);
 
 
 

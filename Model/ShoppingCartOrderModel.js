@@ -8,11 +8,11 @@ const orderTrackingSchema = new mongoose.Schema({
   },
   date: {
     type: Date,
-    default: function (){
+    default: function () {
       return new Date()
     }
   }
-}, {_id: false})
+}, { _id: false })
 
 const orderProductSchema = new mongoose.Schema({
   unitPrice: {
@@ -28,13 +28,25 @@ const orderProductSchema = new mongoose.Schema({
   total: {
     type: Number
   }
-}, {_id: false})
+}, { _id: false })
 
 const orderSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  driverId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "driver",
+  },
+  collectionBoyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "driver",
+  },
   address: {
     type: mongoose.Schema.ObjectId,
     ref: "Address",
-    // required: true,
   },
   aaddress: {
     street1: {
@@ -67,16 +79,11 @@ const orderSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["signed", "processed", "shipped", "Out For Delivery", "delivered","canceled"],
+    enum: ["signed", "processed", "shipped", "Out For Delivery", "delivered", "canceled"],
     default: "processed"
   },
   products: {
     type: [orderProductSchema]
-  },
-  user: {
-    type: mongoose.Schema.ObjectId,
-    ref: "User",
-    required: true,
   },
   paymentGatewayOrderId: {
     type: String,
@@ -87,7 +94,11 @@ const orderSchema = new mongoose.Schema({
     enum: ["pending", "paid", "failed"],
     default: "pending"
   },
- 
+  collectedStatus: {
+    type: String,
+    enum: ["pending", "Collected", "Online"],
+    default: "pending"
+  },
   grandTotal: {
     type: Number,
     required: true,

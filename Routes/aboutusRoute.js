@@ -1,13 +1,8 @@
 const router = require("express").Router();
-const {
-    create,
-    getAboutUs,
-    updateAboutUs,
-    deleteAboutUs,
-} = require("../Controller/aboutUsCtrl");
+const aboutUsCtrl = require("../Controller/aboutUsCtrl");
 
-router.post("/", create);
-router.get("/", getAboutUs);
-router.put("/:id", updateAboutUs);
-router.delete("/:id", deleteAboutUs);
+router.post("/api/v1/aboutUs/", aboutUsCtrl.create);
+router.get("/api/v1/aboutUs/", aboutUsCtrl.getAboutUs);
+router.put("/api/v1/aboutUs/:id", aboutUsCtrl.updateAboutUs);
+router.delete("/api/v1/aboutUs/:id", aboutUsCtrl.deleteAboutUs);
 module.exports = router;

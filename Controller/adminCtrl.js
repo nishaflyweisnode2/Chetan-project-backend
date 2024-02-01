@@ -6,6 +6,7 @@ const User = require("../Model/userModel");
 const { multipleFileHandle } = require("../utils/fileHandle");
 const token = require("../utils/Token")
 const Order = require("../Model/ShoppingCartOrderModel");
+const enquiry = require('../Model/enquiry');
 
 exports.createBrand = catchAsyncErrors(async (req, res, next) => {
   const imagesLinks = await multipleFileHandle(req.files);
@@ -104,8 +105,6 @@ exports.deleteUser = async (req, res, next) => {
     res.status(200).json({ error: "Something went wrong when deleting user" });
   }
 };
-
-
 exports.cancelOrder = async (req, res, next) => {
   try {
     const orderId = req.params.orderId;
@@ -126,9 +125,59 @@ exports.cancelOrder = async (req, res, next) => {
     order.status = 'canceled';
     await order.save();
 
-    res.status(200).json({ message: 'Order canceled successfully',order });
+    res.status(200).json({ message: 'Order canceled successfully', order });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'An error occurred while canceling the order' });
+  }
+};
+exports.getAllEnquiry = async (req, res) => {
+  try {
+    const Driver = await enquiry.find();
+    if (Driver.length > 0) {
+      return res.status(200).json({ status: 200, message: "Enquiry found successfully", data: Driver });
+    } else {
+      return res.status(404).json({ status: 404, message: "Enquiry Not found", data: {} })
+    }
+  } catch (err) {
+    return res.status(400).json({ message: err.message })
+  }
+};
+exports.getEnquiryById = async (req, res) => {
+  try {
+    const Driver = await enquiry.findById({ _id: req.params.id });
+    if (Driver) {
+      return res.status(200).json({ status: 200, message: "Enquiry found successfully", data: Driver });
+    } else {
+      return res.status(404).json({ status: 404, message: "Enquiry Not found", data: {} })
+    }
+  } catch (err) {
+    return res.status(400).json({ message: err.message })
+  }
+};
+exports.closeEnquiry = async (req, res) => {
+  try {
+    const Driver = await enquiry.findById({ _id: req.params.id });
+    if (Driver) {
+      let updateDriver = await enquiry.findByIdAndUpdate({ _id: Driver._id }, { $set: { status: "closed" } }, { new: true });
+      return res.status(200).json({ status: 200, message: "Enquiry close successfully", data: updateDriver });
+    } else {
+      return res.status(404).json({ status: 404, message: "Enquiry Not found", data: {} })
+    }
+  } catch (err) {
+    return res.status(400).json({ message: err.message })
+  }
+};
+exports.deleteEnquiry = async (req, res) => {
+  try {
+    const Driver = await enquiry.findById({ _id: req.params.id });
+    if (Driver) {
+      let updateDriver = await enquiry.findByIdAndDelete({ _id: Driver._id });
+      return res.status(200).json({ status: 200, message: "Enquiry delete successfully", data: updateDriver });
+    } else {
+      return res.status(404).json({ status: 404, message: "Enquiry Not found", data: {} })
+    }
+  } catch (err) {
+    return res.status(400).json({ message: err.message })
   }
 };
