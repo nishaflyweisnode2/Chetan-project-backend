@@ -35,4 +35,8 @@ router.post("/api/v1/user/verify-otp/:id", userCtrl.verifyOTP);
 router.route("/api/v1/user/update/:userId").put(upload.single('profilePicture'), userCtrl.userPhoto)
 router.get("/api/v1/user/all", userCtrl.getAllUser);
 router.get("/api/v1/user/:id", userCtrl.getUserbyId);
+router.post("/api/v1/user/createVacation", isAuthenticatedUser, userCtrl.createVacation);
+router.get("/api/v1/user/getAll/Vacation", isAuthenticatedUser, userCtrl.getAllVacation);
+router.get("/api/v1/user/getVacationById/:id", userCtrl.getVacationById);
+
 module.exports = router;

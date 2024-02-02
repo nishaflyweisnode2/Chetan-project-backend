@@ -518,4 +518,28 @@ const deleteproductinOrder = async (req, res, next) => {
     return res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
-module.exports = { subscription, deleteproductinOrder, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }
+const payBills = async (req, res) => {
+  try {
+    const { fromDate, toDate } = req.body;
+    const body = { user: req.user._id, status: "delivered", paymentStatus: { $ne: "paid" } };
+    if (fromDate && toDate) {
+      body.createdAt = { $gte: new Date(fromDate), $lte: new Date(toDate) };
+    }
+    let total = 0, orderIds = [];
+    const data = await Order.find(body);
+    if (data.length > 0) {
+      for (let i = 0; i < data.length; i++) {
+        total = total + data[i].amountToBePaid
+        orderIds.push(data[i]._id);
+        console.log(orderIds);
+      }
+      return res.status(200).json({ data: { data, total, fromDate, toDate, orderIds } });
+    } else {
+      return res.status(404).json({ success: false, data: {} });
+    }
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ message: err.message });
+  }
+};
+module.exports = { subscription, deleteproductinOrder, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }

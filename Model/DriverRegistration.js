@@ -1,7 +1,4 @@
 const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
 const Driver = mongoose.Schema({
     collectionBoyId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -20,6 +17,10 @@ const Driver = mongoose.Schema({
         require: false
     },
     email: {
+        type: String,
+        require: false
+    },
+    gender: {
         type: String,
         require: false
     },

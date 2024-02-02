@@ -8,11 +8,11 @@ const OTP = require("../utils/OTP-Generate")
 const token = require("../utils/Token")
 const Wallet = require("../Model/myWalletModel");
 const twilio = require('twilio');
+const vacation = require("../Model/vacation");
 const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
 );
-
 exports.registerUser = catchAsyncErrors(async (req, res, next) => {
   const { phone, address, name, email } = req.body;
   try {
@@ -99,7 +99,6 @@ exports.registerEmailUser = catchAsyncErrors(async (req, res, next) => {
     success: true,
   });
 });
-
 exports.loginUser = catchAsyncErrors(async (req, res, next) => {
   try {
     console.log('hi');
@@ -130,32 +129,6 @@ exports.loginUser = catchAsyncErrors(async (req, res, next) => {
     return next(new Error('Error sending OTP', 500));
   }
 });
-
-// exports.loginUser = catchAsyncErrors(async (req, res, next) => {
-//   const { phone } = req.body;
-
-//   if (!phone) {
-//     return next(new ErrorHander("Please Your Phone No.", 400));
-//   }
-
-//   const user = await User.findOne({ phone, role: "User" })
-//   // if (!user) {
-//   //   return next(new ErrorHander("Invalid phone Number", 401));
-//   // }
-//   if (!user) {
-//     return res.status(404).json({ error: 'User not found' });
-//   }
-
-//   if (user) {
-//     // const otp = await sendOtp(user, "account_verification");
-
-//     const otp = await OTP.generateOTP()
-//     let update = await User.findByIdAndUpdate({ _id: user._id }, { $set: { otp: otp } }, { new: true })
-//     return res.status(201).json({ success: true, Id: update._id, otp: otp })
-//   }
-
-//   sendToken(user, 200, res);
-// });
 exports.verifyOTP = catchAsyncErrors(async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -209,8 +182,6 @@ exports.resendOTP = catchAsyncErrors(async (req, res) => {
     res.status(400).send({ error: error.message });
   }
 });
-
-
 exports.userPhoto = async (req, res, next) => {
   console.log("hi");
   try {
@@ -233,8 +204,6 @@ exports.userPhoto = async (req, res, next) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
-
-
 exports.socialLogin = async (req, res) => {
   try {
     const { email, phone, firstName, lastName, mobile } = req.body;
@@ -286,7 +255,6 @@ exports.socialLogin = async (req, res) => {
     return res.status(500).json({ status: 500, msg: "Internal server error" });
   }
 };
-
 exports.getAllUser = async (req, res, next) => {
   try {
     const users = await User.find({ role: "User" });
@@ -318,7 +286,6 @@ exports.getUserbyId = async (req, res, next) => {
     res.status(200).json({ error: `Something went wrong with Id: ${req.params}` });
   }
 };
-
 exports.deletemyAccount = async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -332,3 +299,81 @@ exports.deletemyAccount = async (req, res, next) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+exports.createVacation = async (req, res, next) => {
+  try {
+    const users = await User.findById({ _id: req.user.id });
+    if (!users) {
+      return next(new ErrorHander(`User does not exist with Id: ${req.params.id}`, 400));
+    }
+    const startDate = new Date(req.body.startDate);
+    const endDate = new Date(req.body.endDate);
+    const currentDate = new Date();
+    if (startDate <= currentDate) {
+      return res.status(400).json({ error: "Start date must be in the future" });
+    }
+    const existingVacation = await vacation.findOne({ userId: users._id, startDate: { $lte: endDate }, endDate: { $gte: startDate } });
+    if (existingVacation) {
+      const timeDifference = endDate.getTime() - startDate.getTime();
+      existingVacation.startDate = req.body.startDate;
+      existingVacation.endDate = req.body.endDate;
+      existingVacation.totalDay = Math.ceil(timeDifference / (1000 * 3600 * 24)) + 1;
+      await existingVacation.save();
+      return res.status(200).json({ status: 200, message: "Vacation updated successfully", data: existingVacation });
+    } else {
+      const timeDifference = endDate.getTime() - startDate.getTime();
+      const totalDays = Math.ceil(timeDifference / (1000 * 3600 * 24)) + 1;
+      const newVacation = await vacation.create({ userId: users._id, totalDay: totalDays, startDate: req.body.startDate, endDate: req.body.endDate });
+      return res.status(201).json({ status: 200, message: "Vacation successfully created", data: newVacation });
+    }
+  } catch (error) {
+    return res.status(500).json({ error: `Something went wrong with Id: ${req.params}` });
+  }
+};
+exports.getAllVacation = async (req, res, next) => {
+  try {
+    const users = await User.findById({ _id: req.user.id });
+    if (!users) {
+      return next(new ErrorHander(`User does not exist with Id`, 400));
+    }
+    const user = await vacation.find({ userId: users._id });
+    if (user.length > 0) {
+      return res.status(200).json({ status: 200, message: "vacation successfully", data: user, });
+    } else {
+      return res.status(404).json({ status: 404, message: "vacation not found successfully", data: {}, });
+    }
+  } catch (error) {
+    return res.status(200).json({ error: "Something went wrong" });
+  }
+};
+exports.getVacationById = async (req, res, next) => {
+  try {
+    const users = await vacation.findById({ _id: req.params.id });
+    if (!users) {
+      return next(new ErrorHander(`vacation does not exist `, 400));
+    }
+    return res.status(200).json({ status: 200, message: "vacation successfully", data: users, });
+  } catch (error) {
+    return res.status(200).json({ error: `Something went wrong` });
+  }
+};
+// exports.loginUser = catchAsyncErrors(async (req, res, next) => {
+//   const { phone } = req.body;
+//   if (!phone) {
+//     return next(new ErrorHander("Please Your Phone No.", 400));
+//   }
+//   const user = await User.findOne({ phone, role: "User" })
+//   // if (!user) {
+//   //   return next(new ErrorHander("Invalid phone Number", 401));
+//   // }
+//   if (!user) {
+//     return res.status(404).json({ error: 'User not found' });
+//   }
+//   if (user) {
+//     // const otp = await sendOtp(user, "account_verification");
+//     const otp = await OTP.generateOTP()
+//     let update = await User.findByIdAndUpdate({ _id: user._id }, { $set: { otp: otp } }, { new: true })
+//     return res.status(201).json({ success: true, Id: update._id, otp: otp })
+//   }
+
+//   sendToken(user, 200, res);
+// });

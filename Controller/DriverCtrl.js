@@ -1,7 +1,6 @@
 const driver = require('../Model/DriverRegistration');
 const order = require('../Model/ShoppingCartOrderModel');
 const User = require('../Model/userModel')
-const DriverOrder = require('../Model/Driver-OrderModel')
 const rejectOrder = require('../Model/RejectReasonsModel')
 const address = require('../Model/addressModel')
 const bcrypt = require("bcryptjs");
@@ -13,6 +12,11 @@ const product = require('../Model/productModel')
 const JWTkey = process.env.JWT_SECRET
 const OTP = require("../utils/OTP-Generate")
 const enquiry = require('../Model/enquiry');
+const Address = require("../Model/addressModel");
+const bankDetails = require("../Model/bankDetails");
+const punchInModel = require("../Model/punchIn");
+const collectionDeliveryPunchIn = require("../Model/cdPunchIn");
+const moment = require('moment')
 exports.sendOtp = async (req, res) => {
     try {
         const Data = await driver.findOne({ phone: req.body.phone, role: "driver" })
@@ -81,7 +85,25 @@ exports.AddDeriverDetails = async (req, res) => {
         if (Data) {
             return res.status(201).json({ message: "Email is Already regtration" })
         } else {
-            const data = await driver.findOneAndUpdate({ _id: req.params.id }, { name: req.body.name, password: bcrypt.hashSync(req.body.password, 8), email: req.body.email, image: req.body.image, }, { new: true });
+            let image, password;
+            if (req.file) {
+                image = req.file.path
+            } else {
+                image = Data.image
+            }
+            if (req.body.password != (null || undefined)) {
+                password = bcrypt.hashSync(req.body.password, 8);
+            } else {
+                password = Data.password
+            }
+            let obj = {
+                name: req.body.name || Data.name,
+                gender: req.body.gender || Data.gender,
+                password: password,
+                email: req.body.email || Data.email,
+                image: image,
+            }
+            const data = await driver.findOneAndUpdate({ _id: req.params.id }, { $set: obj }, { new: true });
             return res.status(200).json({ success: true, details: data })
         }
     } catch (err) {
@@ -157,72 +179,99 @@ exports.allAssignUserToDriver = async (req, res) => {
         return res.status(400).json({ message: err.message })
     }
 }
-
-
-
+exports.createAddress = async (req, res, next) => {
+    req.body.driver = req.body.driver;
+    const address = await Address.create(req.body);
+    res.status(201).json({ success: true, address, });
+};
+exports.getAddress = async (req, res, next) => {
+    const allAddress = await Address.find({ driver: req.params.driverId });
+    res.status(201).json({ success: true, allAddress, });
+};
+exports.updateAddress = async (req, res, next) => {
+    const newAddressData = req.body;
+    const address = await Address.findByIdAndUpdate({ _id: req.params.id }, { $set: newAddressData }, { new: true, });
+    res.status(201).json({ success: true, address, });
+};
+exports.deleteAddress = async (req, res, next) => {
+    const address = await Address.findById(req.params.id);
+    if (!address) {
+        return next(new ErrorHander(`Address does not exist with Id: ${req.params.id}`, 400));
+    }
+    await address.deleteOne();
+    res.status(200).json({ success: true, message: "Address Deleted Successfully", });
+};
+exports.updateBankDetails = async (req, res) => {
+    try {
+        let user = await driver.findById(req.params.id);
+        if (!user) {
+            res.status(404).send({ message: "Data not found", status: 404, data: [] });
+        } else {
+            const data1 = await bankDetails.findOne({ driver: user._id });
+            if (data1) {
+                let obj = {
+                    bankName: req.body.bankName,
+                    accountNumber: req.body.accountNumber,
+                    holderName: req.body.holderName,
+                    upiId: req.body.upiId,
+                    type: "bankdetails",
+                    ifsc: req.body.ifsc,
+                    driver: user._id,
+                };
+                let update = await bankDetails.findByIdAndUpdate({ _id: data1._id }, obj, { new: true, });
+                res.status(200).send({ message: "Data update successfully", status: 200, data: update, });
+            } else {
+                let obj = {
+                    bankName: req.body.bankName,
+                    accountNumber: req.body.accountNumber,
+                    holderName: req.body.holderName,
+                    upiId: req.body.upiId,
+                    ifsc: req.body.ifsc,
+                    driver: user._id,
+                };
+                console.log(obj);
+                const address = await bankDetails.create(obj);
+                res.status(200).send({ message: "Data saved successfully", status: 200, data: address, });
+            }
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error", status: 500 });
+    }
+};
+exports.getBankDetails = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const banks = await bankDetails.find({ driver: userId });
+        if (!banks) {
+            return res.status(404).send({ message: "Bank details not found for the user", status: 404, data: {}, });
+        }
+        return res.status(200).send({ message: "Bank details found successfully", status: 200, data: banks, });
+    } catch (error) {
+        res.status(500).json({ error: "Failed to get user bank details" });
+    }
+};
+exports.updateDocument = async (req, res) => {
+    try {
+        const existingUser = await bankDetails.findOne({ driver: req.params.id });
+        if (!existingUser) {
+            return res.status(404).json({ msg: "User not found" });
+        }
+        req.body.drivingLicense = req.file.path;
+        const user = await bankDetails.findOneAndUpdate({ _id: existingUser._id }, { $set: { drivingLicense: req.body.drivingLicense }, }, { new: true });
+        return res.status(200).json({ msg: "Profile updated successfully", user });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({ status: 500, message: "Server error" + error.message });
+    }
+};
 exports.DriverAllOrder = async (req, res) => {
     try {
-        const Data = await DriverOrder.find();
+        const Data = await order.find({ driverId: req.params.id });
         if (Data.length == 0) {
             return res.status(201).json({ message: "No Data Found " })
         }
         return res.status(200).json({ sucess: true, message: Data })
-    } catch (err) {
-        return res.status(400).json({ message: err.message })
-    }
-}
-exports.AssignOrdertoDriver = async (req, res) => {
-    try {
-        const orderData = await order.findById({ _id: req.body.orderId });
-        const productId = orderData.products[0].product;
-        const productData = await product.findOne({ _id: productId });
-        const userData = await User.findById({ _id: orderData.user })
-        if (!orderData) {
-            return res.status(500).json({ message: "Order not found " })
-        } else {
-            const userData12 = await assignUserToDriver.findById({ userId: orderData.user, driverId: req.body.driverId })
-            if (userData12) {
-                await assignUserToDriver.findByIdAndUpdate({ _id: userData12._id }, { $set: { userId: orderData.user, driverId: req.body.driverId }, }, { new: true });
-            } else {
-                await assignUserToDriver.create({ userId: orderData.user, driverId: req.body.driverId, });
-            }
-            const data = {
-                orderId: req.body.orderId,
-                driverId: req.body.driverId,
-                image: productData.images[0].img,
-                price: orderData.amountToBePaid,
-                returnitem: req.body.returnitem,
-                pickuporder: req.body.dilverdAddress,
-                payment: req.body.payment,
-                useraddress: orderData.address,
-                username: userData.name,
-                userMobile: userData.phone
-            }
-            const DOrder = await DriverOrder.create(data);
-            return res.status(200).json({ sucess: true, message: DOrder })
-        }
-    } catch (err) {
-        console.log(err)
-        return res.status(400).json({ message: err.message })
-    }
-}
-exports.DriverAccept = async (req, res) => {
-    try {
-        const data = await DriverOrder.findOneAndUpdate({ _id: req.params.id }, { status: "Accept" }, { new: true },)
-        return res.status(200).json({ message: "Accepted" })
-    } catch (err) {
-        return res.status(400).json({ message: err.message })
-    }
-}
-exports.DriverReject = async (req, res) => {
-    try {
-        const Data = await DriverOrder.findById({ _id: req.params.id })
-        if (!Data) {
-            return res.status(500).json({ message: "Driver_Order ID is not found " })
-        }
-        const data = await DriverOrder.findOneAndUpdate({ _id: req.params.id }, { status: "Reject" }, { new: true },)
-        const RData = await rejectOrder.create({ driverId: Data.driverId, reasons: req.body.reason })
-        return res.status(200).json({ message: "Reject" })
     } catch (err) {
         return res.status(400).json({ message: err.message })
     }
@@ -230,19 +279,11 @@ exports.DriverReject = async (req, res) => {
 exports.DriverSingleOrder = async (req, res) => {
     const Id = req.params.id
     try {
-        const Data = await DriverOrder.findById(Id);
+        const Data = await order.findById(Id);
         if (Data.length == 0) {
             return res.status(201).json({ message: "No Data Found " })
         }
         return res.status(200).json({ sucess: true, message: Data })
-    } catch (err) {
-        return res.status(400).json({ message: err.message })
-    }
-}
-exports.DeleteAssignOrder = async (req, res) => {
-    try {
-        await DriverOrder.findByIdAndDelete({ _id: req.params.id });
-        return res.status(200).json({ message: "Assign Order Deleted " })
     } catch (err) {
         return res.status(400).json({ message: err.message })
     }
@@ -292,7 +333,7 @@ exports.AllDrivers = async (req, res) => {
 }
 exports.driverCompleted = async (req, res) => {
     try {
-        const data = await DriverOrder.find({ driverId: req.params.driverId, orderStatus: "Deliverd" });
+        const data = await order.find({ driverId: req.params.driverId, orderStatus: "Deliverd" });
         if (data.length == 0) {
             return res.status(201).json({ message: "No Delivered Order " })
         } else {
@@ -304,7 +345,7 @@ exports.driverCompleted = async (req, res) => {
 }
 exports.PendingOrder = async (req, res) => {
     try {
-        const data = await DriverOrder.find({ $and: [{ driverId: req.params.id }, { status: "pending" }] });
+        const data = await order.find({ $and: [{ driverId: req.params.id }, { status: "pending" }] });
         if (!data || data.length == 0) {
             return res.status(404).json({ message: "Pending Order not found" })
         }
@@ -314,16 +355,16 @@ exports.PendingOrder = async (req, res) => {
         return res.status(400).json({ message: err.message })
     }
 }
-exports.AcceptOrder = async (req, res) => {
-    try {
-        const data = await DriverOrder.find({ $and: [{ driverId: req.params.id }, { status: "Accept" }] });
-        console.log(data)
-        return res.status(200).json({ message: data })
-    } catch (err) {
-        console.log(err);
-        return res.status(400).json({ message: err.message })
-    }
-}
+// exports.AcceptOrder = async (req, res) => {
+//     try {
+//         const data = await DriverOrder.find({ $and: [{ driverId: req.params.id }, { status: "Accept" }] });
+//         console.log(data)
+//         return res.status(200).json({ message: data })
+//     } catch (err) {
+//         console.log(err);
+//         return res.status(400).json({ message: err.message })
+//     }
+// }
 exports.ChangeStatus = async (req, res) => {
     try {
         const driverData = await DriverOrder.findOne({ driverId: req.params.id })
@@ -344,3 +385,277 @@ exports.DeleteDriver = async (req, res) => {
         return res.status(400).json({ message: "ok", error: err.message })
     }
 }
+exports.attendanceMark = async (req, res) => {
+    try {
+        let user = await driver.findOne({ _id: req.params.id });
+        if (!user) {
+            return res.status(201).json({ message: "Driver not found", status: 404, data: {}, })
+        } else {
+            var currDate = new Date();
+            const weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            let hour = currDate.getHours();
+            let minute = currDate.getMinutes();
+            let second = currDate.getSeconds();
+            let year = currDate.getFullYear();
+            let month = currDate.getMonth() + 1;
+            let date = currDate.getDate();
+            let day = weekday[currDate.getDay()];
+            let dateMonth = await dateMonthCalculate(date, month)
+            let fullDate = `${dateMonth}-${year}`
+            let punchIn = await hourCalculate(hour, minute, second);
+            let attendanceFind = await punchInModel.findOne({ driverId: user._id, date: fullDate });
+            if (attendanceFind) {
+                return res.status(409).json({ message: 'Already' })
+            } else {
+                if (req.body.lat && req.body.long) {
+                    coordinates = [parseFloat(req.body.lat), parseFloat(req.body.long)]
+                    req.body.punchInLocation = { type: "Point", coordinates };
+                }
+                let punchInLocationWord = req.body.punchInLocationWord;
+                let obj = {
+                    driverId: user._id,
+                    currentDate: date,
+                    month: month,
+                    year: year,
+                    date: fullDate,
+                    day: day,
+                    punchIn: punchIn,
+                    punchInLocationWord: punchInLocationWord,
+                    punchInLocation: req.body.punchInLocation,
+                };
+                let result2 = await punchInModel.create(obj);
+                return res.status(200).json({ sucess: true, message: result2 })
+            }
+        }
+    } catch (error) {
+        return res.status(500).json({ message: error.message })
+    }
+}
+exports.driverAttendanceList = async (req, res) => {
+    try {
+        let user = await driver.findOne({ _id: req.params.id });
+        if (!user) {
+            return res.status(404).json({ message: "Driver not found", status: 404, data: {}, })
+        } else {
+            var currDate = new Date();
+            let year = currDate.getFullYear();
+            let month = currDate.getMonth() + 1;
+            let query;
+            if ((req.body.month != (null || undefined)) && (req.body.year != (null || undefined))) {
+                query = { month: req.body.month, year: req.body.year, driverId: user._id };
+            } else {
+                query = { month: month, year: year, driverId: user._id };
+            }
+            var options = {
+                page: parseInt(req.body.page) || 1,
+                limit: parseInt(req.body.limit) || 31,
+                sort: { createdAt: -1 },
+            };
+            punchInModel.paginate(query, options, (err, result) => {
+                if (err) {
+                    return res.status(500).json({ message: err.message })
+                } else if (result.docs.length == false) {
+                    return res.status(404).json({ message: "Punch in not found", status: 404, data: {}, })
+                } else {
+                    return res.status(200).json({ message: "Punch in found", status: 200, data: result })
+                }
+            });
+        }
+    }
+    catch (error) {
+        return res.status(500).json({ message: error.message })
+    }
+};
+exports.startDelivery = async (req, res) => {
+    try {
+        let user = await driver.findOne({ _id: req.params.id });
+        if (!user) {
+            return res.status(201).json({ message: "Driver not found", status: 404, data: {}, })
+        } else {
+            var currDate = new Date();
+            const weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            let hour = currDate.getHours();
+            let minute = currDate.getMinutes();
+            let second = currDate.getSeconds();
+            let year = currDate.getFullYear();
+            let month = currDate.getMonth() + 1;
+            let date = currDate.getDate();
+            let day = weekday[currDate.getDay()];
+            let dateMonth = await dateMonthCalculate(date, month)
+            let fullDate = `${dateMonth}-${year}`
+            let punchIn = await hourCalculate(hour, minute, second);
+            let attendanceFind = await collectionDeliveryPunchIn.findOne({ driverId: user._id, date: fullDate });
+            if (attendanceFind) {
+                return res.status(409).json({ message: 'Already' })
+            } else {
+                let obj = {
+                    driverId: user._id,
+                    currentDate: date,
+                    month: month,
+                    year: year,
+                    date: fullDate,
+                    day: day,
+                    punchIn: punchIn,
+                };
+                let result2 = await collectionDeliveryPunchIn.create(obj);
+                return res.status(200).json({ sucess: true, message: result2 })
+            }
+        }
+    } catch (error) {
+        return res.status(500).json({ message: error.message })
+    }
+}
+exports.endDelivery = async (req, res) => {
+    try {
+        let user = await driver.findOne({ _id: req.params.id });
+        if (!user) {
+            return res.status(201).json({ message: "Driver not found", status: 404, data: {}, })
+        } else {
+            var currDate = new Date();
+            let hour = currDate.getHours();
+            let minute = currDate.getMinutes();
+            let second = currDate.getSeconds();
+            let year = currDate.getFullYear();
+            let month = currDate.getMonth() + 1;
+            let date = currDate.getDate();
+            let dateMonth = await dateMonthCalculate(date, month)
+            let fullDate = `${dateMonth}-${year}`
+            let punchOut = await hourCalculate(hour, minute, second);
+            let result2 = await collectionDeliveryPunchIn.findOne({ driverId: user._id, date: fullDate, punchType: "Punch In" });
+            if (result2) {
+                let difference = await totalTime1(result2.punchIn, punchOut);
+                let obj = {
+                    punchOut: punchOut,
+                    totalTime: difference.totalTime,
+                    punchType: "Punch Out"
+                }
+                let result3 = await collectionDeliveryPunchIn.findOneAndUpdate({ driverId: user._id, date: fullDate, }, { $set: obj }, { new: true });
+                return res.status(200).json({ status: 200, message: 'End Delivery successfully.', data: result3 })
+            } else {
+                return res.status(404).json({ status: 404, message: 'First Start your Delivery', data: {} })
+            }
+        }
+    } catch (error) {
+        return res.status(500).json({ message: error.message })
+    }
+}
+const totalTime1 = async (punchIn, punchOut) => {
+    var startTime = punchIn;
+    var endTime = punchOut;
+    var todayDate = moment(new Date()).format("MM-DD-YYYY"); //Instead of today date, We can pass whatever date        
+    var startDate = new Date(`${todayDate} ${startTime}`);
+    var endDate = new Date(`${todayDate} ${endTime}`);
+    var timeDiff = Math.abs(startDate.getTime() - endDate.getTime());
+    var hh = Math.floor(timeDiff / 1000 / 60 / 60);
+    hh = ('0' + hh).slice(-2)
+    timeDiff -= hh * 1000 * 60 * 60;
+    var mm = Math.floor(timeDiff / 1000 / 60);
+    mm = ('0' + mm).slice(-2)
+    timeDiff -= mm * 1000 * 60;
+    var ss = Math.floor(timeDiff / 1000);
+    ss = ('0' + ss).slice(-2)
+    let totalTime = `${hh}:${mm}:${ss}`
+    let obj = { totalTime: totalTime, hr: hh, min: mm, sec: ss }
+    return obj;
+};
+const dateMonthCalculate = async (date, month) => {
+    let month1, date1;
+    if (month < 10) {
+        month1 = '' + 0 + month;
+    } else {
+        month1 = month
+    }
+    if (date < 10) {
+        date1 = '' + 0 + date;
+    }
+    else {
+        date1 = date
+    }
+    let dateMonth = `${date1}-${month1}`;
+    return dateMonth;
+};
+const hourCalculate = async (hour, minute, second) => {
+    let hr1, min1, sec1;
+    if (hour < 10) {
+        hr1 = '' + 0 + hour;
+    } else {
+        hr1 = hour
+    }
+    if (minute < 10) {
+        min1 = '' + 0 + minute;
+    } else {
+        min1 = minute
+    }
+    if (second < 10) {
+        sec1 = '' + 0 + second;
+    } else {
+        sec1 = second
+    }
+    let punchIn = hr1 + ':' + min1 + ':' + sec1;
+    return punchIn;
+};
+
+// exports.DeleteAssignOrder = async (req, res) => {
+//     try {
+//         await DriverOrder.findByIdAndDelete({ _id: req.params.id });
+//         return res.status(200).json({ message: "Assign Order Deleted " })
+//     } catch (err) {
+//         return res.status(400).json({ message: err.message })
+//     }
+// }
+// exports.AssignOrdertoDriver = async (req, res) => {
+//     try {
+//         const orderData = await order.findById({ _id: req.body.orderId });
+//         const productId = orderData.products[0].product;
+//         const productData = await product.findOne({ _id: productId });
+//         const userData = await User.findById({ _id: orderData.user })
+//         if (!orderData) {
+//             return res.status(500).json({ message: "Order not found " })
+//         } else {
+//             const userData12 = await assignUserToDriver.findById({ userId: orderData.user, driverId: req.body.driverId })
+//             if (userData12) {
+//                 await assignUserToDriver.findByIdAndUpdate({ _id: userData12._id }, { $set: { userId: orderData.user, driverId: req.body.driverId }, }, { new: true });
+//             } else {
+//                 await assignUserToDriver.create({ userId: orderData.user, driverId: req.body.driverId, });
+//             }
+//             const data = {
+//                 orderId: req.body.orderId,
+//                 driverId: req.body.driverId,
+//                 image: productData.images[0].img,
+//                 price: orderData.amountToBePaid,
+//                 returnitem: req.body.returnitem,
+//                 pickuporder: req.body.dilverdAddress,
+//                 payment: req.body.payment,
+//                 useraddress: orderData.address,
+//                 username: userData.name,
+//                 userMobile: userData.phone
+//             }
+//             const DOrder = await DriverOrder.create(data);
+//             return res.status(200).json({ sucess: true, message: DOrder })
+//         }
+//     } catch (err) {
+//         console.log(err)
+//         return res.status(400).json({ message: err.message })
+//     }
+// }
+// exports.DriverAccept = async (req, res) => {
+//     try {
+//         const data = await DriverOrder.findOneAndUpdate({ _id: req.params.id }, { status: "Accept" }, { new: true },)
+//         return res.status(200).json({ message: "Accepted" })
+//     } catch (err) {
+//         return res.status(400).json({ message: err.message })
+//     }
+// }
+// exports.DriverReject = async (req, res) => {
+//     try {
+//         const Data = await DriverOrder.findById({ _id: req.params.id })
+//         if (!Data) {
+//             return res.status(500).json({ message: "Driver_Order ID is not found " })
+//         }
+//         const data = await DriverOrder.findOneAndUpdate({ _id: req.params.id }, { status: "Reject" }, { new: true },)
+//         const RData = await rejectOrder.create({ driverId: Data.driverId, reasons: req.body.reason })
+//         return res.status(200).json({ message: "Reject" })
+//     } catch (err) {
+//         return res.status(400).json({ message: err.message })
+//     }
+// }

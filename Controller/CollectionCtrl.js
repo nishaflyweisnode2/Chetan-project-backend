@@ -1,7 +1,6 @@
 const driver = require('../Model/DriverRegistration');
 const order = require('../Model/ShoppingCartOrderModel');
 const User = require('../Model/userModel')
-const DriverOrder = require('../Model/Driver-OrderModel')
 const rejectOrder = require('../Model/RejectReasonsModel')
 const address = require('../Model/addressModel')
 const bcrypt = require("bcryptjs");
@@ -14,6 +13,9 @@ const JWTkey = process.env.JWT_SECRET
 const OTP = require("../utils/OTP-Generate")
 const enquiry = require('../Model/enquiry');
 const Order = require("../Model/ShoppingCartOrderModel");
+const punchInModel = require("../Model/punchIn");
+const collectionDeliveryPunchIn = require("../Model/cdPunchIn");
+const moment = require('moment')
 exports.sendOtp = async (req, res) => {
         try {
                 const Data = await driver.findOne({ phone: req.body.phone, role: "collectionBoy" })
@@ -197,3 +199,212 @@ exports.allPendingCollectedOrder = async (req, res) => {
                 return res.status(400).json({ message: err.message })
         }
 }
+exports.attendanceMark = async (req, res) => {
+        try {
+                let user = await driver.findOne({ _id: req.params.id });
+                if (!user) {
+                        return res.status(201).json({ message: "Driver not found", status: 404, data: {}, })
+                } else {
+                        var currDate = new Date();
+                        const weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+                        let hour = currDate.getHours();
+                        let minute = currDate.getMinutes();
+                        let second = currDate.getSeconds();
+                        let year = currDate.getFullYear();
+                        let month = currDate.getMonth() + 1;
+                        let date = currDate.getDate();
+                        let day = weekday[currDate.getDay()];
+                        let dateMonth = await dateMonthCalculate(date, month)
+                        let fullDate = `${dateMonth}-${year}`
+                        let punchIn = await hourCalculate(hour, minute, second);
+                        let attendanceFind = await punchInModel.findOne({ driverId: user._id, date: fullDate });
+                        if (attendanceFind) {
+                                return res.status(409).json({ message: 'Already' })
+                        } else {
+                                if (req.body.lat && req.body.long) {
+                                        coordinates = [parseFloat(req.body.lat), parseFloat(req.body.long)]
+                                        req.body.punchInLocation = { type: "Point", coordinates };
+                                }
+                                let punchInLocationWord = req.body.punchInLocationWord;
+                                let obj = {
+                                        driverId: user._id,
+                                        currentDate: date,
+                                        month: month,
+                                        year: year,
+                                        date: fullDate,
+                                        day: day,
+                                        punchIn: punchIn,
+                                        punchInLocationWord: punchInLocationWord,
+                                        punchInLocation: req.body.punchInLocation,
+                                };
+                                let result2 = await punchInModel.create(obj);
+                                return res.status(200).json({ sucess: true, message: result2 })
+                        }
+                }
+        } catch (error) {
+                return res.status(500).json({ message: error.message })
+        }
+}
+exports.driverAttendanceList = async (req, res) => {
+        try {
+                let user = await driver.findOne({ _id: req.params.id });
+                if (!user) {
+                        return res.status(404).json({ message: "Driver not found", status: 404, data: {}, })
+                } else {
+                        var currDate = new Date();
+                        let year = currDate.getFullYear();
+                        let month = currDate.getMonth() + 1;
+                        let query;
+                        if ((req.body.month != (null || undefined)) && (req.body.year != (null || undefined))) {
+                                query = { month: req.body.month, year: req.body.year, driverId: user._id };
+                        } else {
+                                query = { month: month, year: year, driverId: user._id };
+                        }
+                        var options = {
+                                page: parseInt(req.body.page) || 1,
+                                limit: parseInt(req.body.limit) || 31,
+                                sort: { createdAt: -1 },
+                        };
+                        punchInModel.paginate(query, options, (err, result) => {
+                                if (err) {
+                                        return res.status(500).json({ message: err.message })
+                                } else if (result.docs.length == false) {
+                                        return res.status(404).json({ message: "Punch in not found", status: 404, data: {}, })
+                                } else {
+                                        return res.status(200).json({ message: "Punch in found", status: 200, data: result })
+                                }
+                        });
+                }
+        }
+        catch (error) {
+                return res.status(500).json({ message: error.message })
+        }
+};
+exports.startCollection = async (req, res) => {
+        try {
+                let user = await driver.findOne({ _id: req.params.id });
+                if (!user) {
+                        return res.status(201).json({ message: "Driver not found", status: 404, data: {}, })
+                } else {
+                        var currDate = new Date();
+                        const weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+                        let hour = currDate.getHours();
+                        let minute = currDate.getMinutes();
+                        let second = currDate.getSeconds();
+                        let year = currDate.getFullYear();
+                        let month = currDate.getMonth() + 1;
+                        let date = currDate.getDate();
+                        let day = weekday[currDate.getDay()];
+                        let dateMonth = await dateMonthCalculate(date, month)
+                        let fullDate = `${dateMonth}-${year}`
+                        let punchIn = await hourCalculate(hour, minute, second);
+                        let attendanceFind = await collectionDeliveryPunchIn.findOne({ driverId: user._id, date: fullDate });
+                        if (attendanceFind) {
+                                return res.status(409).json({ message: 'Already' })
+                        } else {
+                                let obj = {
+                                        driverId: user._id,
+                                        currentDate: date,
+                                        month: month,
+                                        year: year,
+                                        date: fullDate,
+                                        day: day,
+                                        punchIn: punchIn,
+                                };
+                                let result2 = await collectionDeliveryPunchIn.create(obj);
+                                return res.status(200).json({ sucess: true, message: result2 })
+                        }
+                }
+        } catch (error) {
+                return res.status(500).json({ message: error.message })
+        }
+}
+exports.endCollection = async (req, res) => {
+        try {
+                let user = await driver.findOne({ _id: req.params.id });
+                if (!user) {
+                        return res.status(201).json({ message: "Driver not found", status: 404, data: {}, })
+                } else {
+                        var currDate = new Date();
+                        let hour = currDate.getHours();
+                        let minute = currDate.getMinutes();
+                        let second = currDate.getSeconds();
+                        let year = currDate.getFullYear();
+                        let month = currDate.getMonth() + 1;
+                        let date = currDate.getDate();
+                        let dateMonth = await dateMonthCalculate(date, month)
+                        let fullDate = `${dateMonth}-${year}`
+                        let punchOut = await hourCalculate(hour, minute, second);
+                        let result2 = await collectionDeliveryPunchIn.findOne({ driverId: user._id, date: fullDate, punchType: "Punch In" });
+                        if (result2) {
+                                let difference = await totalTime1(result2.punchIn, punchOut);
+                                let obj = {
+                                        punchOut: punchOut,
+                                        totalTime: difference.totalTime,
+                                        punchType: "Punch Out"
+                                }
+                                let result3 = await collectionDeliveryPunchIn.findOneAndUpdate({ driverId: user._id, date: fullDate, }, { $set: obj }, { new: true });
+                                return res.status(200).json({ status: 200, message: 'End Delivery successfully.', data: result3 })
+                        } else {
+                                return res.status(404).json({ status: 404, message: 'First Start your Delivery', data: {} })
+                        }
+                }
+        } catch (error) {
+                return res.status(500).json({ message: error.message })
+        }
+}
+const totalTime1 = async (punchIn, punchOut) => {
+        var startTime = punchIn;
+        var endTime = punchOut;
+        var todayDate = moment(new Date()).format("MM-DD-YYYY"); //Instead of today date, We can pass whatever date        
+        var startDate = new Date(`${todayDate} ${startTime}`);
+        var endDate = new Date(`${todayDate} ${endTime}`);
+        var timeDiff = Math.abs(startDate.getTime() - endDate.getTime());
+        var hh = Math.floor(timeDiff / 1000 / 60 / 60);
+        hh = ('0' + hh).slice(-2)
+        timeDiff -= hh * 1000 * 60 * 60;
+        var mm = Math.floor(timeDiff / 1000 / 60);
+        mm = ('0' + mm).slice(-2)
+        timeDiff -= mm * 1000 * 60;
+        var ss = Math.floor(timeDiff / 1000);
+        ss = ('0' + ss).slice(-2)
+        let totalTime = `${hh}:${mm}:${ss}`
+        let obj = { totalTime: totalTime, hr: hh, min: mm, sec: ss }
+        return obj;
+};
+const dateMonthCalculate = async (date, month) => {
+        let month1, date1;
+        if (month < 10) {
+                month1 = '' + 0 + month;
+        } else {
+                month1 = month
+        }
+        if (date < 10) {
+                date1 = '' + 0 + date;
+        }
+        else {
+                date1 = date
+        }
+        let dateMonth = `${date1}-${month1}`;
+        return dateMonth;
+};
+const hourCalculate = async (hour, minute, second) => {
+        let hr1, min1, sec1;
+        if (hour < 10) {
+                hr1 = '' + 0 + hour;
+        } else {
+                hr1 = hour
+        }
+        if (minute < 10) {
+                min1 = '' + 0 + minute;
+        } else {
+                min1 = minute
+        }
+        if (second < 10) {
+                sec1 = '' + 0 + second;
+        } else {
+                sec1 = second
+        }
+        let punchIn = hr1 + ':' + min1 + ':' + sec1;
+        return punchIn;
+};
