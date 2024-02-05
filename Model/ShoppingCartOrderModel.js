@@ -43,46 +43,77 @@ const orderSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "driver",
   },
-  address: {
-    type: mongoose.Schema.ObjectId,
-    ref: "Address",
+  address2: {
+    type: String,
   },
-  aaddress: {
-    street1: {
-      type: String,
-    },
-    street2: {
-      type: String
-    },
-    city: {
-      type: String,
-    },
-    state: {
-      type: String,
-    },
-    country: {
-      type: String
-    },
-    cardName: {
-      type: String
-    },
-    cardNumber: {
-      type: String
-    },
-    carExpiry: {
-      type: String
-    },
-    cvv: {
-      type: String
-    },
+  country: {
+    type: String,
+  },
+  state: {
+    type: String,
+  },
+  houseNumber: {
+    type: String,
+  },
+  street: {
+    type: String,
+  },
+  city: {
+    type: String,
+  },
+  pinCode: {
+    type: Number,
+  },
+  landMark: {
+    type: String,
+  },
+  cardName: {
+    type: String
+  },
+  cardNumber: {
+    type: String
+  },
+  carExpiry: {
+    type: String
+  },
+  cvv: {
+    type: String
   },
   status: {
     type: String,
     enum: ["signed", "processed", "shipped", "Out For Delivery", "delivered", "canceled"],
     default: "processed"
   },
-  products: {
-    type: [orderProductSchema]
+  unitPrice: {
+    type: Number
+  },
+  product: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Product"
+  },
+  quantity: {
+    type: Number
+  },
+  total: {
+    type: Number
+  },
+  startDate: {
+    type: Date,
+    required: true,
+  },
+  ringTheBell: {
+    type: Boolean,
+  },
+  instruction: {
+    type: String,
+  },
+  days: {
+    type: String,
+    enum: ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'],
+  },
+  type: {
+    type: String,
+    enum: ['EveryDay', 'Alternate', 'customized'],
   },
   paymentGatewayOrderId: {
     type: String,
@@ -97,11 +128,6 @@ const orderSchema = new mongoose.Schema({
     type: String,
     enum: ["pending", "Collected", "Online"],
     default: "pending"
-  },
-  grandTotal: {
-    type: Number,
-    required: true,
-    default: 0,
   },
   discount: {
     type: Number,

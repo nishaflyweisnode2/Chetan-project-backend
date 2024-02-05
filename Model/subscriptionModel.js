@@ -23,9 +23,6 @@ const subscriptionSchema = new mongoose.Schema({
   quantity: {
     type: Number
   },
-  total: {
-    type: Number
-  },
   startDate: {
     type: Date,
     required: true,

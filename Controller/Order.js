@@ -9,6 +9,7 @@ const ErrorHander = require("../utils/errorhander");
 const catchAsyncErrors = require("../Middleware/catchAsyncErrors");
 const Razorpay = require("razorpay");
 const OrderReturn = require('../Model/OrderReturnModel')
+const Address = require("../Model/addressModel");
 const cron = require('node-cron');
 const razorpayInstance = new Razorpay({ key_id: "rzp_test_8VsYUQmn8hHm69", key_secret: "Xcg3HItXaBuQ9OIpeOAFUgLI", });
 // const newOrder = catchAsyncErrors(async (req, res, next) => {
@@ -170,21 +171,71 @@ const checkout = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    const order = new Order({ user: req.user._id, driverId: user.driverId, collectionBoyId: user.collectionBoyId, address, });
-    let grandTotal = 0;
-    const orderProducts = cart.products.map((cartProduct) => {
-      const total = cartProduct.quantity * cartProduct.product.price;
-      grandTotal += total;
-      return { product: cartProduct.product._id, unitPrice: cartProduct.product.price, quantity: cartProduct.quantity, total, startDate: cartProduct.startDate, ringTheBell: cartProduct.ringTheBell, instruction: cartProduct.instruction, days: cartProduct.days, type: cartProduct.type, orderType: cartProduct.orderType };
-    });
-    order.products = orderProducts;
-    order.grandTotal = grandTotal;
-    order.shippingPrice = 10;
-    order.amountToBePaid = grandTotal + order.shippingPrice - order.discount;
-    await order.save();
-    await order.populate([{ path: "products.product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
-    // await Cart.findOneAndDelete({ user: req.user._id });
-    return res.status(200).json({ success: true, msg: "Order created", order, });
+    const allAddress = await Address.findById({ _id: address });
+    if (!allAddress) {
+      return res.status(404).json({ error: 'Address not found' });
+    }
+    let orders=[]
+    for (let i = 0; i < cart.products.length; i++) {
+      console.log(cart.products[i]);
+      if (cart.products[i].orderType == 'once') {
+        let obj = {
+          user: req.user._id,
+          driverId: user.driverId,
+          collectionBoyId: user.collectionBoyId,
+          address2: allAddress.address2,
+          country: allAddress.state,
+          state: allAddress.state,
+          houseNumber: allAddress.houseNumber,
+          street: allAddress.street,
+          city: allAddress.city,
+          pinCode: allAddress.pinCode,
+          landMark: allAddress.landMark,
+          unitPrice: cart.products[i].product.price,
+          product: cart.products[i].product._id,
+          quantity: cart.products[i].quantity,
+          total: cart.products[i].quantity * cart.products[i].product.price,
+          ringTheBell: cart.products[i].ringTheBell,
+          instruction: cart.products[i].instruction,
+          discount: 0,
+          shippingPrice: 10,
+          startDate: cart.products[i].startDate,
+          amountToBePaid: (cart.products[i].quantity * cart.products[i].product.price) + 10 ,
+          orderType: "once"
+        }
+        const address = await Order.create(obj);
+        await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+        orders.push(address)
+      }
+      if (cart.products[i].orderType == 'Subscription') {
+        let obj = {
+          userId: req.user._id,
+          driverId: user.driverId,
+          collectionBoyId: user.collectionBoyId,
+          address2: allAddress.address2,
+          country: allAddress.state,
+          state: allAddress.state,
+          houseNumber: allAddress.houseNumber,
+          street: allAddress.street,
+          city: allAddress.city,
+          pinCode: allAddress.pinCode,
+          landMark: allAddress.landMark,
+          unitPrice: cart.products[i].product.price,
+          product: cart.products[i].product._id,
+          quantity: cart.products[i].quantity,
+          ringTheBell: cart.products[i].ringTheBell,
+          instruction: cart.products[i].instruction,
+          discount: 0,
+          shippingPrice: 10,
+          startDate: cart.products[i].startDate,
+          amountToBePaid: (cart.products[i].quantity * cart.products[i].product.price) + 10 ,
+        }
+        const address = await Subscription.create(obj);
+        await address.populate([{ path: "product", select: { reviews: 0 } },]);
+        orders.push(address)
+      }
+    }
+    return res.status(200).json({ success: true, msg: "Order created", orders, });
   } catch (error) {
     next(error);
   }
