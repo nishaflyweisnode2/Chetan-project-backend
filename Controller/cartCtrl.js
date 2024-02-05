@@ -6,31 +6,24 @@ const cartModel = require("../Model/cartModel");
 const Coupon = require("../Model/couponModel");
 
 exports.addToCart = async (req, res, next) => {
-  const { quantity } = req.body;
-  const { size} = req.body;
+  const { quantity, startDate, ringTheBell, instruction, days, type, orderType, size } = req.body;
   try {
-    const  product  = req.params.id;
+    const product = req.params.id;
     // const cart = await Cart.findOne({user: req.params.id});
-    let cart = await Cart.findOne({
-      user: req.user.id
-    });
+    let cart = await Cart.findOne({ user: req.user.id });
     console.log(req.user.id);
-    if (!cart) {
-      cart = await createCart (req.user.id);
-    }
+    if (!cart) { cart = await createCart(req.user.id); }
     // console.log(req.params.id);
     const productIndex = cart.products.findIndex((cartProduct) => {
       return cartProduct.product.toString() == product;
     });
     console.log(productIndex);
     if (productIndex < 0) {
-      cart.products.push({ product,quantity,size });
+      cart.products.push({ product, quantity, size, startDate, ringTheBell, instruction, days, type, orderType });
     } else {
       cart.products[productIndex].quantity++;
     }
-
     await cart.save();
-
     return res.status(200).json({
       msg: "product added to cart",
     });
@@ -54,25 +47,25 @@ exports.updateQuantity = async (req, res, next) => {
     const productIndex = cart.products.findIndex((cartProduct) => {
       return cartProduct.product.toString() == product;
     });
-  // console.log(productIndex)
+    // console.log(productIndex)
 
-    if (productIndex < 0 && quantity > 0 ) {
+    if (productIndex < 0 && quantity > 0) {
       cart.products.push({ product, quantity, customizes });
     } else if (productIndex >= 0 && quantity > 0, customizes > 0) {
       cart.products[productIndex].quantity = quantity;
-    
+
     } else if (productIndex >= 0) {
       cart.products.splice(productIndex, 1);
     }
 
     await cart.save();
 
-   //const cartResponse = await getCartResponse(cart);
+    //const cartResponse = await getCartResponse(cart);
 
     return res.status(200).json({
       success: true,
       msg: "cart updated",
-     // cart: cartResponse,
+      // cart: cartResponse,
     });
   } catch (error) {
     next(error);
@@ -104,46 +97,46 @@ exports.getCart = async (req, res, next) => {
 
 exports.applyCoupon = async (req, res, next) => {
   try {
-      const cart = await Cart.findOne({ user: req.params.id });
-      console.log(req.params.id);
+    const cart = await Cart.findOne({ user: req.params.id });
+    console.log(req.params.id);
 
-      const coupon = await Coupon.findOne({
-          couponCode: req.body.couponCode,
-          expirationDate: { $gte: new Date(moment().format('YYYY-MM-DD')) },
-          activationDate: { $lte: new Date(moment().format('YYYY-MM-DD')) }
-      });
+    const coupon = await Coupon.findOne({
+      couponCode: req.body.couponCode,
+      expirationDate: { $gte: new Date(moment().format('YYYY-MM-DD')) },
+      activationDate: { $lte: new Date(moment().format('YYYY-MM-DD')) }
+    });
 
-      console.log('coupon===================', coupon);
-      console.log('cartCoupon', cart);
+    console.log('coupon===================', coupon);
+    console.log('cartCoupon', cart);
 
-      if (!coupon) {
-          return next(new ErrorHander('Invalid coupon code', 400));
-      }
+    if (!coupon) {
+      return next(new ErrorHander('Invalid coupon code', 400));
+    }
 
-      // Check if any product in the cart matches the coupon category
-      const isCategoryMatch = cart.products.some((product) => {
-          return product.product.category.toString() === coupon.category.toString();
-      });
+    // Check if any product in the cart matches the coupon category
+    const isCategoryMatch = cart.products.some((product) => {
+      return product.product.category.toString() === coupon.category.toString();
+    });
 
-      if (!isCategoryMatch) {
-          return next(new ErrorHander('Coupon category does not match any product in the cart', 400));
-      }
+    if (!isCategoryMatch) {
+      return next(new ErrorHander('Coupon category does not match any product in the cart', 400));
+    }
 
-      console.log('Coupon applied successfully');
-      console.log('Cart before applying coupon:', cart);
+    console.log('Coupon applied successfully');
+    console.log('Cart before applying coupon:', cart);
 
-      cart.coupon = coupon._id;
-      await cart.save();
+    cart.coupon = coupon._id;
+    await cart.save();
 
-      console.log('Cart after applying coupon:', cart);
+    console.log('Cart after applying coupon:', cart);
 
-      return res.status(200).json({
-          success: true,
-          msg: 'Coupon applied successfully'
-      });
+    return res.status(200).json({
+      success: true,
+      msg: 'Coupon applied successfully'
+    });
   } catch (error) {
-      console.log(error);
-      next(error);
+    console.log(error);
+    next(error);
   }
 };
 
@@ -200,13 +193,13 @@ const getCartResponse = async (cart, req, res) => {
     if (cartResponse.coupon) {
       discount = 0.01 * cart.coupon.discount * total;
     }
-const shipping=10;
+    const shipping = 10;
     cartResponse.subTotal = total;
     cartResponse.discount = discount;
     cartResponse.shipping = 10;
     cartResponse.total = total - discount;
     cartResponse.total = total + shipping;
-   
+
 
     return cartResponse;
   } catch (error) {
@@ -215,10 +208,10 @@ const shipping=10;
 };
 
 
-const orderByCOD = async(req,res) => {
-  try{
-  
-  }catch(err){
+const orderByCOD = async (req, res) => {
+  try {
+
+  } catch (err) {
     console.log(err)
     throw err
   }
@@ -261,18 +254,18 @@ exports.decreaseQty = async (req, res, next) => {
 };
 exports.deleteCart = async (req, res, next) => {
 
-try {
-  // Assuming the user ID is available in req.user._id after authentication
-  const userId = req.user._id;
+  try {
+    // Assuming the user ID is available in req.user._id after authentication
+    const userId = req.user._id;
 
-  // Delete the cart associated with the user
-  await Cart.findOneAndDelete({ user: userId });
+    // Delete the cart associated with the user
+    await Cart.findOneAndDelete({ user: userId });
 
-  res.status(200).json({ success: true, message: 'Cart deleted successfully' });
-} catch (error) {
-  console.error('Error:', error);
-  res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
-}
+    res.status(200).json({ success: true, message: 'Cart deleted successfully' });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+  }
 };
 exports.deletProduct = async (req, res, next) => {
   try {
@@ -303,7 +296,7 @@ exports.deletProduct = async (req, res, next) => {
   }
 };
 
- 
+
 exports.decreaseQty1 = async (req, res, next) => {
   try {
     const { productId } = req.params;
@@ -346,26 +339,26 @@ exports.decreaseQty1 = async (req, res, next) => {
   }
 };
 
-  exports.getAllCarts = async (req, res, next) => {
-    try {
-      // Fetch all carts
-      const allCarts = await Cart.find().populate('user').populate('products.product'); // Adjust the population based on your model structure
-  
-      // Return the list of carts
-      res.status(200).json({ success: true, carts: allCarts });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ success: false, message: 'Internal server error' });
-    }
-  };
-  exports.getCartbyUser = async (req, res, next) => {
+exports.getAllCarts = async (req, res, next) => {
+  try {
+    // Fetch all carts
+    const allCarts = await Cart.find().populate('user').populate('products.product'); // Adjust the population based on your model structure
+
+    // Return the list of carts
+    res.status(200).json({ success: true, carts: allCarts });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+exports.getCartbyUser = async (req, res, next) => {
 
   try {
     const userId = req.params.userId;
-console.log(userId);
+    console.log(userId);
     // Find the cart based on the user ID
-    const cart = await Cart.findOne({ user:userId }).populate("user").populate("products.product");
-console.log(cart);
+    const cart = await Cart.findOne({ user: userId }).populate("user").populate("products.product");
+    console.log(cart);
     if (!cart) {
       return res.status(404).json({ message: 'Cart not found for the user.', status: 404 });
     }

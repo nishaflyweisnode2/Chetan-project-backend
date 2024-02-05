@@ -32,6 +32,10 @@ const Driver = mongoose.Schema({
         type: String,
         require: true
     },
+    completeProfile: {
+        type: Boolean,
+        require: false
+    },
     status: {
         type: String,
         default: "disapprove"

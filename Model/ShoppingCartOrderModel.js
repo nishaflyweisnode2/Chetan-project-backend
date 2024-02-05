@@ -1,19 +1,4 @@
 const mongoose = require("mongoose");
-
-const orderTrackingSchema = new mongoose.Schema({
-  status: {
-    type: String,
-    enum: ["signed", "processed", "shipped", "Out For Delivery", "delivered"],
-    default: "processed"
-  },
-  date: {
-    type: Date,
-    default: function () {
-      return new Date()
-    }
-  }
-}, { _id: false })
-
 const orderProductSchema = new mongoose.Schema({
   unitPrice: {
     type: Number
@@ -27,7 +12,21 @@ const orderProductSchema = new mongoose.Schema({
   },
   total: {
     type: Number
-  }
+  },
+  ringTheBell: {
+    type: Boolean,
+  },
+  instruction: {
+    type: String,
+  },
+  days: {
+    type: String,
+    enum: ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'],
+  },
+  type: {
+    type: String,
+    enum: ['EveryDay', 'Alternate', 'customized'],
+  },
 }, { _id: false })
 
 const orderSchema = new mongoose.Schema({
@@ -132,6 +131,11 @@ const orderSchema = new mongoose.Schema({
   delivered: {
     type: Boolean,
     default: false
+  },
+  orderType: {
+    type: String,
+    enum: ['Subscription', 'once'],
+    default: 'once'
   },
 }, {
   timestamps: true

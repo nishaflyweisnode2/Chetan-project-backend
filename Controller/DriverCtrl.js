@@ -50,14 +50,13 @@ exports.accountVerificationOTP = async (req, res, next) => {
 };
 exports.createDriver = async (req, res, next) => {
     try {
-        const { name, email, phone, password } = req.body;
-        let findDriver = await driver.findOne({ email, phone, role: "driver" });
+        const { phone } = req.body;
+        let findDriver = await driver.findOne({ phone, role: "driver" });
         if (findDriver) {
             return res.status(409).json({ data: {}, message: "Already exist.", status: 409 });
         } else {
             const otp = OTP.generateOTP();
-            const hashedPassword = await bcrypt.hash(password, 10); // Hash the password with bcrypt
-            const Driver = await driver.create({ name, email, phone, password: hashedPassword, otp });
+            const Driver = await driver.create({ phone, otp });
             if (Driver) {
                 return res.status(201).json({ data: Driver, message: "Registration successfully", status: 200 });
             }
@@ -69,7 +68,7 @@ exports.createDriver = async (req, res, next) => {
 }
 exports.getProfile = async (req, res) => {
     try {
-        const Data = await driver.findOne({ _id: req.params.id, role: "driver" })
+        const Data = await driver.findOne({ _id: req.params.id })
         if (!Data) {
             return res.status(201).json({ message: "Driver not found", status: 404, data: {}, })
         } else {
@@ -217,6 +216,7 @@ exports.updateBankDetails = async (req, res) => {
                     type: "bankdetails",
                     ifsc: req.body.ifsc,
                     driver: user._id,
+                    completeProfile: true
                 };
                 let update = await bankDetails.findByIdAndUpdate({ _id: data1._id }, obj, { new: true, });
                 res.status(200).send({ message: "Data update successfully", status: 200, data: update, });

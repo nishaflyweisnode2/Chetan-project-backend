@@ -170,12 +170,12 @@ const checkout = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    const order = new Order({ user: req.user._id, driverId: user.driverId, collectionBoyId: user.collectionBoyId, address });
+    const order = new Order({ user: req.user._id, driverId: user.driverId, collectionBoyId: user.collectionBoyId, address, });
     let grandTotal = 0;
     const orderProducts = cart.products.map((cartProduct) => {
       const total = cartProduct.quantity * cartProduct.product.price;
       grandTotal += total;
-      return { product: cartProduct.product._id, unitPrice: cartProduct.product.price, quantity: cartProduct.quantity, total, };
+      return { product: cartProduct.product._id, unitPrice: cartProduct.product.price, quantity: cartProduct.quantity, total, startDate: cartProduct.startDate, ringTheBell: cartProduct.ringTheBell, instruction: cartProduct.instruction, days: cartProduct.days, type: cartProduct.type, orderType: cartProduct.orderType };
     });
     order.products = orderProducts;
     order.grandTotal = grandTotal;
@@ -390,6 +390,76 @@ const insertNewProduct = async (req, res, next) => {
     return res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
 };
+const pauseSubscription = async (req, res, next) => {
+  try {
+    const { subscriptionId } = req.params;
+    const order = await Subscription.findById(subscriptionId);
+    if (!order) {
+      return res.status(404).json({ error: 'Subscription not found' });
+    }
+    order.endDate = new Date.now();
+    await order.save();
+    return res.status(201).json({ message: 'Subscription pause successfully', order });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to place order' });
+  }
+};
+const createSubscription = async (req, res, next) => {
+  try {
+    const findProduct = await Product.findById({ _id: req.body.productId });
+    if (!findProduct) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    const user = await User.findOne({ _id: req.user._id });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    let obj = {
+      userId: req.user._id,
+      driverId: user.driverId,
+      collectionBoyId: user.collectionBoyId,
+      productId: findProduct._id,
+      unitPrice: req.body.size,
+      quantity: req.body.quantity,
+      startDate: req.body.startDate,
+      ringTheBell: req.body.ringTheBell,
+      instruction: req.body.instruction,
+      days: req.body.days,
+      type: req.body.type,
+    }
+    const banner = await Subscription.create(obj);
+    return res.status(201).json({ message: 'Create subscription successfully', banner });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: 'Failed to place order' });
+  }
+};
+const mySubscription = async (req, res, next) => {
+  try {
+    const { user } = req;
+    const subscriptions = await Subscription.find({ userId: user._id }).populate("userId productId");
+    return res.status(200).json({ subscriptions });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to get user subscriptions' });
+  }
+};
+const deleteSubscription = async (req, res, next) => {
+  try {
+    const { subscriptionId } = req.params;
+    const order = await Subscription.findById(subscriptionId);
+    if (!order) {
+      return res.status(404).json({ error: 'Subscription not found' });
+    }
+    const del = await Subscription.findByIdAndDelete(subscriptionId);
+
+    return res.status(201).json({ message: 'Subscription delete successfully', del });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to place order' });
+  }
+};
 const subscription = async (req, res, next) => {
   try {
     const { user } = req.user._id;
@@ -454,16 +524,6 @@ const subscription = async (req, res, next) => {
 };
 const calculateDailyAmount = (subscription) => {
   return subscription.totalOrderAmount / subscription.numberOfDays;
-};
-const mySubscription = async (req, res, next) => {
-  try {
-    const { user } = req;
-    const subscriptions = await Subscription.find({ userId: user._id }).populate("userId").populate("orderId");
-    return res.status(200).json({ subscriptions });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to get user subscriptions' });
-  }
 };
 const addproductinOrder = async (req, res, next) => {
   try {
@@ -542,4 +602,4 @@ const payBills = async (req, res) => {
     return res.status(400).json({ message: err.message });
   }
 };
-module.exports = { subscription, deleteproductinOrder, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }
+module.exports = { subscription, createSubscription, pauseSubscription, deleteSubscription, deleteproductinOrder, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }

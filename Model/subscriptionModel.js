@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-
 const subscriptionSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -14,10 +13,18 @@ const subscriptionSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "driver",
   },
-  orderId: {
+  product: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Order',
-    required: true,
+    ref: "Product"
+  },
+  unitPrice: {
+    type: Number
+  },
+  quantity: {
+    type: Number
+  },
+  total: {
+    type: Number
   },
   startDate: {
     type: Date,
@@ -25,11 +32,20 @@ const subscriptionSchema = new mongoose.Schema({
   },
   endDate: {
     type: Date,
-    required: true,
+  },
+  ringTheBell: {
+    type: Boolean,
+  },
+  instruction: {
+    type: String,
+  },
+  days: {
+    type: String,
+    enum: ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'],
   },
   type: {
     type: String,
-    default: 'subscription',
+    enum: ['EveryDay', 'Alternate', 'customized'],
   },
 });
 
