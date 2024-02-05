@@ -216,7 +216,6 @@ exports.updateBankDetails = async (req, res) => {
                     type: "bankdetails",
                     ifsc: req.body.ifsc,
                     driver: user._id,
-                    completeProfile: true
                 };
                 let update = await bankDetails.findByIdAndUpdate({ _id: data1._id }, obj, { new: true, });
                 res.status(200).send({ message: "Data update successfully", status: 200, data: update, });
@@ -258,7 +257,7 @@ exports.updateDocument = async (req, res) => {
             return res.status(404).json({ msg: "User not found" });
         }
         req.body.drivingLicense = req.file.path;
-        const user = await bankDetails.findOneAndUpdate({ _id: existingUser._id }, { $set: { drivingLicense: req.body.drivingLicense }, }, { new: true });
+        const user = await bankDetails.findOneAndUpdate({ _id: existingUser._id }, { $set: { drivingLicense: req.body.drivingLicense, completeProfile: true }, }, { new: true });
         return res.status(200).json({ msg: "Profile updated successfully", user });
     } catch (error) {
         console.error(error);

@@ -49,13 +49,13 @@ exports.accountVerificationOTP = async (req, res, next) => {
 };
 exports.createCollectionBoy = async (req, res, next) => {
         try {
-                const { name, email, phone } = req.body;
-                let findDriver = await driver.findOne({ email, phone, role: "collectionBoy" });
+                const { phone } = req.body;
+                let findDriver = await driver.findOne({ phone, role: "collectionBoy" });
                 if (findDriver) {
                         return res.status(409).json({ data: {}, message: "Already exist.", status: 409 });
                 } else {
                         const otp = OTP.generateOTP();
-                        const Driver = await driver.create({ name, email, phone, otp, role: "collectionBoy" });
+                        const Driver = await driver.create({ phone, otp, role: "collectionBoy" });
                         if (Driver) {
                                 return res.status(201).json({ data: Driver, message: "Registration successfully", status: 200 });
                         }
