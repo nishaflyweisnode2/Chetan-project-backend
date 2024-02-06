@@ -19,7 +19,7 @@ const collectionDeliveryPunchIn = require("../Model/cdPunchIn");
 const moment = require('moment')
 exports.sendOtp = async (req, res) => {
     try {
-        const Data = await driver.findOne({ phone: req.body.phone, role: "driver" })
+        const Data = await driver.findOne({ phone: req.body.phone, role: req.body.role })
         if (!Data) {
             const otp = await otpHelper.generateOTP(4);
             const data = await driver.create({ phone: req.body.phone, otp: otp, });
@@ -36,7 +36,7 @@ exports.sendOtp = async (req, res) => {
 }
 exports.accountVerificationOTP = async (req, res, next) => {
     try {
-        const user = await driver.findOne({ otp: req.body.otp, role: "driver" })
+        const user = await driver.findOne({ otp: req.body.otp, role: req.body.role })
         console.log("user", user)
         if (!user) {
             return next(new ErrorHander("Invalid OTP!", 400))
