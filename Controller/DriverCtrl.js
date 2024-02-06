@@ -26,8 +26,8 @@ exports.sendOtp = async (req, res) => {
             return res.status(200).json({ otp: data.otp, })
         } else {
             const otp = await otpHelper.generateOTP(4);
-            const data = await driver.updateOne({ _id: Data._id }, { otp: otp }, { new: true });
-            return res.status(200).json({ otp: otp, })
+            const data = await driver.findByIdAndUpdate({ _id: Data._id }, { $set: { otp: otp } }, { new: true });
+            return res.status(200).json({ otp: otp, data: data._id })
         }
     } catch (error) {
         console.log(error);
@@ -53,6 +53,21 @@ exports.accountVerificationOTP = async (req, res, next) => {
         return res.status(400).json({ message: err.message })
     }
 };
+exports.reSendOtp = async (req, res) => {
+    try {
+        const Data = await driver.findOne({ _id: req.params.id })
+        if (!Data) {
+            return res.status(404).json({ message: 'Data not found', })
+        } else {
+            const otp = await otpHelper.generateOTP(4);
+            const data = await driver.findByIdAndUpdate({ _id: Data._id }, { $set: { otp: otp } }, { new: true });
+            return res.status(200).json({ data: otp, data: data._id })
+        }
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+}
 exports.createDriver = async (req, res, next) => {
     try {
         const { phone } = req.body;
