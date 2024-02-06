@@ -36,13 +36,18 @@ exports.sendOtp = async (req, res) => {
 }
 exports.accountVerificationOTP = async (req, res, next) => {
     try {
-        const user = await driver.findOne({ otp: req.body.otp, role: req.body.role })
-        console.log("user", user)
-        if (!user) {
-            return next(new ErrorHander("Invalid OTP!", 400))
+        const Data = await driver.findOne({ _id: req.params.id })
+        if (!Data) {
+            return res.status(404).json({ message: 'Not found', })
+        } else {
+            const user = await driver.findOne({ _id: Data._id, otp: req.body.otp })
+            console.log("user", user)
+            if (!user) {
+                return next(new ErrorHander("Invalid OTP!", 400))
+            }
+            const token = jwt.sign({ user_id: user._id }, JWTkey,);
+            return res.status(200).json({ token: token, user: user })
         }
-        const token = jwt.sign({ user_id: user._id }, JWTkey,);
-        return res.status(200).json({ token: token, Id: user._id })
     } catch (err) {
         console.log(error)
         return res.status(400).json({ message: err.message })

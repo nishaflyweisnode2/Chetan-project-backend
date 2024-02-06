@@ -8,7 +8,7 @@ const storage = new CloudinaryStorage({ cloudinary: cloudinary, params: { folder
 const upload = multer({ storage: storage });
 router.post('/api/v1/driver/create', driver_Controllers.createDriver);
 router.post('/api/v1/driver/sendotp', driver_Controllers.sendOtp);
-router.post('/api/v1/driver/verify', driver_Controllers.accountVerificationOTP);
+router.post('/api/v1/driver/verify/:id', driver_Controllers.accountVerificationOTP);
 router.get('/api/v1/driver/get/:id', driver_Controllers.getProfile);
 router.put('/api/v1/driver/update/:id', upload.single('profile'), driver_Controllers.AddDeriverDetails);
 // router.post('/api/v1/driver/addOrder', driver_Controllers.AssignOrdertoDriver);
