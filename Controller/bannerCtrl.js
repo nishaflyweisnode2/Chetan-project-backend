@@ -21,7 +21,7 @@ const storage = new CloudinaryStorage({
 const upload = multer({ storage: storage });
 exports.AddBanner = async (req, res) => {
   try {
-    let findBanner = await Banner.findOne({ name: req.params.name });
+    let findBanner = await Banner.findOne({ name: req.params.name,type: "Top" });
     console.log(req.params.name)
     if (findBanner) {
       res.status(409).json({ message: "Banner already exit.", status: 404, data: {} });
@@ -30,7 +30,7 @@ exports.AddBanner = async (req, res) => {
         if (err) { return res.status(400).json({ msg: err.message }); }
         // console.log(req.file);
         const fileUrl = req.file ? req.file.path : "";
-        const data = { name: req.params.name, image: fileUrl };
+        const data = { name: req.params.name, type: "Top",image: fileUrl };
         const banner = await Banner.create(data);
         res.status(200).json({ message: "Banner add successfully.", status: 200, data: banner });
       })
