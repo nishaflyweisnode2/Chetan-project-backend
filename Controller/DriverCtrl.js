@@ -70,13 +70,13 @@ exports.reSendOtp = async (req, res) => {
 }
 exports.createDriver = async (req, res, next) => {
     try {
-        const { phone } = req.body;
-        let findDriver = await driver.findOne({ phone, role: "driver" });
+        const { phone, role } = req.body;
+        let findDriver = await driver.findOne({ phone, role: role });
         if (findDriver) {
             return res.status(409).json({ data: {}, message: "Already exist.", status: 409 });
         } else {
             const otp = OTP.generateOTP();
-            const Driver = await driver.create({ phone, otp });
+            const Driver = await driver.create({ phone, otp, role: role });
             if (Driver) {
                 return res.status(201).json({ data: Driver, message: "Registration successfully", status: 200 });
             }
@@ -100,7 +100,7 @@ exports.getProfile = async (req, res) => {
 }
 exports.AddDeriverDetails = async (req, res) => {
     try {
-        const Data = await driver.findOne({ _id: { $ne: req.params.id }, email: req.body.email, role: "driver" })
+        const Data = await driver.findOne({ _id: { $ne: req.params.id }, email: req.body.email, role: req.body.role })
         if (Data) {
             return res.status(201).json({ message: "Email is Already regtration" })
         } else {
@@ -201,7 +201,7 @@ exports.allAssignUserToDriver = async (req, res) => {
 exports.createAddress = async (req, res, next) => {
     req.body.driver = req.body.driver;
     const address = await Address.create(req.body);
-    res.status(201).json({ success: true, address, });
+    return res.status(201).json({ success: true, address, });
 };
 exports.getAddress = async (req, res, next) => {
     const allAddress = await Address.find({ driver: req.params.driverId });
