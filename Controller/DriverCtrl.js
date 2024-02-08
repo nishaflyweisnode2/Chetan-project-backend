@@ -100,26 +100,20 @@ exports.getProfile = async (req, res) => {
 }
 exports.AddDeriverDetails = async (req, res) => {
     try {
-        const Data = await driver.findOne({ _id: { $ne: req.params.id }, email: req.body.email, role: req.body.role })
+        const Data = await driver.findOne({ _id: { $ne: req.params.id }, phone: req.body.phone, role: req.body.role })
         if (Data) {
-            return res.status(201).json({ message: "Email is Already regtration" })
+            return res.status(201).json({ message: "Phone is Already registered." })
         } else {
-            let image, password;
+            let image;
             if (req.file) {
                 image = req.file.path
             } else {
                 image = Data.image
             }
-            if (req.body.password != (null || undefined)) {
-                password = bcrypt.hashSync(req.body.password, 8);
-            } else {
-                password = Data.password
-            }
             let obj = {
                 name: req.body.name || Data.name,
                 gender: req.body.gender || Data.gender,
-                password: password,
-                email: req.body.email || Data.email,
+                phone: req.body.phone || Data.phone,
                 image: image,
             }
             const data = await driver.findOneAndUpdate({ _id: req.params.id }, { $set: obj }, { new: true });
