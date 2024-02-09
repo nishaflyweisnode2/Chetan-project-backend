@@ -164,9 +164,9 @@ exports.allAssignUserToCollectionBoy = async (req, res) => {
                 if (!Data) {
                         return res.status(201).json({ message: "Driver not found", status: 404, data: {}, })
                 }
-                const userData12 = await User.findById({ collectionBoyId: req.params.collectionBoyId })
-                if (userData12) {
-                        return res.status(200).json({ sucess: true, message: update })
+                const userData12 = await User.find({ collectionBoyId: req.params.collectionBoyId })
+                if (userData12.length > 0) {
+                        return res.status(200).json({ sucess: true, message: userData12 })
                 } else {
                         return res.status(200).json({ sucess: false, message: {} })
                 }
