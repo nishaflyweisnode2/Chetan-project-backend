@@ -177,7 +177,7 @@ exports.allAssignUserToCollectionBoy = async (req, res) => {
 }
 exports.allCollectedOrder = async (req, res) => {
         try {
-                const data = await Order.find({ collectionBoyId: req.params.collectionBoyId, collectedStatus: "Collected" });
+                const data = await Order.find({ collectionBoyId: req.params.collectionBoyId, collectedStatus: "Collected" }).populate('product user');
                 if (data.length == 0) {
                         return res.status(201).json({ message: "No Delivered Order " })
                 } else {
@@ -189,7 +189,7 @@ exports.allCollectedOrder = async (req, res) => {
 }
 exports.allPendingCollectedOrder = async (req, res) => {
         try {
-                const data = await Order.find({ collectionBoyId: req.params.collectionBoyId, collectedStatus: "pending" });
+                const data = await Order.find({ collectionBoyId: req.params.collectionBoyId, collectedStatus: "pending" }).populate('product user');
                 if (!data || data.length == 0) {
                         return res.status(404).json({ message: "Pending Order not found" })
                 }
