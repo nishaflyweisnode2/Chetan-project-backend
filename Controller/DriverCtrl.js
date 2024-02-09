@@ -61,7 +61,7 @@ exports.reSendOtp = async (req, res) => {
         } else {
             const otp = await otpHelper.generateOTP(4);
             const data = await driver.findByIdAndUpdate({ _id: Data._id }, { $set: { otp: otp } }, { new: true });
-            return res.status(200).json({ data: otp, data: data._id })
+            return res.status(200).json({ otp: otp, data: data._id })
         }
     } catch (error) {
         console.log(error);
