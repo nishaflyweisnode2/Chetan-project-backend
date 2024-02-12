@@ -9,11 +9,19 @@ const contactUsSchema = new Schema(
         },
         content: {
             type: String,
-           
+
+        },
+        email: {
+            type: String,
+
+        },
+        whatApp: {
+            type: String,
+
         },
         imageUrl: {
             type: [String],
-           
+
         },
     },
     { timestamps: true }
