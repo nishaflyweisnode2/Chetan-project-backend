@@ -199,6 +199,18 @@ exports.allPendingCollectedOrder = async (req, res) => {
                 return res.status(400).json({ message: err.message })
         }
 }
+exports.ChangeStatus = async (req, res) => {
+        try {
+                const driverData = await Order.findOne({ _id: req.params.id })
+                driverData.paymentMode = req.body.paymentMode
+                driverData.collectedStatus = req.body.collectedStatus
+                driverData.save();
+                return res.status(200).json({ message: "ok", result: driverData })
+        } catch (err) {
+                console.log(err);
+                return res.status(400).json({ error: err.message })
+        }
+}
 exports.attendanceMark = async (req, res) => {
         try {
                 let user = await driver.findOne({ _id: req.params.id });

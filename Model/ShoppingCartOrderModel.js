@@ -124,9 +124,13 @@ const orderSchema = new mongoose.Schema({
     enum: ["pending", "paid", "failed"],
     default: "pending"
   },
+  paymentMode: {
+    type: String,
+    enum: ["Cash", "online"],
+  },
   collectedStatus: {
     type: String,
-    enum: ["pending", "Collected", "Online"],
+    enum: ["pending", "Collected"],
     default: "pending"
   },
   discount: {

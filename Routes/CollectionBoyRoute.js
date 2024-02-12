@@ -17,4 +17,5 @@ router.post("/api/v1/CollectionBoy/attendanceMark/:id", CollectionBoy.attendance
 router.get("/api/v1/CollectionBoy/driverAttendanceList/:id", CollectionBoy.driverAttendanceList);
 router.post("/api/v1/CollectionBoy/startCollection/:id", CollectionBoy.startCollection);
 router.post("/api/v1/CollectionBoy/endCollection/:id", CollectionBoy.endCollection);
+router.put("/api/v1/CollectionBoy/ChangeStatus/:id", CollectionBoy.ChangeStatus);
 module.exports = router;
