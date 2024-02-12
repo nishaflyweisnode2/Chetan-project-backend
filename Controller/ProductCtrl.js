@@ -87,10 +87,16 @@ exports.getAdminProducts = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
+exports.getPopularProducts = catchAsyncErrors(async (req, res, next) => {
+  console.log("hi")
+  const products = await Product.find().populate("category").populate("subCategory").sort({ ratings: -1 });
+
+  return res.status(200).json({ success: true, products, });
+});
 // Get Product Details
 exports.getProductDetails = catchAsyncErrors(async (req, res, next) => {
-  const product = await Product.findById(req.params.id) .populate('reviews.user', 'profilePicture name').populate("category").populate("subCategory")
-  .exec();;
+  const product = await Product.findById(req.params.id).populate('reviews.user', 'profilePicture name').populate("category").populate("subCategory")
+    .exec();;
 
   if (!product) {
     return next(new ErrorHander("Product not found", 404));
@@ -123,7 +129,7 @@ exports.updateProduct = catchAsyncErrors(async (req, res, next) => {
         price: req.body.price,
         category: req.body.category,
         images: req.body.images, // Assuming you're updating images here
-    deliveryPinCodes: req.body.deliveryPinCodes
+        deliveryPinCodes: req.body.deliveryPinCodes
 
       },
       {

@@ -63,7 +63,17 @@ const getSingleOrder = catchAsyncErrors(async (req, res, next) => {
 });
 const myOrders = catchAsyncErrors(async (req, res, next) => {
   console.log("hi");
-  const orders = await Order.find({ user: req.user.id });
+  const orders = await Order.find({ user: req.user.id, orderType: "once" });
+
+  console.log(orders);
+  return res.status(200).json({
+    success: true,
+    orders,
+  });
+});
+const mySubscriptionOrders = catchAsyncErrors(async (req, res, next) => {
+  console.log("hi");
+  const orders = await Order.find({ user: req.user.id, orderType: "Subscription" });
 
   console.log(orders);
   return res.status(200).json({
@@ -175,7 +185,7 @@ const checkout = async (req, res, next) => {
     if (!allAddress) {
       return res.status(404).json({ error: 'Address not found' });
     }
-    let orders=[]
+    let orders = []
     for (let i = 0; i < cart.products.length; i++) {
       console.log(cart.products[i]);
       if (cart.products[i].orderType == 'once') {
@@ -200,7 +210,7 @@ const checkout = async (req, res, next) => {
           discount: 0,
           shippingPrice: 10,
           startDate: cart.products[i].startDate,
-          amountToBePaid: (cart.products[i].quantity * cart.products[i].product.price) + 10 ,
+          amountToBePaid: (cart.products[i].quantity * cart.products[i].product.price) + 10,
           orderType: "once"
         }
         const address = await Order.create(obj);
@@ -228,7 +238,7 @@ const checkout = async (req, res, next) => {
           discount: 0,
           shippingPrice: 10,
           startDate: cart.products[i].startDate,
-          amountToBePaid: (cart.products[i].quantity * cart.products[i].product.price) + 10 ,
+          amountToBePaid: (cart.products[i].quantity * cart.products[i].product.price) + 10,
         }
         const address = await Subscription.create(obj);
         await address.populate([{ path: "product", select: { reviews: 0 } },]);
@@ -486,6 +496,47 @@ const createSubscription = async (req, res, next) => {
     return res.status(500).json({ error: 'Failed to place order' });
   }
 };
+const updateSubscription = async (req, res, next) => {
+  try {
+    const { subscriptionId } = req.params;
+    const order = await Subscription.findById(subscriptionId);
+    if (!order) {
+      return res.status(404).json({ error: 'Subscription not found' });
+    }
+    let productId;
+    if (req.body.productId != (null || undefined)) {
+      const findProduct = await Product.findById({ _id: req.body.productId });
+      if (!findProduct) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+      productId = findProduct._id;
+    } else {
+      productId = order.productId;
+    }
+    const user = await User.findOne({ _id: req.user._id });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    let obj = {
+      userId: req.user._id,
+      driverId: user.driverId,
+      collectionBoyId: user.collectionBoyId,
+      productId: productId,
+      unitPrice: req.body.size || order.size,
+      quantity: req.body.quantity || order.quantity,
+      startDate: req.body.startDate || order.startDate,
+      ringTheBell: req.body.ringTheBell || order.ringTheBell,
+      instruction: req.body.instruction || order.instruction,
+      days: req.body.days || order.days,
+      type: req.body.type || order.type,
+    }
+    const banner = await Subscription.findByIdAndUpdate({ _id: order._id }, { $set: obj }, { new: true });
+    return res.status(201).json({ message: 'Create subscription successfully', banner });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: 'Failed to place order' });
+  }
+};
 const mySubscription = async (req, res, next) => {
   try {
     const { user } = req;
@@ -653,4 +704,4 @@ const payBills = async (req, res) => {
     return res.status(400).json({ message: err.message });
   }
 };
-module.exports = { subscription, createSubscription, pauseSubscription, deleteSubscription, deleteproductinOrder, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }
+module.exports = { subscription, createSubscription, pauseSubscription, updateSubscription, deleteSubscription, deleteproductinOrder, mySubscriptionOrders, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }
