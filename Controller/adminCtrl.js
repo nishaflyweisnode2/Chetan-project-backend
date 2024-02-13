@@ -8,6 +8,7 @@ const token = require("../utils/Token")
 const Order = require("../Model/ShoppingCartOrderModel");
 const enquiry = require('../Model/enquiry');
 const cutOffTime = require('../Model/cutOffTime');
+const rechargeOffer = require('../Model/rechargeOffer');
 
 exports.createBrand = catchAsyncErrors(async (req, res, next) => {
   const imagesLinks = await multipleFileHandle(req.files);
@@ -255,5 +256,84 @@ exports.getCutOffTimeForApp = async (req, res) => {
   } catch (err) {
     console.log(err);
     return res.status(400).json({ message: err.message });
+  }
+};
+exports.AddRechargeOffer = async (req, res) => {
+  try {
+    let getPercentage, price, getPrice;
+    if (req.body.getPrice < req.body.price) {
+      price = req.body.price;
+      getPrice = req.body.price;
+      getPercentage = 0;
+    } else {
+      getPercentage = (((req.body.getPrice - req.body.price) * 100) / (req.body.price));
+      price = req.body.price;
+      getPrice = req.body.getPrice;
+    }
+    if (req.body.sendTo == "All") {
+      let user = await User.find({ role: "User" });
+      if (user.length > 0) {
+        for (let i = 0; i < user.length; i++) {
+          let obj = {
+            price: price,
+            getPrice: getPrice,
+            getPercentage: getPercentage,
+            user: user[i]._id,
+          }
+          const banner = await rechargeOffer.create(obj);
+        }
+      }
+    }
+    if (req.body.sendTo == "Single") {
+      let obj = {
+        price: price,
+        getPrice: getPrice,
+        getPercentage: getPercentage,
+        user: req.body.userId,
+      }
+      const banner = await rechargeOffer.create(obj);
+    }
+    return res.status(200).json({ message: "rechargeOffer add successfully.", status: 200, data: {} });
+  } catch (error) {
+    return res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
+  }
+};
+exports.getRechargeOffer = async (req, res) => {
+  try {
+    const rechargeOffers = await rechargeOffer.find({}).populate('user');
+    return res.status(200).json({ message: "Recharge Offer", data: rechargeOffers });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({
+      message: err.message
+    });
+  }
+};
+exports.getRechargeOfferById = async (req, res) => {
+  try {
+    const rechargeOffers = await rechargeOffer.findById({ _id: req.params.id }).populate('user');
+    return res.status(200).json({ message: "RechargeOffer", data: rechargeOffers })
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ message: err.message })
+  }
+}
+exports.DeleteRechargeOffer = async (req, res) => {
+  try {
+    const rechargeOffers = await rechargeOffer.findByIdAndDelete({ _id: req.params.id });
+    return res.status(200).json({ message: "Delete rechargeOffer ", },)
+  } catch (err) {
+    return res.status(400).json({ message: err.message })
+  }
+}
+exports.getRechargeOfferByUserId = async (req, res) => {
+  try {
+    const rechargeOffers = await rechargeOffer.find({ user: req.params.user }).populate('user');
+    return res.status(200).json({ message: "Recharge Offer", data: rechargeOffers });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({
+      message: err.message
+    });
   }
 };

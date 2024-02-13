@@ -10,12 +10,14 @@ router.get("/api/v1/admin/getAllEnquiry", admin.getAllEnquiry);
 router.get("/api/v1/admin/getEnquiryById/:id", admin.getEnquiryById);
 router.put("/api/v1/admin/closeEnquiry/:id", admin.closeEnquiry);
 router.delete("/api/v1/admin/deleteEnquiry/:id", admin.deleteEnquiry);
-
-
-
 router.post('/api/v1/CutOffTime/add', admin.AddCutOffTime);
 router.get('/api/v1/CutOffTime/all', admin.getCutOffTime);
 router.get('/api/v1/CutOffTime/get/:id', admin.getCutOffTimeById);
 router.delete('/api/v1/CutOffTime/delete/:id', admin.DeleteCutOffTime);
 router.get('/api/v1/CutOffTime/getCutOffTimeForApp', admin.getCutOffTimeForApp);
+router.post('/api/v1/RechargeOffer/add', admin.AddRechargeOffer);
+router.get('/api/v1/RechargeOffer/all', admin.getRechargeOffer);
+router.get('/api/v1/RechargeOffer/get/:id', admin.getRechargeOfferById);
+router.delete('/api/v1/RechargeOffer/delete/:id', admin.DeleteRechargeOffer);
+router.get('/api/v1/RechargeOffer/getRechargeOfferByUserId/:user', admin.getRechargeOfferByUserId);
 module.exports = router;
