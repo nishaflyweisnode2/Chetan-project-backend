@@ -23,9 +23,13 @@ exports.createProduct = catchAsyncErrors(async (req, res, next) => {
     price: req.body.price,
     images,
     size: req.body.size,
+    type: req.body.type,
+    isMultiple: req.body.isMultiple,
+    multipleSize: req.body.multipleSize,
     colors: req.body.colors,
     category: req.body.category,
     subCategory: req.body.subCategory,
+    includeGst:  req.body.includeGst,
     Stock: req.body.Stock,
     deliveryPinCodes: req.body.deliveryPinCodes
   }
@@ -113,7 +117,6 @@ exports.getProductDetails = catchAsyncErrors(async (req, res, next) => {
 exports.updateProduct = catchAsyncErrors(async (req, res, next) => {
   try {
     let product = await Product.findById(req.params.id);
-
     if (!product) {
       return next(new ErrorHander("Product not found", 404));
     }
@@ -127,10 +130,17 @@ exports.updateProduct = catchAsyncErrors(async (req, res, next) => {
         name: req.body.name,
         description: req.body.description,
         price: req.body.price,
+        images,
+        size: req.body.size,
+        type: req.body.type,
+        isMultiple: req.body.isMultiple,
+        multipleSize: req.body.multipleSize,
+        colors: req.body.colors,
         category: req.body.category,
-        images: req.body.images, // Assuming you're updating images here
+        subCategory: req.body.subCategory,
+        includeGst:  req.body.includeGst,
+        Stock: req.body.Stock,
         deliveryPinCodes: req.body.deliveryPinCodes
-
       },
       {
         new: true,
