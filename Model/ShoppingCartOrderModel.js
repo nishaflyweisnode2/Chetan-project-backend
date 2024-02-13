@@ -128,9 +128,12 @@ const orderSchema = new mongoose.Schema({
     type: String,
     enum: ["Cash", "online"],
   },
+  featuredDate: {
+    type: Date,
+  },
   collectedStatus: {
     type: String,
-    enum: ["pending", "Collected"],
+    enum: ["pending", "Collected", "featured"],
     default: "pending"
   },
   discount: {

@@ -356,6 +356,40 @@ exports.getVacationById = async (req, res, next) => {
     return res.status(200).json({ error: `Something went wrong` });
   }
 };
+exports.updateLocationofUser = async (req, res) => {
+  try {
+    const user = await User.findOne({ _id: req.params.id });
+    if (!user) {
+      return res.status(404).send({ status: 404, message: "user not found" });
+    } else {
+      var location;
+      if (req.body.currentLat && req.body.currentLong) {
+        console.log(req.body.currentLong);
+        let coordinates = [req.body.currentLat, req.body.currentLong];
+        console.log(coordinates);
+        location = { type: "Point", coordinates };
+        console.log("--------------------", location);
+        let update = await User.findByIdAndUpdate(
+          { _id: user._id },
+          { $set: { location: location } },
+          { new: true }
+        );
+        if (update) {
+          res.status(200).send({
+            status: 200,
+            message: "Location update successfully.",
+            data: update,
+          });
+        }
+      }
+    }
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .send({ status: 500, message: "Server error" + error.message });
+  }
+};
 // exports.loginUser = catchAsyncErrors(async (req, res, next) => {
 //   const { phone } = req.body;
 //   if (!phone) {

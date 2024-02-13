@@ -12,10 +12,12 @@ router.post('/api/v1/CollectionBoy/addEnquiry/:id', CollectionBoy.addEnquiry)
 router.post('/api/v1/CollectionBoy/assignDriverToCollectionBoy', CollectionBoy.assignDriverToCollectionBoy);
 router.get('/api/v1/CollectionBoy/allAssignUserToCollectionBoy/:collectionBoyId', CollectionBoy.allAssignUserToCollectionBoy)
 router.get('/api/v1/CollectionBoy/allCollectedOrder/:collectionBoyId', CollectionBoy.allCollectedOrder)
+router.get('/api/v1/CollectionBoy/allFeaturedOrder/:collectionBoyId', CollectionBoy.allFeaturedOrder)
 router.get('/api/v1/CollectionBoy/allPendingCollectedOrder/:collectionBoyId', CollectionBoy.allPendingCollectedOrder);
 router.post("/api/v1/CollectionBoy/attendanceMark/:id", CollectionBoy.attendanceMark);
 router.get("/api/v1/CollectionBoy/driverAttendanceList/:id", CollectionBoy.driverAttendanceList);
 router.post("/api/v1/CollectionBoy/startCollection/:id", CollectionBoy.startCollection);
 router.post("/api/v1/CollectionBoy/endCollection/:id", CollectionBoy.endCollection);
 router.put("/api/v1/CollectionBoy/ChangeStatus/:id", CollectionBoy.ChangeStatus);
+router.put("/api/v1/CollectionBoy/ChangeToFeaturedOrder/:id", CollectionBoy.ChangeToFeaturedOrder);
 module.exports = router;

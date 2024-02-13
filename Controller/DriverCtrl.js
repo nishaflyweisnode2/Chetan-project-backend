@@ -139,6 +139,23 @@ exports.addEnquiry = async (req, res) => {
         return res.status(400).json({ message: err.message })
     }
 }
+exports.getAllTodayEnquiry = async (req, res) => {
+    try {
+        const Data = await driver.findOne({ _id: req.params.id })
+        if (!Data) {
+            return res.status(404).json({ status: 404, message: "User Not found", data: {} })
+        }
+        const todayDate = moment().startOf('day').format('YYYY-MM-DD');
+        const todayEnquiries = await enquiry.find({ driverId: Data._id, createdAt: { $gte: new Date(todayDate), $lt: moment(todayDate).add(1, 'days').toDate() } });
+        if (todayEnquiries.length > 0) {
+            return res.status(200).json({ status: 200, message: "Today's enquiries found successfully", data: todayEnquiries });
+        } else {
+            return res.status(404).json({ status: 404, message: "Today's enquiries not found", data: [] });
+        }
+    } catch (err) {
+        return res.status(400).json({ message: err.message });
+    }
+};
 exports.assignUserToDriver = async (req, res) => {
     try {
         const userData = await User.findById({ _id: req.body.userId })

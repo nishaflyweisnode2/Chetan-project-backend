@@ -71,6 +71,16 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  location: {
+    type: {
+      type: String,
+      default: "Point"
+    },
+    coordinates: {
+      type: [Number],
+      default: [0, 0]
+    },
+  },
   resetPasswordToken: String,
   resetPasswordExpire: Number,
 });

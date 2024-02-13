@@ -187,6 +187,28 @@ exports.allCollectedOrder = async (req, res) => {
                 return res.status(400).json({ message: err.message })
         }
 }
+exports.allFeaturedOrder = async (req, res) => {
+        try {
+                const data = await Order.find({ collectionBoyId: req.params.collectionBoyId, collectedStatus: "featured" }).populate('product user');
+                if (data.length == 0) {
+                        return res.status(201).json({ message: "No Delivered Order " })
+                } else {
+                        return res.status(200).json({ message: data })
+                }
+        } catch (err) {
+                return res.status(400).json({ message: err.message })
+        }
+}
+exports.ChangeToFeaturedOrder = async (req, res) => {
+        try {
+                const driverData = await Order.findOne({ _id: req.params.id })
+                let update = await Order.findByIdAndUpdate({ _id: driverData._id }, { $set: { featuredDate: req.body.featuredDate, collectedStatus: "featured" } }, { new: true })
+                return res.status(200).json({ message: "ok", result: update })
+        } catch (err) {
+                console.log(err);
+                return res.status(400).json({ error: err.message })
+        }
+}
 exports.allPendingCollectedOrder = async (req, res) => {
         try {
                 const data = await Order.find({ collectionBoyId: req.params.collectionBoyId, collectedStatus: "pending" }).populate('product user');

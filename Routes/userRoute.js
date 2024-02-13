@@ -38,5 +38,6 @@ router.get("/api/v1/user/:id", userCtrl.getUserbyId);
 router.post("/api/v1/user/createVacation", isAuthenticatedUser, userCtrl.createVacation);
 router.get("/api/v1/user/getAll/Vacation", isAuthenticatedUser, userCtrl.getAllVacation);
 router.get("/api/v1/user/getVacationById/:id", userCtrl.getVacationById);
+router.put("/api/v1/user/updateLocationofUser/:id", userCtrl.updateLocationofUser)
 
 module.exports = router;

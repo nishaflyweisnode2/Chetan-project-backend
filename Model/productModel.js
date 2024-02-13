@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const mongoosePaginate = require("mongoose-paginate");
 const mongooseAggregatePaginate = require("mongoose-aggregate-paginate");
-
 const productSchema = mongoose.Schema({
   name: {
     type: String,
@@ -14,29 +13,38 @@ const productSchema = mongoose.Schema({
   },
   price: {
     type: Number,
-    required: [true, "Please Enter product Price"],
-    maxLength: [8, "Price cannot exceed 8 characters"],
+  },
+  size: {
+    type: String
   },
   ratings: {
     type: Number,
     default: 0,
   },
-  images: [
-    { img: { type: String, default:"" } }
-  ],
-  // images: [
-  //   {
-  //     img: {
-  //       type: String,
-  //       default:""
-  //       // default: 'https://res.cloudinary.com/dtijhcmaa/image/upload/v1687429143/product-images/plbhsjutcjkawqv4onal.jpg', // Provide the default image path here
-  //     },
-  //   },
-  // ],
-  
-  size: {
-    type: String
-
+  images: [{
+    img: {
+      type: String,
+      default: ""
+    }
+  }],
+  type: {
+    type: String,
+    enum: ["Bottle", "other"]
+  },
+  multipleSize: [{
+    size: {
+      type: String
+    },
+    price: {
+      type: Number,
+    },
+  }],
+  isMultiple: {
+    type: Boolean,
+    default: false
+  },
+  includeGst: {
+    type: Number,
   },
   colors: {
     type: String
@@ -60,28 +68,25 @@ const productSchema = mongoose.Schema({
     type: Number,
     default: 0,
   },
-  reviews: [
-    {
-      user: {
-        type: mongoose.Schema.ObjectId,
-        ref: "User",
-        required: true,
-      },
-      name: {
-        type: String,
-        required: true,
-      },
-      rating: {
-        type: Number,
-        required: true,
-      },
-      comment: {
-        type: String,
-        required: true,
-      },
+  reviews: [{
+    user: {
+      type: mongoose.Schema.ObjectId,
+      ref: "User",
+      required: true,
     },
-  ],
-
+    name: {
+      type: String,
+      required: true,
+    },
+    rating: {
+      type: Number,
+      required: true,
+    },
+    comment: {
+      type: String,
+      required: true,
+    },
+  }],
   user: {
     type: mongoose.Schema.ObjectId,
     ref: "User",

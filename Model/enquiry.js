@@ -28,7 +28,7 @@ const DriverOrders = mongoose.Schema({
                 type: String,
                 enum: ['pending', 'close'],
                 default: 'pending'
-        },
-})
+        }
+}, { timestamps: true });
 const enquiryOrder = mongoose.model('enquiry', DriverOrders);
 module.exports = enquiryOrder
