@@ -183,21 +183,32 @@ exports.resendOTP = catchAsyncErrors(async (req, res) => {
   }
 });
 exports.userPhoto = async (req, res, next) => {
-  console.log("hi");
   try {
     const teacherId = req.params.userId;
+    const users = await User.findById({ _id: teacherId });
+    if (!users) {
+      return next(new ErrorHander(`User does not exist with Id: ${req.params.id}`, 400));
+    }
     let image;
     if (req.file) {
       image = req.file.path;
+    } else {
+      image = users.profilePicture
     }
-    // console.log(req.file);
-    // return;
-
+    let location;
+    if (req.body.currentLat && req.body.currentLong) {
+      let coordinates = [req.body.currentLat, req.body.currentLong];
+      location = { type: "Point", coordinates };
+    } else {
+      location = users.location
+    }
     const updatedTeacher = await User.findByIdAndUpdate(teacherId, {
-      name: req.body.name,
-
-      phone: req.body.phone,
-      profilePicture: image
+      $set: {
+        name: req.body.name || users.name,
+        phone: req.body.phone || users.phone,
+        profilePicture: image,
+        location: location
+      }
     }, { new: true });
     return res.json(updatedTeacher);
   } catch (error) {
