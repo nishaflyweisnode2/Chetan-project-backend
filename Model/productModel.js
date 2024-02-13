@@ -15,6 +15,9 @@ const productSchema = mongoose.Schema({
     type: Number,
   },
   size: {
+    type: Number
+  },
+  sizeInWord: {
     type: String
   },
   ratings: {
@@ -33,7 +36,7 @@ const productSchema = mongoose.Schema({
   },
   multipleSize: [{
     size: {
-      type: String
+      type: Number
     },
     price: {
       type: Number,

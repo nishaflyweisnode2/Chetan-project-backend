@@ -22,6 +22,7 @@ exports.createProduct = catchAsyncErrors(async (req, res, next) => {
     description: req.body.description,
     price: req.body.price,
     images,
+    sizeInWord: req.body.sizeInWord,
     size: req.body.size,
     type: req.body.type,
     isMultiple: req.body.isMultiple,
@@ -29,7 +30,7 @@ exports.createProduct = catchAsyncErrors(async (req, res, next) => {
     colors: req.body.colors,
     category: req.body.category,
     subCategory: req.body.subCategory,
-    includeGst:  req.body.includeGst,
+    includeGst: req.body.includeGst,
     Stock: req.body.Stock,
     deliveryPinCodes: req.body.deliveryPinCodes
   }
@@ -131,6 +132,7 @@ exports.updateProduct = catchAsyncErrors(async (req, res, next) => {
         description: req.body.description,
         price: req.body.price,
         images,
+        sizeInWord: req.body.sizeInWord,
         size: req.body.size,
         type: req.body.type,
         isMultiple: req.body.isMultiple,
@@ -138,7 +140,7 @@ exports.updateProduct = catchAsyncErrors(async (req, res, next) => {
         colors: req.body.colors,
         category: req.body.category,
         subCategory: req.body.subCategory,
-        includeGst:  req.body.includeGst,
+        includeGst: req.body.includeGst,
         Stock: req.body.Stock,
         deliveryPinCodes: req.body.deliveryPinCodes
       },
