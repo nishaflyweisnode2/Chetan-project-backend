@@ -36,7 +36,7 @@ const productSchema = mongoose.Schema({
   },
   multipleSize: [{
     size: {
-      type: Number
+      type: String
     },
     price: {
       type: Number,

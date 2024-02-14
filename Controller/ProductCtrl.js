@@ -17,6 +17,17 @@ exports.createProduct = catchAsyncErrors(async (req, res, next) => {
   for (var i = 0; i < req.files.length; i++) {
     images.push({ img: req.files[i].path })
   }
+  let multipleSize = []
+  if (req.body.isMultiple == 'true') {
+    for (let i = 0; i < req.body.multipleSize.length; i++) {
+      let obj = {
+        price: req.body.multiplePrice[i],
+        size: req.body.multipleSize[i]
+      }
+      multipleSize.push(obj)
+    }
+  }
+  console.log(multipleSize)
   const data = {
     name: req.body.name,
     description: req.body.description,
@@ -26,7 +37,7 @@ exports.createProduct = catchAsyncErrors(async (req, res, next) => {
     size: req.body.size,
     type: req.body.type,
     isMultiple: req.body.isMultiple,
-    multipleSize: req.body.multipleSize,
+    multipleSize: multipleSize,
     colors: req.body.colors,
     category: req.body.category,
     subCategory: req.body.subCategory,
@@ -125,6 +136,16 @@ exports.updateProduct = catchAsyncErrors(async (req, res, next) => {
     for (var i = 0; i < req.files.length; i++) {
       images.push({ img: req.files[i].path })
     }
+    let multipleSize = []
+    if (req.body.isMultiple == 'true') {
+      for (let i = 0; i < req.body.multipleSize.length; i++) {
+        let obj = {
+          price: req.body.multiplePrice[i],
+          size: req.body.multipleSize[i]
+        }
+        multipleSize.push(obj)
+      }
+    }
     product = await Product.findByIdAndUpdate(
       req.params.id,
       {
@@ -136,7 +157,7 @@ exports.updateProduct = catchAsyncErrors(async (req, res, next) => {
         size: req.body.size,
         type: req.body.type,
         isMultiple: req.body.isMultiple,
-        multipleSize: req.body.multipleSize,
+        multipleSize: multipleSize,
         colors: req.body.colors,
         category: req.body.category,
         subCategory: req.body.subCategory,
