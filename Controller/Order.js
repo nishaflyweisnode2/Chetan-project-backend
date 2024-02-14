@@ -683,7 +683,7 @@ const deleteproductinOrder = async (req, res, next) => {
 const payBills = async (req, res) => {
   try {
     const { fromDate, toDate } = req.body;
-    const body = { user: req.user._id, status: "delivered", paymentStatus: { $ne: "paid" } };
+    const body = { user: req.user._id, paymentStatus: { $ne: "paid" } };
     if (fromDate && toDate) {
       body.createdAt = { $gte: new Date(fromDate), $lte: new Date(toDate) };
     }
@@ -695,7 +695,7 @@ const payBills = async (req, res) => {
         orderIds.push(data[i]._id);
         console.log(orderIds);
       }
-      return res.status(200).json({ data: { data, total, fromDate, toDate, orderIds } });
+      return res.status(200).json({ data: data, total, fromDate, toDate, orderIds });
     } else {
       return res.status(404).json({ success: false, data: {} });
     }
