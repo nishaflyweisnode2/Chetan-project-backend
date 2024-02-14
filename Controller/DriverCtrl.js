@@ -397,7 +397,7 @@ exports.PendingOrder = async (req, res) => {
 // }
 exports.ChangeStatus = async (req, res) => {
     try {
-        const driverData = await order.findOne({ driverId: req.params.id })
+        const driverData = await order.findOne({ _id: req.params.id })
         driverData.orderStatus = req.body.status
         driverData.save();
         return res.status(200).json({ message: "ok", result: driverData })
