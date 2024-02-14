@@ -209,6 +209,22 @@ exports.allAssignUserToDriver = async (req, res) => {
         return res.status(400).json({ message: err.message })
     }
 }
+exports.getUserbyId = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        const users = await User.findById(id);
+        if (!users) {
+            return next(new ErrorHander(`User does not exist with Id: ${req.params.id}`, 400));
+        }
+        const Data = await order.find({ user: users._id }).populate('product');
+        if (Data.length == 0) {
+            return res.status(201).json({ message: "No Data Found " })
+        }
+        return res.status(200).json({ success: true, users, order: Data });
+    } catch (error) {
+        return res.status(200).json({ error: `Something went wrong with Id: ${req.params}` });
+    }
+};
 exports.createAddress = async (req, res, next) => {
     req.body.driver = req.body.driver;
     const address = await Address.create(req.body);

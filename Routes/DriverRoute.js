@@ -11,6 +11,7 @@ router.post('/api/v1/driver/sendotp', driver_Controllers.sendOtp);
 router.post('/api/v1/driver/reSendOtp/:id', driver_Controllers.reSendOtp);
 router.post('/api/v1/driver/verify/:id', driver_Controllers.accountVerificationOTP);
 router.get('/api/v1/driver/get/:id', driver_Controllers.getProfile);
+router.get('/api/v1/driver/getUser/:id', driver_Controllers.getUserbyId);
 router.put('/api/v1/driver/update/:id', upload.single('profile'), driver_Controllers.AddDeriverDetails);
 // router.post('/api/v1/driver/addOrder', driver_Controllers.AssignOrdertoDriver);
 // router.put('/api/v1/driver/accept/:id', driver_Controllers.DriverAccept);
