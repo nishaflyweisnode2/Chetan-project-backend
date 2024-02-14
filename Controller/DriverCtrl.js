@@ -320,7 +320,7 @@ exports.DriverSingleOrder = async (req, res) => {
 }
 exports.GetPriceByDriverId = async (req, res) => {
     try {
-        const data = await DriverOrder.find({ driverId: req.params.driverId });
+        const data = await order.find({ driverId: req.params.driverId });
         console.log(data)
         const Data = data.map(d => {
             return result = { price: d.price, orderId: d._id, products: d.order.products }
@@ -338,7 +338,7 @@ exports.GetPriceByDriverId = async (req, res) => {
 }
 exports.DeliveredOrder = async (req, res) => {
     try {
-        await DriverOrder.updateOne({ _id: req.params.id }, { delivered: true, orderStatus: "Deliverd" }, { new: true })
+        await order.updateOne({ _id: req.params.id }, { delivered: true, orderStatus: "Deliverd" }, { new: true })
         return res.status(200).json({ message: "Delivered " })
     } catch (err) {
         console.log(err)
@@ -375,7 +375,7 @@ exports.driverCompleted = async (req, res) => {
 }
 exports.PendingOrder = async (req, res) => {
     try {
-        const data = await order.find({ $and: [{ driverId: req.params.id }, { status: "pending" }] });
+        const data = await order.find({ $and: [{ driverId: req.params.id }, { orderStatus: "pending" }] });
         if (!data || data.length == 0) {
             return res.status(404).json({ message: "Pending Order not found" })
         }
@@ -387,7 +387,7 @@ exports.PendingOrder = async (req, res) => {
 }
 // exports.AcceptOrder = async (req, res) => {
 //     try {
-//         const data = await DriverOrder.find({ $and: [{ driverId: req.params.id }, { status: "Accept" }] });
+//         const data = await order.find({ $and: [{ driverId: req.params.id }, { status: "Accept" }] });
 //         console.log(data)
 //         return res.status(200).json({ message: data })
 //     } catch (err) {
@@ -397,8 +397,8 @@ exports.PendingOrder = async (req, res) => {
 // }
 exports.ChangeStatus = async (req, res) => {
     try {
-        const driverData = await DriverOrder.findOne({ driverId: req.params.id })
-        driverData.status = req.body.status
+        const driverData = await order.findOne({ driverId: req.params.id })
+        driverData.orderStatus = req.body.status
         driverData.save();
         return res.status(200).json({ message: "ok", result: driverData })
     } catch (err) {
@@ -627,7 +627,7 @@ const hourCalculate = async (hour, minute, second) => {
 
 // exports.DeleteAssignOrder = async (req, res) => {
 //     try {
-//         await DriverOrder.findByIdAndDelete({ _id: req.params.id });
+//         await order.findByIdAndDelete({ _id: req.params.id });
 //         return res.status(200).json({ message: "Assign Order Deleted " })
 //     } catch (err) {
 //         return res.status(400).json({ message: err.message })
@@ -660,7 +660,7 @@ const hourCalculate = async (hour, minute, second) => {
 //                 username: userData.name,
 //                 userMobile: userData.phone
 //             }
-//             const DOrder = await DriverOrder.create(data);
+//             const DOrder = await order.create(data);
 //             return res.status(200).json({ sucess: true, message: DOrder })
 //         }
 //     } catch (err) {
@@ -670,7 +670,7 @@ const hourCalculate = async (hour, minute, second) => {
 // }
 // exports.DriverAccept = async (req, res) => {
 //     try {
-//         const data = await DriverOrder.findOneAndUpdate({ _id: req.params.id }, { status: "Accept" }, { new: true },)
+//         const data = await order.findOneAndUpdate({ _id: req.params.id }, { status: "Accept" }, { new: true },)
 //         return res.status(200).json({ message: "Accepted" })
 //     } catch (err) {
 //         return res.status(400).json({ message: err.message })
@@ -678,11 +678,11 @@ const hourCalculate = async (hour, minute, second) => {
 // }
 // exports.DriverReject = async (req, res) => {
 //     try {
-//         const Data = await DriverOrder.findById({ _id: req.params.id })
+//         const Data = await order.findById({ _id: req.params.id })
 //         if (!Data) {
 //             return res.status(500).json({ message: "Driver_Order ID is not found " })
 //         }
-//         const data = await DriverOrder.findOneAndUpdate({ _id: req.params.id }, { status: "Reject" }, { new: true },)
+//         const data = await order.findOneAndUpdate({ _id: req.params.id }, { status: "Reject" }, { new: true },)
 //         const RData = await rejectOrder.create({ driverId: Data.driverId, reasons: req.body.reason })
 //         return res.status(200).json({ message: "Reject" })
 //     } catch (err) {
