@@ -309,8 +309,8 @@ exports.DriverAllOrder = async (req, res) => {
 exports.DriverSingleOrder = async (req, res) => {
     const Id = req.params.id
     try {
-        const Data = await order.findById(Id);
-        if (Data.length == 0) {
+        const Data = await order.findById(Id).populate('user product');
+        if (!Data) {
             return res.status(201).json({ message: "No Data Found " })
         }
         return res.status(200).json({ sucess: true, message: Data })
@@ -363,7 +363,7 @@ exports.AllDrivers = async (req, res) => {
 }
 exports.driverCompleted = async (req, res) => {
     try {
-        const data = await order.find({ driverId: req.params.driverId, orderStatus: "Deliverd" });
+        const data = await order.find({ driverId: req.params.driverId, orderStatus: "Deliverd" }).populate('user product');
         if (data.length == 0) {
             return res.status(201).json({ message: "No Delivered Order " })
         } else {
@@ -375,7 +375,7 @@ exports.driverCompleted = async (req, res) => {
 }
 exports.PendingOrder = async (req, res) => {
     try {
-        const data = await order.find({ $and: [{ driverId: req.params.id }, { orderStatus: "pending" }] });
+        const data = await order.find({ $and: [{ driverId: req.params.id }, { orderStatus: "pending" }] }).populate('user product');
         if (!data || data.length == 0) {
             return res.status(404).json({ message: "Pending Order not found" })
         }
