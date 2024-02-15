@@ -1,10 +1,18 @@
 const router = require("express").Router();
 const { isAuthenticatedUser, authorizeRoles } = require("../Middleware/auth");
-const { placeOrderCOD, getOrders, payBills, mySubscriptionOrders, createSubscription, updateSubscription, pauseSubscription, deleteSubscription, insertNewProduct, deleteproductinOrder, addproductinOrder, mySubscription, subscription, getSingleOrder, getAllSubscription, getUnconfirmedOrders, GetAllReturnOrderbyUserId, GetReturnByOrderId, orderReturn, updateOrder, getAllOrders, checkout, placeOrder, myOrders } = require("../Controller/Order");
+const { placeOrderCOD, getOrders, updateCollectedDate, payBills, mySubscriptionOrders,
+        createSubscription, updateSubscription, pauseSubscription, deleteSubscription,
+        insertNewProduct, deleteproductinOrder, addproductinOrder, mySubscription,
+        subscription, getSingleOrder, getAllSubscription, getUnconfirmedOrders,
+        GetAllReturnOrderbyUserId, GetReturnByOrderId, orderReturn, updateOrder,
+        getAllOrders, checkout, placeOrder, myOrders } = require("../Controller/Order");
 
 router.post("/api/v1/order/checkout", isAuthenticatedUser, checkout);
 router.post("/api/v1/order/place-order", isAuthenticatedUser, placeOrder);
 router.post('/place-order/cod', isAuthenticatedUser, placeOrderCOD)
+
+router.post('/api/v1/order/updateCollectedDate', updateCollectedDate)
+
 router.get("/api/v1/order/Allorders", isAuthenticatedUser, getOrders)
 router.get("/api/v1/order/mySubscriptionOrders", isAuthenticatedUser, mySubscriptionOrders)
 router.get("/api/v1/order/subscription/all", getAllSubscription)

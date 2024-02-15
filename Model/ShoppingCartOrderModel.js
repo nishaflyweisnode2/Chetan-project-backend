@@ -128,6 +128,9 @@ const orderSchema = new mongoose.Schema({
     type: String,
     enum: ["Cash", "online"],
   },
+  collectedDate: {
+    type: Date,
+  },
   featuredDate: {
     type: Date,
   },

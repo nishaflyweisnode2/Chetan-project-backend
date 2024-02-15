@@ -307,6 +307,18 @@ const getOrders = async (req, res, next) => {
     return res.status(400).json({ message: error.message })
   }
 };
+const updateCollectedDate = async (req, res) => {
+  try {
+    for (let i = 0; i < req.body.orderIds.length; i++) {
+      const driverData = await Order.findOne({ _id: req.body.orderIds[i] })
+      let update = await Order.findByIdAndUpdate({ _id: driverData._id }, { $set: { collectedDate: req.body.collectedDate, } }, { new: true })
+    }
+    return res.status(200).json({ message: "ok", result: {} })
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ error: err.message })
+  }
+}
 const orderReturn = async (req, res) => {
   try {
     const orderId = req.params.id;
@@ -704,4 +716,4 @@ const payBills = async (req, res) => {
     return res.status(400).json({ message: err.message });
   }
 };
-module.exports = { subscription, createSubscription, pauseSubscription, updateSubscription, deleteSubscription, deleteproductinOrder, mySubscriptionOrders, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }
+module.exports = { subscription, updateCollectedDate, createSubscription, pauseSubscription, updateSubscription, deleteSubscription, deleteproductinOrder, mySubscriptionOrders, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }
