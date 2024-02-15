@@ -301,7 +301,7 @@ const placeOrderCOD = async (req, res, next) => {
 };
 const getOrders = async (req, res, next) => {
   try {
-    const orders = await Order.find({ user: req.user._id, orderStatus: "confirmed" }).populate({ path: "products.product", select: { reviews: 0 } }).populate({ path: "coupon", select: "couponCode discount expirationDate" });
+    const orders = await Order.find({ user: req.user._id }).populate({ path: "products.product", select: { reviews: 0 } }).populate({ path: "coupon", select: "couponCode discount expirationDate" });
     return res.status(200).json({ success: true, msg: "orders of user", orders })
   } catch (error) {
     return res.status(400).json({ message: error.message })
