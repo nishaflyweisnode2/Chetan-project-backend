@@ -216,7 +216,7 @@ exports.getUserbyId = async (req, res, next) => {
         if (!users) {
             return next(new ErrorHander(`User does not exist with Id: ${req.params.id}`, 400));
         }
-        const Data = await order.find({ user: users._id }).populate('product');
+        const Data = await order.find({ user: users._id }).populate('product user');
         if (Data.length == 0) {
             return res.status(201).json({ message: "No Data Found " })
         }
