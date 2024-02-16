@@ -134,6 +134,9 @@ const orderSchema = new mongoose.Schema({
   featuredDate: {
     type: Date,
   },
+  reasonOfReduce: {
+    type: String,
+  },
   collectedStatus: {
     type: String,
     enum: ["pending", "Collected", "featured"],

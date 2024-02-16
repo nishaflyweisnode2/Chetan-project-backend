@@ -361,6 +361,20 @@ exports.DeliveredOrder = async (req, res) => {
         return res.status(400).json({ message: err.message })
     }
 }
+exports.reasonOfReduceQuantity = async (req, res) => {
+    try {
+        const driverData = await order.findOne({ _id: req.params.id })
+        driverData.reasonOfReduce = req.body.reasonOfReduce;
+        driverData.quantity = req.body.quantity;
+        driverData.total = req.body.quantity * driverData.unitPrice,
+            driverData.amountToBePaid = (req.body.quantity * driverData.unitPrice) + driverData.shippingPrice,
+            driverData.save();
+        return res.status(200).json({ message: "ok", result: driverData })
+    } catch (err) {
+        console.log(err);
+        return res.status(400).json({ error: err.message })
+    }
+}
 exports.logout = async (req, res, next) => {
     res.cookie("token", null, { expires: new Date(Date.now()), httpOnly: true, });
     res.status(200).json({ success: true, message: "Logged Out", });
