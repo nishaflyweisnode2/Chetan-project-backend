@@ -10,8 +10,7 @@ const cartProductsSchema = new mongoose.Schema({
         default: 1
     },
     size: {
-        type: Number,
-        default: 0
+        type: String,
     },
     customizes: {
         shortMessage: {

@@ -185,10 +185,17 @@ const checkout = async (req, res, next) => {
     if (!allAddress) {
       return res.status(404).json({ error: 'Address not found' });
     }
-    let orders = []
+    let orders = [], pickUpBottleQuantity = 0, isPickUpBottle;
     for (let i = 0; i < cart.products.length; i++) {
       console.log(cart.products[i]);
       if (cart.products[i].orderType == 'once') {
+        if (cart.products[i].product.type == "Bottle") {
+          pickUpBottleQuantity = cart.products[i].quantity;
+          isPickUpBottle = false;
+        } else {
+          pickUpBottleQuantity = 0;
+          isPickUpBottle = true;
+        }
         let obj = {
           user: req.user._id,
           driverId: user.driverId,
@@ -207,6 +214,9 @@ const checkout = async (req, res, next) => {
           total: cart.products[i].quantity * cart.products[i].product.price,
           ringTheBell: cart.products[i].ringTheBell,
           instruction: cart.products[i].instruction,
+          pickUpBottleQuantity: pickUpBottleQuantity,
+          productType: cart.products[i].product.type,
+          isPickUpBottle: isPickUpBottle,
           discount: 0,
           shippingPrice: 10,
           startDate: cart.products[i].startDate,

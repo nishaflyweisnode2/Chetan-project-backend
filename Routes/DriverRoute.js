@@ -24,11 +24,14 @@ router.put('/api/v1/driver/reasonOfReduceQuantity/:id', driver_Controllers.reaso
 router.get('/api/v1/driver/price/:driverId', driver_Controllers.GetPriceByDriverId);
 router.put('/api/v1/driver/complete/:id', driver_Controllers.DeliveredOrder);
 router.post('/api/v1/driver/logout', driver_Controllers.logout);
+router.get('/api/v1/driver/pickUpBottleOrder/:driverId', driver_Controllers.pickUpBottleOrder)
+router.get('/api/v1/driver/driverCanceledOrder/:driverId', driver_Controllers.driverCanceledOrder)
 router.get('/api/v1/driver/delivered/:driverId', driver_Controllers.driverCompleted)
 router.get('/api/v1/driver/pending/order/:id', driver_Controllers.PendingOrder)
 // router.get('/api/v1/driver/accept/order/:id', driver_Controllers.AcceptOrder)
 router.delete('/api/v1/driver/:id', driver_Controllers.DeleteDriver);
 router.put('/api/v1/driver/status/:id', driver_Controllers.ChangeStatus)
+router.put('/api/v1/driver/ChangePickUpBottleStatus/:id', driver_Controllers.ChangePickUpBottleStatus)
 router.post('/api/v1/driver/addEnquiry/:id', driver_Controllers.addEnquiry)
 router.get('/api/v1/driver/getAllTodayEnquiry/:id', driver_Controllers.getAllTodayEnquiry)
 router.post('/api/v1/driver/assignUserToDriver', driver_Controllers.assignUserToDriver);

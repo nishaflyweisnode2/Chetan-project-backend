@@ -127,6 +127,7 @@ const orderSchema = new mongoose.Schema({
   paymentMode: {
     type: String,
     enum: ["Cash", "online"],
+    default: "Cash"
   },
   collectedDate: {
     type: Date,
@@ -136,6 +137,20 @@ const orderSchema = new mongoose.Schema({
   },
   reasonOfReduce: {
     type: String,
+  },
+  pickUpBottleQuantity: {
+    type: Number
+  },
+  commentOnPickUpBottle: {
+    type: String,
+  },
+  isPickUpBottle: {
+    type: Boolean,
+    default: false
+  },
+  productType: {
+    type: String,
+    enum: ["Bottle", "other"]
   },
   collectedStatus: {
     type: String,

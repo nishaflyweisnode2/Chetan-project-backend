@@ -75,11 +75,8 @@ exports.updateQuantity = async (req, res, next) => {
 exports.getCart = async (req, res, next) => {
   try {
     const cart = await Cart.findOne({ user: req.user.id });
-
     if (!cart) {
-      return res.status(201).json({
-        message: "No Data Found"
-      });
+      return res.status(201).json({ message: "No Data Found" });
     }
 
     const cartResponse = await getCartResponse(cart, req, res);
@@ -152,22 +149,15 @@ const createCart = async (userId) => {
 
 const getCartResponse = async (cart, req, res) => {
   try {
-    await cart.populate([
-      { path: "products.product", select: { reviews: 0 } },
-      { path: "coupon", select: "couponCode discount expirationDate" },
-    ]);
-
+    await cart.populate([{ path: "products.product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
     if (cart.coupon && moment().isAfter(cart.coupon.expirationDate, "day")) {
       cart.coupon = undefined;
       cart.save();
     }
-
     const cartResponse = cart.toObject();
     console.log(cartResponse);
-
     let discount = 0;
     let total = 0;
-
     // Filter out products that are null or have a quantity of 0
     cartResponse.products = cartResponse.products.filter((cartProduct) => {
       if (!cartProduct.product || cartProduct.quantity === 0) {

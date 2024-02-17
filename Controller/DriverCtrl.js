@@ -403,6 +403,45 @@ exports.driverCompleted = async (req, res) => {
         return res.status(400).json({ message: err.message })
     }
 }
+exports.driverCanceledOrder = async (req, res) => {
+    try {
+        const data = await order.find({ driverId: req.params.driverId, canceled: "canceled" }).populate('user product');
+        if (data.length == 0) {
+            return res.status(201).json({ message: "No canceled Order" })
+        } else {
+            return res.status(200).json({ message: data })
+        }
+    } catch (err) {
+        return res.status(400).json({ message: err.message })
+    }
+}
+exports.pickUpBottleOrder = async (req, res) => {
+    try {
+        const data = await order.find({ driverId: req.params.driverId, productType: "Bottle" }).populate('user product');
+        if (data.length == 0) {
+            return res.status(201).json({ message: "No Delivered Order " })
+        } else {
+            return res.status(200).json({ message: data })
+        }
+    } catch (err) {
+        return res.status(400).json({ message: err.message })
+    }
+}
+exports.ChangePickUpBottleStatus = async (req, res) => {
+    try {
+        const driverData = await order.findOne({ _id: req.params.id })
+        driverData.pickUpBottleQuantity = req.body.pickUpBottleQuantity;
+        driverData.commentOnPickUpBottle = req.body.commentOnPickUpBottle
+        if (req.body.pickUpBottleQuantity == 0) {
+            driverData.isPickUpBottle = true;
+        }
+        driverData.save();
+        return res.status(200).json({ message: "ok", result: driverData })
+    } catch (err) {
+        console.log(err);
+        return res.status(400).json({ error: err.message })
+    }
+}
 exports.PendingOrder = async (req, res) => {
     try {
         const data = await order.find({ $and: [{ driverId: req.params.id }, { orderStatus: "pending" }] }).populate('user product');
