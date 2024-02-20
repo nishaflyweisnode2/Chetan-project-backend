@@ -462,6 +462,22 @@ exports.PendingOrder = async (req, res) => {
         return res.status(400).json({ message: err.message })
     }
 }
+exports.getTodayOrder = async (req, res) => {
+    try {
+        let total = 0;
+        const data = await order.find({ $and: [{ driverId: req.params.id }, { orderStatus: "pending" }] }).populate('product');
+        if (!data || data.length == 0) {
+            return res.status(404).json({ message: "Pending Order not found" })
+        }
+        for (let i = 0; i < data.length; i++) {
+            total = total + data[i].quantity
+        }
+        return res.status(200).json({ message: { data, total } })
+    } catch (err) {
+        console.log(err);
+        return res.status(400).json({ message: err.message })
+    }
+}
 // exports.AcceptOrder = async (req, res) => {
 //     try {
 //         const data = await order.find({ $and: [{ driverId: req.params.id }, { status: "Accept" }] });

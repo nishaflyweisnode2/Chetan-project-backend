@@ -28,6 +28,7 @@ router.get('/api/v1/driver/pickUpBottleOrder/:driverId', driver_Controllers.pick
 router.get('/api/v1/driver/driverCanceledOrder/:driverId', driver_Controllers.driverCanceledOrder)
 router.get('/api/v1/driver/delivered/:driverId', driver_Controllers.driverCompleted)
 router.get('/api/v1/driver/pending/order/:id', driver_Controllers.PendingOrder)
+router.get('/api/v1/driver/todayOrder/order/:id', driver_Controllers.getTodayOrder)
 // router.get('/api/v1/driver/accept/order/:id', driver_Controllers.AcceptOrder)
 router.delete('/api/v1/driver/:id', driver_Controllers.DeleteDriver);
 router.put('/api/v1/driver/status/:id', driver_Controllers.ChangeStatus)
