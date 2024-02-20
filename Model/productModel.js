@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const mongoosePaginate = require("mongoose-paginate");
+const mongoosePaginate = require("mongoose-paginate-v2");
 const mongooseAggregatePaginate = require("mongoose-aggregate-paginate");
 const productSchema = mongoose.Schema({
   name: {
@@ -33,6 +33,10 @@ const productSchema = mongoose.Schema({
   type: {
     type: String,
     enum: ["Bottle", "other"]
+  },
+  productType: {
+    type: String,
+    enum: ["Buy", "Subscribe", "Both"]
   },
   multipleSize: [{
     size: {

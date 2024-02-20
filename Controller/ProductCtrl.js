@@ -40,6 +40,7 @@ exports.createProduct = catchAsyncErrors(async (req, res, next) => {
     multipleSize: multipleSize,
     colors: req.body.colors,
     category: req.body.category,
+    productType: req.body.productType,
     subCategory: req.body.subCategory,
     includeGst: req.body.includeGst,
     Stock: req.body.Stock,
@@ -54,25 +55,25 @@ exports.createProduct = catchAsyncErrors(async (req, res, next) => {
 });
 
 exports.searchAllProducts = catchAsyncErrors(async (req, res, next) => {
-  const productsCount = await Product.count();
+  const productsCount = await Product.length;
   let apiFeature = await Product.aggregate([
     {
-      $lookup: { from: "categories", localField: "category", foreignField: "_id", as: "category" },
+      $lookup: { from: "categories", localField: "category", foreignField: "_id", as: "Category" },
     },
     { $unwind: "$category" },
     {
-      $lookup: { from: "subcategories", localField: "subCategory", foreignField: "_id", as: "subCategory", },
+      $lookup: { from: "subcategories", localField: "subCategory", foreignField: "_id", as: "SubCategory", },
     },
     { $unwind: "$subCategory" },
   ]);
   if (req.query.search != (null || undefined)) {
     let data1 = [
       {
-        $lookup: { from: "categories", localField: "category", foreignField: "_id", as: "category" },
+        $lookup: { from: "categories", localField: "category", foreignField: "_id", as: "Category" },
       },
       { $unwind: "$category" },
       {
-        $lookup: { from: "subcategories", localField: "subCategory", foreignField: "_id", as: "subCategory", },
+        $lookup: { from: "subcategories", localField: "subCategory", foreignField: "_id", as: "SubCategory", },
       },
       { $unwind: "$subCategory" },
       {
@@ -160,6 +161,7 @@ exports.updateProduct = catchAsyncErrors(async (req, res, next) => {
         multipleSize: multipleSize,
         colors: req.body.colors,
         category: req.body.category,
+        productType: req.body.productType,
         subCategory: req.body.subCategory,
         includeGst: req.body.includeGst,
         Stock: req.body.Stock,
@@ -314,8 +316,6 @@ exports.deleteReview = catchAsyncErrors(async (req, res, next) => {
     success: true,
   });
 });
-
-
 exports.createWishlist = catchAsyncErrors(async (req, res, next) => {
   const product = req.params.id;
   //console.log(user)
@@ -331,7 +331,6 @@ exports.createWishlist = catchAsyncErrors(async (req, res, next) => {
     message: "product addedd to wishlist Successfully",
   });
 });
-
 exports.removeFromWishlist = catchAsyncErrors(async (req, res, next) => {
   const wishlist = await Wishlist.findOne({ user: req.user._id });
   if (!wishlist) {
@@ -347,8 +346,6 @@ exports.removeFromWishlist = catchAsyncErrors(async (req, res, next) => {
     message: "Removed From Wishlist",
   });
 });
-
-
 exports.myWishlist = catchAsyncErrors(async (req, res, next) => {
   let myList = await Wishlist.findOne({ user: req.user._id }).populate(
     "products"
@@ -364,7 +361,6 @@ exports.myWishlist = catchAsyncErrors(async (req, res, next) => {
     wishlist: myList,
   });
 });
-
 exports.getProductByCategory = catchAsyncErrors(async (req, res, next) => {
   try {
     const producyBycategory = await Product.find({ subCategory: req.params.id })
@@ -380,8 +376,6 @@ exports.getProductByCategory = catchAsyncErrors(async (req, res, next) => {
     })
   }
 })
-
-
 exports.checkDelivery = catchAsyncErrors(async (req, res, next) => {
   try {
     const productId = req.params.productId;
@@ -407,3 +401,48 @@ exports.checkDelivery = catchAsyncErrors(async (req, res, next) => {
     res.status(500).json({ message: 'Server error', status: 500, error: error.message });
   }
 });
+exports.paginateProductSearch = async (req, res) => {
+  try {
+    const { search, fromDate, toDate, subCategory, category, status, page, limit } = req.query;
+    let query = {};
+    if (search) {
+      query.$or = [
+        { "name": { $regex: req.query.search, $options: "i" }, },
+        { "description": { $regex: req.query.search, $options: "i" }, },
+      ]
+    }
+    if (status) {
+      query.status = status
+    }
+    if (subCategory) {
+      query.subCategory = subCategory
+    }
+    if (category) {
+      query.category = category
+    }
+    if (fromDate && !toDate) {
+      query.createdAt = { $gte: fromDate };
+    }
+    if (!fromDate && toDate) {
+      query.createdAt = { $lte: toDate };
+    }
+    if (fromDate && toDate) {
+      query.$and = [
+        { createdAt: { $gte: fromDate } },
+        { createdAt: { $lte: toDate } },
+      ]
+    }
+    let options = {
+      page: Number(page) || 1,
+      limit: Number(limit) || 15,
+      sort: { createdAt: -1 },
+      populate: ('category subCategory')
+    };
+    let data = await Product.paginate(query, options);
+    return res.status(200).json({ status: 200, message: "Product data found.", data: data });
+
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ msg: "internal server error ", error: err.message, });
+  }
+};

@@ -432,9 +432,17 @@ exports.ChangePickUpBottleStatus = async (req, res) => {
         const driverData = await order.findOne({ _id: req.params.id })
         driverData.pickUpBottleQuantity = req.body.pickUpBottleQuantity;
         driverData.commentOnPickUpBottle = req.body.commentOnPickUpBottle
-        if (req.body.pickUpBottleQuantity == 0) {
-            driverData.isPickUpBottle = true;
-        }
+        driverData.save();
+        return res.status(200).json({ message: "ok", result: driverData })
+    } catch (err) {
+        console.log(err);
+        return res.status(400).json({ error: err.message })
+    }
+}
+exports.submitPickUpBottle = async (req, res) => {
+    try {
+        const driverData = await order.findOne({ _id: req.params.id })
+        driverData.isPickUpBottle = true;
         driverData.save();
         return res.status(200).json({ message: "ok", result: driverData })
     } catch (err) {

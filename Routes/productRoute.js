@@ -1,5 +1,5 @@
 const express = require("express");
-const { searchAllProducts, createProduct, getPopularProducts, updateProduct, deleteProduct, getProductDetails, createProductReview, getProductReviews, deleteReview, getAdminProducts, createWishlist, removeFromWishlist, myWishlist, checkDelivery, getProductByCategory } = require("../Controller/ProductCtrl");
+const { searchAllProducts, createProduct, paginateProductSearch, getPopularProducts, updateProduct, deleteProduct, getProductDetails, createProductReview, getProductReviews, deleteReview, getAdminProducts, createWishlist, removeFromWishlist, myWishlist, checkDelivery, getProductByCategory } = require("../Controller/ProductCtrl");
 const { isAuthenticatedUser, authorizeRoles } = require("../Middleware/auth");
 const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
@@ -19,7 +19,7 @@ const storage = new CloudinaryStorage({
 const upload = multer({ storage: storage });
 const router = express.Router();
 
-router.get("/api/v1/product/search", searchAllProducts);
+router.get("/api/v1/product/search", paginateProductSearch);
 router.get("/api/v1/product/getPopularProducts", getPopularProducts);
 router.get("/api/v1/product/by/category/:id", getProductByCategory);
 router.post("/api/v1/product/add/wishlist/:id", isAuthenticatedUser, createWishlist);

@@ -32,6 +32,7 @@ router.get('/api/v1/driver/pending/order/:id', driver_Controllers.PendingOrder)
 router.delete('/api/v1/driver/:id', driver_Controllers.DeleteDriver);
 router.put('/api/v1/driver/status/:id', driver_Controllers.ChangeStatus)
 router.put('/api/v1/driver/ChangePickUpBottleStatus/:id', driver_Controllers.ChangePickUpBottleStatus)
+router.put('/api/v1/driver/submitPickUpBottle/:id', driver_Controllers.submitPickUpBottle)
 router.post('/api/v1/driver/addEnquiry/:id', driver_Controllers.addEnquiry)
 router.get('/api/v1/driver/getAllTodayEnquiry/:id', driver_Controllers.getAllTodayEnquiry)
 router.post('/api/v1/driver/assignUserToDriver', driver_Controllers.assignUserToDriver);
