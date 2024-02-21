@@ -30,11 +30,21 @@ const subscriptionSchema = new mongoose.Schema({
   endDate: {
     type: Date,
   },
+  pauseDate: {
+    type: Date,
+  },
+  resumeDate: {
+    type: Date,
+  },
   ringTheBell: {
     type: Boolean,
   },
   instruction: {
     type: String,
+  },
+  status: {
+    type: String,
+    enum: ['pause', 'start'],
   },
   days: {
     type: String,

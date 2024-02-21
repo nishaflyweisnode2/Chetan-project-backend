@@ -29,6 +29,7 @@ router.route("/api/v1/user/google/login").post(userCtrl.socialLogin);
 router.post("/api/v1/user/create", userCtrl.registerUser);
 router.put("/api/v1/user/email/:id", userCtrl.registerEmailUser);
 router.put("/api/v1/user/mobile/:id", userCtrl.UpdatePhoneUser);
+router.post("/api/v1/user/resendOTP/:id", userCtrl.resendOTP);
 router.post("/api/v1/user/login", userCtrl.loginUser);
 router.delete("/api/v1/user/delete/my/account", isAuthenticatedUser, userCtrl.deletemyAccount);
 router.post("/api/v1/user/verify-otp/:id", userCtrl.verifyOTP);

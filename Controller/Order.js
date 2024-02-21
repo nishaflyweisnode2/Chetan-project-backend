@@ -480,14 +480,23 @@ const pauseSubscription = async (req, res, next) => {
     if (!order) {
       return res.status(404).json({ error: 'Subscription not found' });
     }
-    order.endDate = new Date.now();
+    const currentDate = new Date();
+    if (req.body.pauseDate && req.body.pauseDate.toDateString() === currentDate.toDateString()) {
+      order.status = 'pause';
+      order.endDate = new Date.now();
+    } else if (req.body.resumeDate && req.body.resumeDate.toDateString() === currentDate.toDateString()) {
+      order.status = 'start';
+    }
+    order.pauseDate = req.body.pauseDate;
+    order.resumeDate = req.body.resumeDate;
     await order.save();
-    return res.status(201).json({ message: 'Subscription pause successfully', order });
+    return res.status(201).json({ message: 'Subscription status updated successfully', order });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Failed to place order' });
+    return res.status(500).json({ error: 'Failed to update subscription status' });
   }
 };
+
 const createSubscription = async (req, res, next) => {
   try {
     const findProduct = await Product.findById({ _id: req.body.productId });
@@ -726,4 +735,30 @@ const payBills = async (req, res) => {
     return res.status(400).json({ message: err.message });
   }
 };
-module.exports = { subscription, updateCollectedDate, createSubscription, pauseSubscription, updateSubscription, deleteSubscription, deleteproductinOrder, mySubscriptionOrders, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }
+const payBillStatusUpdate = async (req, res) => {
+  try {
+    let orders = [];
+    for (let i = 0; i < req.body.orderIds.length; i++) {
+      const driverData = await Order.findOne({ _id: req.body.orderIds[i] })
+      let update = await Order.findByIdAndUpdate({ _id: driverData._id }, { $set: { paymentMode: 'Online', paymentStatus: 'paid', collectedStatus: "Collected" } }, { new: true })
+      orders.push(update)
+    }
+    return res.status(200).json({ message: "ok", result: orders })
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ error: err.message })
+  }
+};
+const returnBottleOrder = async (req, res) => {
+  try {
+    const data = await Order.find({ user: req.params.userId, productType: "Bottle", isPickUpBottle: false }).populate('user product');
+    if (data.length == 0) {
+      return res.status(201).json({ message: "No Delivered Order " })
+    } else {
+      return res.status(200).json({ message: data })
+    }
+  } catch (err) {
+    return res.status(400).json({ message: err.message })
+  }
+}
+module.exports = { subscription, payBillStatusUpdate, returnBottleOrder, updateCollectedDate, createSubscription, pauseSubscription, updateSubscription, deleteSubscription, deleteproductinOrder, mySubscriptionOrders, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }

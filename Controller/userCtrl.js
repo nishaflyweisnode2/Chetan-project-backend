@@ -165,19 +165,13 @@ exports.resendOTP = catchAsyncErrors(async (req, res) => {
     if (!user) {
       return res.status(404).send({ message: "User not found" });
     }
-
-    // Generate new OTP
     const otp = OTP.generateOTP();
-
-    // Update user's OTP
     user.otp = otp;
     await user.save();
-
     // Send OTP
     // const message = `Your OTP is ${otp}`;
     // await sendOTP(user.phone, message);
-
-    return res.status(200).send({ message: "OTP resent successfully" });
+    return res.status(200).send({ message: "OTP resent successfully", data: user.otp });
   } catch (error) {
     res.status(400).send({ error: error.message });
   }
