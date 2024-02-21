@@ -5,7 +5,7 @@ const { placeOrderCOD, getOrders, updateCollectedDate, payBills, mySubscriptionO
         insertNewProduct, deleteproductinOrder, addproductinOrder, mySubscription,
         subscription, getSingleOrder, getAllSubscription, getUnconfirmedOrders,
         GetAllReturnOrderbyUserId, GetReturnByOrderId, orderReturn, updateOrder,
-        getAllOrders, checkout, placeOrder, myOrders, payBillStatusUpdate, returnBottleOrder } = require("../Controller/Order");
+        getAllOrders, checkout, placeOrder, myOrders, payBillStatusUpdate, returnBottleOrder, returnBottleOrderForAdmin } = require("../Controller/Order");
 
 router.post("/api/v1/order/checkout", isAuthenticatedUser, checkout);
 router.post("/api/v1/order/place-order", isAuthenticatedUser, placeOrder);
@@ -43,6 +43,7 @@ router.delete("/api/v1/order/delete/product/order/:orderId", deleteproductinOrde
 router.post("/api/v1/order/pay/Bills", isAuthenticatedUser, payBills)
 router.post("/api/v1/order/payBillStatusUpdate", isAuthenticatedUser, payBillStatusUpdate)
 router.get('/api/v1/order/returnBottleOrder/:userId', returnBottleOrder)
+router.get('/api/v1/order/return/BottleOrderForAdmin', returnBottleOrderForAdmin)
 
 module.exports = router;
 

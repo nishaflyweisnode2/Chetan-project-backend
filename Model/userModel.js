@@ -83,6 +83,104 @@ const userSchema = new mongoose.Schema({
   },
   resetPasswordToken: String,
   resetPasswordExpire: Number,
+  dashboard: {
+    type: Boolean,
+    default: false
+  },
+  userList: {
+    type: Boolean,
+    default: false
+  },
+  category: {
+    type: Boolean,
+    default: false
+  },
+  subCategory: {
+    type: Boolean,
+    default: false
+  },
+  product: {
+    type: Boolean,
+    default: false
+  },
+  order: {
+    type: Boolean,
+    default: false
+  },
+  subscribedOrder: {
+    type: Boolean,
+    default: false
+  },
+  unConfirmOrder: {
+    type: Boolean,
+    default: false
+  },
+  help: {
+    type: Boolean,
+    default: false
+  },
+
+  banner: {
+    type: Boolean,
+    default: false
+  },
+  terms: {
+    type: Boolean,
+    default: false
+  },
+  privacyPolicy: {
+    type: Boolean,
+    default: false
+  },
+
+  coupons: {
+    type: Boolean,
+    default: false
+  },
+  aboutUs: {
+    type: Boolean,
+    default: false
+  },
+  contact: {
+    type: Boolean,
+    default: false
+  },
+
+  faq: {
+    type: Boolean,
+    default: false
+  },
+  notification: {
+    type: Boolean,
+    default: false
+  },
+  wallet: {
+    type: Boolean,
+    default: false
+  },
+
+  deliveryBoy: {
+    type: Boolean,
+    default: false
+  },
+  collectionBoy: {
+    type: Boolean,
+    default: false
+  },
+  return: {
+    type: Boolean,
+    default: false
+  },
+  orderSheet: {
+    type: Boolean,
+    default: false
+  },
+  logs: {
+    type: Boolean,
+    default: false
+  },
+
+
 });
 
 module.exports = mongoose.model("User", userSchema);

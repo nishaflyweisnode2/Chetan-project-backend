@@ -10,6 +10,7 @@ const catchAsyncErrors = require("../Middleware/catchAsyncErrors");
 const Razorpay = require("razorpay");
 const OrderReturn = require('../Model/OrderReturnModel')
 const Address = require("../Model/addressModel");
+const cutOffTime = require('../Model/cutOffTime');
 const cron = require('node-cron');
 const razorpayInstance = new Razorpay({ key_id: "rzp_test_8VsYUQmn8hHm69", key_secret: "Xcg3HItXaBuQ9OIpeOAFUgLI", });
 // const newOrder = catchAsyncErrors(async (req, res, next) => {
@@ -84,7 +85,7 @@ const mySubscriptionOrders = catchAsyncErrors(async (req, res, next) => {
 const getAllOrders = catchAsyncErrors(async (req, res, next) => {
   console.log("hi");
   const orders = await Order.find().populate('user') // Populate the 'user' field
-    .populate('products.product');
+    .populate('product');
   let totalAmount = 0;
 
   orders.forEach((orders) => {
@@ -185,6 +186,18 @@ const checkout = async (req, res, next) => {
     if (!allAddress) {
       return res.status(404).json({ error: 'Address not found' });
     }
+    const currentTime = new Date();
+    const currentHour = currentTime.getHours();
+    const currentMinute = currentTime.getMinutes();
+    const currentSecond = currentTime.getSeconds();
+    let currentSecond1, currentMinute1;
+    if (currentSecond < 10) { currentSecond1 = '' + 0 + currentSecond; } else { currentSecond1 = currentSecond };
+    if (currentMinute < 10) { currentMinute1 = '' + 0 + currentMinute; } else { currentMinute1 = currentMinute };
+    let cutOffOrderType;
+    const currentTimeString = `${currentHour}:${currentMinute1}:${currentSecond1}`;
+    const CutOffTimes1 = await cutOffTime.findOne({ type: "morningOrder" });
+    const CutOffTimes2 = await cutOffTime.findOne({ type: "eveningOrder" });
+    if ((CutOffTimes2.time < CutOffTimes1.time) && (currentTimeString < CutOffTimes2.time)) { cutOffOrderType = CutOffTimes2; } else { cutOffOrderType = CutOffTimes1; }
     let orders = [], pickUpBottleQuantity = 0, isPickUpBottle;
     for (let i = 0; i < cart.products.length; i++) {
       console.log(cart.products[i]);
@@ -220,6 +233,7 @@ const checkout = async (req, res, next) => {
           discount: 0,
           shippingPrice: 10,
           startDate: cart.products[i].startDate,
+          cutOffOrderType: cutOffOrderType,
           amountToBePaid: (cart.products[i].quantity * cart.products[i].product.price) + 10,
           orderType: "once"
         }
@@ -247,6 +261,7 @@ const checkout = async (req, res, next) => {
           instruction: cart.products[i].instruction,
           discount: 0,
           shippingPrice: 10,
+          cutOffOrderType: cutOffOrderType,
           startDate: cart.products[i].startDate,
           amountToBePaid: (cart.products[i].quantity * cart.products[i].product.price) + 10,
         }
@@ -761,4 +776,32 @@ const returnBottleOrder = async (req, res) => {
     return res.status(400).json({ message: err.message })
   }
 }
-module.exports = { subscription, payBillStatusUpdate, returnBottleOrder, updateCollectedDate, createSubscription, pauseSubscription, updateSubscription, deleteSubscription, deleteproductinOrder, mySubscriptionOrders, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }
+const returnBottleOrderForAdmin = async (req, res) => {
+  try {
+    const orders = await Order.find({ productType: "Bottle", isPickUpBottle: false }).populate('user product');
+    if (orders.length === 0) {
+      return res.status(201).json({ message: "No Delivered Order " });
+    } else {
+      const consolidatedOrders = {};
+      orders.forEach(order => {
+        const key = `${order.product._id}_${order.user._id}`;
+        if (!consolidatedOrders[key]) {
+          consolidatedOrders[key] = {
+            product: order.product,
+            user: order.user,
+            quantity: order.quantity,
+            pickUpBottleQuantity: order.pickUpBottleQuantity
+          };
+        } else {
+          consolidatedOrders[key].quantity += order.quantity;
+          consolidatedOrders[key].pickUpBottleQuantity += order.pickUpBottleQuantity;
+        }
+      });
+      const consolidatedOrdersArray = Object.values(consolidatedOrders);
+      return res.status(200).json({ message: consolidatedOrdersArray });
+    }
+  } catch (err) {
+    return res.status(400).json({ message: err.message });
+  }
+};
+module.exports = { returnBottleOrderForAdmin, subscription, payBillStatusUpdate, returnBottleOrder, updateCollectedDate, createSubscription, pauseSubscription, updateSubscription, deleteSubscription, deleteproductinOrder, mySubscriptionOrders, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }

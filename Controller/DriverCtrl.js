@@ -429,10 +429,8 @@ exports.pickUpBottleOrder = async (req, res) => {
 }
 exports.ChangePickUpBottleStatus = async (req, res) => {
     try {
-        const driverData = await order.findOne({ _id: req.params.id })
-        driverData.pickUpBottleQuantity = req.body.pickUpBottleQuantity;
-        driverData.commentOnPickUpBottle = req.body.commentOnPickUpBottle
-        driverData.save();
+        console.log(req.body)
+        const driverData = await order.findByIdAndUpdate({ _id: req.params.id }, { $set: { pickUpBottleQuantity: req.body.pickUpBottleQuantity, commentOnPickUpBottle: req.body.commentOnPickUpBottle } }, { new: true })
         return res.status(200).json({ message: "ok", result: driverData })
     } catch (err) {
         console.log(err);
@@ -441,9 +439,7 @@ exports.ChangePickUpBottleStatus = async (req, res) => {
 }
 exports.submitPickUpBottle = async (req, res) => {
     try {
-        const driverData = await order.findOne({ _id: req.params.id })
-        driverData.isPickUpBottle = true;
-        driverData.save();
+        const driverData = await order.findByIdAndUpdate({ _id: req.params.id }, { $set: { isPickUpBottle: true } }, { new: true })
         return res.status(200).json({ message: "ok", result: driverData })
     } catch (err) {
         console.log(err);

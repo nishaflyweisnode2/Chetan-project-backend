@@ -1,33 +1,33 @@
 const mongoose = require("mongoose");
-const orderProductSchema = new mongoose.Schema({
-  unitPrice: {
-    type: Number
-  },
-  product: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Product"
-  },
-  quantity: {
-    type: Number
-  },
-  total: {
-    type: Number
-  },
-  ringTheBell: {
-    type: Boolean,
-  },
-  instruction: {
-    type: String,
-  },
-  days: {
-    type: String,
-    enum: ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'],
-  },
-  type: {
-    type: String,
-    enum: ['EveryDay', 'Alternate', 'customized'],
-  },
-}, { _id: false })
+// const orderProductSchema = new mongoose.Schema({
+//   unitPrice: {
+//     type: Number
+//   },
+//   product: {
+//     type: mongoose.Schema.Types.ObjectId,
+//     ref: "Product"
+//   },
+//   quantity: {
+//     type: Number
+//   },
+//   total: {
+//     type: Number
+//   },
+//   ringTheBell: {
+//     type: Boolean,
+//   },
+//   instruction: {
+//     type: String,
+//   },
+//   days: {
+//     type: String,
+//     enum: ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'],
+//   },
+//   type: {
+//     type: String,
+//     enum: ['EveryDay', 'Alternate', 'customized'],
+//   },
+// }, { _id: false })
 
 const orderSchema = new mongoose.Schema({
   user: {
@@ -191,6 +191,10 @@ const orderSchema = new mongoose.Schema({
     enum: ['Subscription', 'once'],
     default: 'once'
   },
+  cutOffOrderType: {
+    type: String,
+    enum: ["eveningOrder", "morningOrder"]
+  }
 }, {
   timestamps: true
 });
