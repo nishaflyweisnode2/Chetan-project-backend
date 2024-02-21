@@ -12,17 +12,11 @@ app.use(compression({ threshold: 500 }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
-if (process.env.NODE_ENV == "production") {
-        console.log = function () { };
-}
 app.get("/", (req, res) => {
         res.send("Hello World! Chetan");
 });
-
 const router = require("./Routes/routes");
 app.use("/", router);
-
-
 mongoose.Promise = global.Promise;
 mongoose.set("strictQuery", true);
 mongoose.connect(process.env.MONGO_URI).then((data) => {
@@ -32,8 +26,5 @@ mongoose.connect(process.env.MONGO_URI).then((data) => {
 app.listen(process.env.PORT, () => {
         console.log(`Listening on port ${process.env.PORT}!`);
 });
-module.exports = { handler: serverless(app) };
-
-
-
-// pixel-8 form  needed
+module.exports = app;
+module.exports.handler = serverless(app);
