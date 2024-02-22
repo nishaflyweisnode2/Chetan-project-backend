@@ -486,9 +486,11 @@ exports.getTodayOrder = async (req, res) => {
 // }
 exports.ChangeStatus = async (req, res) => {
     try {
-        const driverData = await order.findOne({ _id: req.params.id })
-        driverData.orderStatus = req.body.status
-        driverData.save();
+        const driverData1 = await order.findOne({ _id: req.params.id });
+        if (!driverData1) {
+            return res.status(404).json({ message: "Not found", result: {} })
+        }
+        const driverData = await order.findByIdAndUpdate({ _id: driverData1._id }, { $set: { orderStatus: req.body.status } }, { new: true })
         return res.status(200).json({ message: "ok", result: driverData })
     } catch (err) {
         console.log(err);
