@@ -12,6 +12,10 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "driver",
   },
+  addressId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Address",
+  },
   firstName: {
     type: String,
   },
@@ -66,6 +70,11 @@ const userSchema = new mongoose.Schema({
   verified: {
     type: Boolean,
     default: false
+  },
+  addressStatus: {
+    type: String,
+    enum: ["pending", "approved", "rejected"],
+    default: "pending"
   },
   balance: {
     type: Number,

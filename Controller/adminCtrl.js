@@ -9,6 +9,7 @@ const Order = require("../Model/ShoppingCartOrderModel");
 const enquiry = require('../Model/enquiry');
 const cutOffTime = require('../Model/cutOffTime');
 const rechargeOffer = require('../Model/rechargeOffer');
+const { UserInstance } = require("twilio/lib/rest/conversations/v1/user");
 
 exports.createBrand = catchAsyncErrors(async (req, res, next) => {
   const imagesLinks = await multipleFileHandle(req.files);
@@ -335,5 +336,57 @@ exports.getRechargeOfferByUserId = async (req, res) => {
     return res.status(400).json({
       message: err.message
     });
+  }
+};
+exports.assignPermissionUserbyId = async (req, res, next) => {
+  try {
+    const users = await User.findById({ _id: req.params.id });
+    if (!users) {
+      return next(new ErrorHander(`User does not exist with Id: ${req.params.id}`, 400));
+    }
+    let obj = {
+      dashboard: req.body.dashboard || users.dashboard,
+      userList: req.body.userList || users.userList,
+      category: req.body.category || users.category,
+      subCategory: req.body.subCategory || users.subCategory,
+      product: req.body.product || users.product,
+      order: req.body.order || users.order,
+      subscribedOrder: req.body.subscribedOrder || users.subscribedOrder,
+      unConfirmOrder: req.body.unConfirmOrder || users.unConfirmOrder,
+      help: req.body.help || users.help,
+      banner: req.body.banner || users.banner,
+      terms: req.body.terms || users.terms,
+      privacyPolicy: req.body.privacyPolicy || users.privacyPolicy,
+      coupons: req.body.coupons || users.coupons,
+      aboutUs: req.body.aboutUs || users.aboutUs,
+      contact: req.body.contact || users.contact,
+      faq: req.body.faq || users.faq,
+      notification: req.body.notification || users.notification,
+      wallet: req.body.wallet || users.wallet,
+      deliveryBoy: req.body.deliveryBoy || users.deliveryBoy,
+      collectionBoy: req.body.collectionBoy || users.collectionBoy,
+      return: req.body.return || users.return,
+      orderSheet: req.body.orderSheet || users.orderSheet,
+      logs: req.body.logs || users.logs,
+    }
+    let update = await User.findByIdAndUpdate({ _id: users._id }, { $set: obj }, { new: true });
+    return res.status(200).json({ message: "Permission assign successfully.", data: update });
+  } catch (error) {
+    return res.status(200).json({ error: `Something went wrong with Id: ${req.params}` });
+  }
+};
+exports.acceptRejectAddress = async (req, res, next) => {
+  try {
+    const users = await User.findById({ _id: req.params.id });
+    if (!users) {
+      return next(new ErrorHander(`User does not exist with Id: ${req.params.id}`, 400));
+    }
+    let obj = {
+      addressStatus: req.body.addressStatus,
+    }
+    let update = await User.findByIdAndUpdate({ _id: users._id }, { $set: obj }, { new: true });
+    return res.status(200).json({ message: "Permission assign successfully.", data: update });
+  } catch (error) {
+    return res.status(200).json({ error: `Something went wrong with Id: ${req.params}` });
   }
 };

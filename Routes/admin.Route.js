@@ -20,4 +20,8 @@ router.get('/api/v1/RechargeOffer/all', admin.getRechargeOffer);
 router.get('/api/v1/RechargeOffer/get/:id', admin.getRechargeOfferById);
 router.delete('/api/v1/RechargeOffer/delete/:id', admin.DeleteRechargeOffer);
 router.get('/api/v1/RechargeOffer/getRechargeOfferByUserId/:user', admin.getRechargeOfferByUserId);
+
+router.post('/api/v1/assignPermissionUserbyId/:id', admin.assignPermissionUserbyId);
+router.post('/api/v1/acceptRejectAddress/:id', admin.acceptRejectAddress);
+
 module.exports = router;
