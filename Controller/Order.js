@@ -738,7 +738,7 @@ const payBills = async (req, res) => {
       body.createdAt = { $gte: new Date(fromDate), $lte: new Date(toDate) };
     }
     let total = 0, orderIds = [];
-    const data = await Order.find(body);
+    const data = await Order.find(body).populate('product');
     if (data.length > 0) {
       for (let i = 0; i < data.length; i++) {
         total = total + data[i].collectedAmount

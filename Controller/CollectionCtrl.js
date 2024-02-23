@@ -189,7 +189,6 @@ exports.allAssignUserToCollectionBoy = async (req, res) => {
                 return res.status(500).json({ message: "Server error.", error: err.message });
         }
 };
-
 exports.allCollectedOrder = async (req, res) => {
         try {
                 const data = await Order.find({ collectionBoyId: req.params.collectionBoyId, collectedStatus: "Collected" }).populate('product user');
@@ -238,8 +237,21 @@ exports.allPendingCollectedOrder = async (req, res) => {
 }
 exports.ChangeStatus = async (req, res) => {
         try {
-                const driverData = await Order.findOne({ _id: req.params.id })
-                let update = await Order.findByIdAndUpdate({ _id: driverData._id }, { $set: { collectedAmount: driverData.collectedAmount - req.body.collectedAmount, paymentMode: req.query.paymentMode1, collectedStatus: req.query.collectedStatus } }, { new: true })
+                const driverData = await order.findOne({ _id: req.params.id })
+                if (!driverData) {
+                        return res.status(404).json({ message: "Not found", result: {} })
+                }
+                if ((driverData.collectedAmount - req.body.collectedAmount) == 0) {
+                        collectedStatus = "Collected"
+                } else {
+                        collectedStatus = "pending"
+                }
+                let obj = {
+                        collectedAmount: driverData.collectedAmount - req.body.collectedAmount,
+                        paymentMode: req.query.paymentMode1,
+                        collectedStatus: collectedStatus
+                }
+                let update = await Order.findByIdAndUpdate({ _id: driverData._id }, { $set: obj }, { new: true })
                 return res.status(200).json({ message: "ok", result: update })
         } catch (err) {
                 console.log(err);
