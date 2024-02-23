@@ -366,9 +366,9 @@ exports.reasonOfReduceQuantity = async (req, res) => {
         const driverData = await order.findOne({ _id: req.params.id })
         driverData.reasonOfReduce = req.body.reasonOfReduce;
         driverData.quantity = req.body.quantity;
-        driverData.total = req.body.quantity * driverData.unitPrice,
-            driverData.amountToBePaid = (req.body.quantity * driverData.unitPrice) + driverData.shippingPrice,
-            driverData.save();
+        driverData.total = req.body.quantity * driverData.unitPrice;
+        driverData.amountToBePaid = (req.body.quantity * driverData.unitPrice) + driverData.shippingPrice;
+        driverData.save();
         return res.status(200).json({ message: "ok", result: driverData })
     } catch (err) {
         console.log(err);
@@ -430,7 +430,11 @@ exports.pickUpBottleOrder = async (req, res) => {
 exports.ChangePickUpBottleStatus = async (req, res) => {
     try {
         console.log(req.body)
-        const driverData = await order.findByIdAndUpdate({ _id: req.params.id }, { $set: { pickUpBottleQuantity: req.body.pickUpBottleQuantity, commentOnPickUpBottle: req.body.commentOnPickUpBottle } }, { new: true })
+        const driverData1 = await order.findOne({ _id: req.params.id })
+        if (!driverData1) {
+            return res.status(404).json({ message: "Not found", result: {} })
+        }
+        const driverData = await order.findByIdAndUpdate({ _id: req.params.id }, { $set: { pickUpBottleQuantity: driverData1.pickUpBottleQuantity - req.body.pickUpBottleQuantity, commentOnPickUpBottle: req.body.commentOnPickUpBottle } }, { new: true })
         return res.status(200).json({ message: "ok", result: driverData })
     } catch (err) {
         console.log(err);
@@ -607,7 +611,7 @@ exports.startDelivery = async (req, res) => {
             let punchIn = await hourCalculate(hour, minute, second);
             let attendanceFind = await collectionDeliveryPunchIn.findOne({ driverId: user._id, date: fullDate });
             if (attendanceFind) {
-                return res.status(409).json({ message: 'Already' })
+                return res.status(409).json({ message: 'Delivery already started.' })
             } else {
                 let obj = {
                     driverId: user._id,

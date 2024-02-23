@@ -172,6 +172,11 @@ const orderSchema = new mongoose.Schema({
     required: true,
     default: 0,
   },
+  collectedAmount: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
   coupon: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Coupon"

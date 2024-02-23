@@ -235,6 +235,7 @@ const checkout = async (req, res, next) => {
           startDate: cart.products[i].startDate,
           cutOffOrderType: cutOffOrderType,
           amountToBePaid: (cart.products[i].quantity * cart.products[i].product.price) + 10,
+          collectedAmount: (cart.products[i].quantity * cart.products[i].product.price) + 10,
           orderType: "once"
         }
         const address = await Order.create(obj);
@@ -264,6 +265,7 @@ const checkout = async (req, res, next) => {
           cutOffOrderType: cutOffOrderType,
           startDate: cart.products[i].startDate,
           amountToBePaid: (cart.products[i].quantity * cart.products[i].product.price) + 10,
+          collectedAmount: (cart.products[i].quantity * cart.products[i].product.price) + 10,
         }
         const address = await Subscription.create(obj);
         await address.populate([{ path: "product", select: { reviews: 0 } },]);
@@ -314,6 +316,7 @@ const placeOrderCOD = async (req, res, next) => {
       discount,
       shippingPrice,
       amountToBePaid: grandTotal,
+      collectedAmount: grandTotal,
       orderStatus: "confirmed",
     });
     await newOrder.save();
@@ -478,6 +481,7 @@ const insertNewProduct = async (req, res, next) => {
     // Update the grand total and amountToBePaid based on the new product
     order.grandTotal += newProduct.total;
     order.amountToBePaid += newProduct.total;
+    order.collectedAmount += newProduct.total;
 
     // Save the updated order
     const updatedOrder = await order.save();
@@ -737,7 +741,7 @@ const payBills = async (req, res) => {
     const data = await Order.find(body);
     if (data.length > 0) {
       for (let i = 0; i < data.length; i++) {
-        total = total + data[i].amountToBePaid
+        total = total + data[i].collectedAmount
         orderIds.push(data[i]._id);
         console.log(orderIds);
       }

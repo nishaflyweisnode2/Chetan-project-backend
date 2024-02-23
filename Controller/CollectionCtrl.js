@@ -224,7 +224,7 @@ exports.allPendingCollectedOrder = async (req, res) => {
 exports.ChangeStatus = async (req, res) => {
         try {
                 const driverData = await Order.findOne({ _id: req.params.id })
-                let update = await Order.findByIdAndUpdate({ _id: driverData._id }, { $set: { paymentMode: req.query.paymentMode1, collectedStatus: req.query.collectedStatus } }, { new: true })
+                let update = await Order.findByIdAndUpdate({ _id: driverData._id }, { $set: { collectedAmount: driverData.collectedAmount - req.body.collectedAmount, paymentMode: req.query.paymentMode1, collectedStatus: req.query.collectedStatus } }, { new: true })
                 return res.status(200).json({ message: "ok", result: update })
         } catch (err) {
                 console.log(err);
