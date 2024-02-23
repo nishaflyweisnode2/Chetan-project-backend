@@ -194,21 +194,35 @@ exports.unAssignUserToDriver = async (req, res) => {
 }
 exports.allAssignUserToDriver = async (req, res) => {
     try {
-        const Data = await driver.findOne({ _id: req.params.driverId, role: "driver" })
-        if (!Data) {
-            return res.status(201).json({ message: "Driver not found", status: 404, data: {}, })
+        const driverId = req.params.driverId;
+        const collectionBoy = await driver.findOne({ _id: driverId, role: "driver" });
+        if (!collectionBoy) {
+            return res.status(404).json({ message: "Driver not found", data: {} });
         }
-        const userData12 = await User.find({ driverId: Data._id });
-        if (userData12.length > 0) {
-            return res.status(200).json({ sucess: true, message: userData12 })
+        const searchQuery = req.query.search;
+        let query = { driverId };
+        if (searchQuery) {
+            query.$or = [
+                { name: { $regex: searchQuery, $options: "i" } },
+            ];
+            const addressMatches = await Address.find({ $or: [{ address2: { $regex: searchQuery, $options: "i" } }, { country: { $regex: searchQuery, $options: "i" } }] });
+            if (addressMatches.length > 0) {
+                const addressIds = addressMatches.map(address => address._id);
+                query.addressId = { $in: addressIds };
+            }
+        }
+        const users = await User.find(query);
+        if (users.length > 0) {
+            return res.status(200).json({ success: true, message: users });
         } else {
-            return res.status(200).json({ sucess: false, message: {} })
+            return res.status(200).json({ success: false, message: "No users found matching the search criteria." });
         }
     } catch (err) {
-        console.log(err)
-        return res.status(400).json({ message: err.message })
+        console.log(err);
+        return res.status(500).json({ message: "Server error.", error: err.message });
     }
-}
+};
+
 exports.getUserbyId = async (req, res, next) => {
     try {
         const id = req.params.id;

@@ -15,6 +15,7 @@ const enquiry = require('../Model/enquiry');
 const Order = require("../Model/ShoppingCartOrderModel");
 const punchInModel = require("../Model/punchIn");
 const collectionDeliveryPunchIn = require("../Model/cdPunchIn");
+const Address = require("../Model/addressModel");
 const moment = require('moment')
 exports.sendOtp = async (req, res) => {
         try {
@@ -160,21 +161,35 @@ exports.assignDriverToCollectionBoy = async (req, res) => {
 }
 exports.allAssignUserToCollectionBoy = async (req, res) => {
         try {
-                const Data = await driver.findOne({ _id: req.params.collectionBoyId, role: "collectionBoy" })
-                if (!Data) {
-                        return res.status(201).json({ message: "Driver not found", status: 404, data: {}, })
+                const collectionBoyId = req.params.collectionBoyId;
+                const collectionBoy = await driver.findOne({ _id: collectionBoyId, role: "collectionBoy" });
+                if (!collectionBoy) {
+                        return res.status(404).json({ message: "Driver not found", data: {} });
                 }
-                const userData12 = await User.find({ collectionBoyId: req.params.collectionBoyId })
-                if (userData12.length > 0) {
-                        return res.status(200).json({ sucess: true, message: userData12 })
+                const searchQuery = req.query.search;
+                let query = { collectionBoyId };
+                if (searchQuery) {
+                        query.$or = [
+                                { name: { $regex: searchQuery, $options: "i" } },
+                        ];
+                        const addressMatches = await Address.find({ $or: [{ address2: { $regex: searchQuery, $options: "i" } }, { country: { $regex: searchQuery, $options: "i" } }] });
+                        if (addressMatches.length > 0) {
+                                const addressIds = addressMatches.map(address => address._id);
+                                query.addressId = { $in: addressIds };
+                        }
+                }
+                const users = await User.find(query);
+                if (users.length > 0) {
+                        return res.status(200).json({ success: true, message: users });
                 } else {
-                        return res.status(200).json({ sucess: false, message: {} })
+                        return res.status(200).json({ success: false, message: "No users found matching the search criteria." });
                 }
         } catch (err) {
-                console.log(err)
-                return res.status(400).json({ message: err.message })
+                console.log(err);
+                return res.status(500).json({ message: "Server error.", error: err.message });
         }
-}
+};
+
 exports.allCollectedOrder = async (req, res) => {
         try {
                 const data = await Order.find({ collectionBoyId: req.params.collectionBoyId, collectedStatus: "Collected" }).populate('product user');
