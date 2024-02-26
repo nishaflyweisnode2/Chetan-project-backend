@@ -241,13 +241,13 @@ exports.ChangeStatus = async (req, res) => {
                 if (!driverData) {
                         return res.status(404).json({ message: "Not found", result: {} })
                 }
-                if ((driverData.collectedAmount - req.body.collectedAmount) == 0) {
+                if ((driverData.collectedAmount - Number(req.query.collectedAmount)) == 0) {
                         collectedStatus = "Collected"
                 } else {
                         collectedStatus = "pending"
                 }
                 let obj = {
-                        collectedAmount: driverData.collectedAmount - req.body.collectedAmount,
+                        collectedAmount: driverData.collectedAmount - Number(req.query.collectedAmount),
                         paymentMode: req.query.paymentMode1,
                         collectedStatus: collectedStatus
                 }
