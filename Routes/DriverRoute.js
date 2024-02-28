@@ -19,6 +19,9 @@ router.put('/api/v1/driver/update/:id', upload.single('profile'), driver_Control
 router.get('/api/v1/driver/alldriver', driver_Controllers.AllDrivers);
 router.get('/api/v1/driver/allorders', driver_Controllers.DriverAllOrder);
 router.get('/api/v1/driver/allorders/:id', driver_Controllers.DriverSingleOrder);
+
+router.get('/api/v1/driver/allUserOrder/:id', driver_Controllers.allUserOrder);
+
 router.put('/api/v1/driver/reasonOfReduceQuantity/:id', driver_Controllers.reasonOfReduceQuantity);
 // router.delete('/api/v1/driver/delete/order/:id', driver_Controllers.DeleteAssignOrder);
 router.get('/api/v1/driver/price/:driverId', driver_Controllers.GetPriceByDriverId);

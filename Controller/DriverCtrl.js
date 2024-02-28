@@ -222,7 +222,6 @@ exports.allAssignUserToDriver = async (req, res) => {
         return res.status(500).json({ message: "Server error.", error: err.message });
     }
 };
-
 exports.getUserbyId = async (req, res, next) => {
     try {
         const id = req.params.id;
@@ -678,6 +677,25 @@ exports.endDelivery = async (req, res) => {
         return res.status(500).json({ message: error.message })
     }
 }
+
+exports.allUserOrder = async (req, res) => {
+    try {
+        const month = req.query.month;
+        if (!moment(month, 'MM').isValid()) {
+            return res.status(400).json({ message: "Invalid month format. Please use MM format." });
+        }
+        const startDate = moment(month, 'MM').startOf('month');
+        const endDate = moment(month, 'MM').endOf('month');
+        const Data = await order.find({ user: req.params.id, createdAt: { $gte: startDate, $lte: endDate } }).populate('product');
+        if (Data.length === 0) {
+            return res.status(404).json({ message: "No Data Found for the specified month." });
+        }
+        return res.status(200).json({ success: true, message: Data });
+    } catch (err) {
+        return res.status(400).json({ message: err.message });
+    }
+};
+
 const totalTime1 = async (punchIn, punchOut) => {
     var startTime = punchIn;
     var endTime = punchOut;
