@@ -686,7 +686,7 @@ exports.allUserOrder = async (req, res) => {
         }
         const startDate = moment(month, 'MM').startOf('month');
         const endDate = moment(month, 'MM').endOf('month');
-        const Data = await order.find({ user: req.params.id, createdAt: { $gte: startDate, $lte: endDate } }).populate('product');
+        const Data = await order.find({ user: req.params.id, createdAt: { $gte: startDate, $lte: endDate } }).populate('product user collectionBoyId driverId');
         if (Data.length === 0) {
             return res.status(404).json({ message: "No Data Found for the specified month." });
         }
