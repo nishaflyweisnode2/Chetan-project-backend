@@ -239,8 +239,17 @@ exports.getUserbyId = async (req, res, next) => {
     }
 };
 exports.createAddress = async (req, res, next) => {
-    req.body.driver = req.body.driver;
+    const users = await driver.findById({ _id: req.body.driver });
+    if (!users) {
+        return next(new ErrorHander(`Driver does not exist with Id: ${req.body.driver}`, 400));
+    }
+    const findAddress = await Address.findOne({ driver: req.body.driver });
+    if (findAddress) {
+        await Address.findByIdAndUpdate({ _id: findAddress._id }, { $set: req.body }, { new: true });
+        await driver.findByIdAndUpdate({ _id: users._id }, { $set: { addressId: findAddress._id } }, { new: true, });
+    }
     const address = await Address.create(req.body);
+    await driver.findByIdAndUpdate({ _id: users._id }, { $set: { addressId: address._id } }, { new: true, });
     return res.status(201).json({ success: true, address, });
 };
 exports.getAddress = async (req, res, next) => {
@@ -677,7 +686,6 @@ exports.endDelivery = async (req, res) => {
         return res.status(500).json({ message: error.message })
     }
 }
-
 exports.allUserOrder = async (req, res) => {
     try {
         const month = req.query.month;
@@ -695,7 +703,36 @@ exports.allUserOrder = async (req, res) => {
         return res.status(400).json({ message: err.message });
     }
 };
-
+exports.createDriverByAdmin = async (req, res, next) => {
+    try {
+        let findDriver = await driver.findOne({ phone: req.body.phone, role: 'driver' });
+        if (findDriver) {
+            return res.status(409).json({ data: {}, message: "Already exist.", status: 409 });
+        } else {
+            const otp = OTP.generateOTP();
+            const Driver = await driver.create({ phone: req.body.phone, otp, name: req.body.name, role: 'driver' });
+            if (Driver) {
+                let obj = {
+                    address2: req.body.address2,
+                    country: req.body.country,
+                    state: req.body.state,
+                    houseNumber: req.body.houseNumber,
+                    street: req.body.street,
+                    city: req.body.city,
+                    pinCode: req.body.pinCode,
+                    landMark: req.body.landMark,
+                    driver: Driver._id
+                }
+                const address = await Address.create(obj);
+                await driver.findByIdAndUpdate({ _id: Driver._id }, { $set: { addressId: address._id } }, { new: true, });
+                return res.status(201).json({ data: Driver, message: "Registration successfully", status: 200 });
+            }
+        }
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+    next();
+}
 const totalTime1 = async (punchIn, punchOut) => {
     var startTime = punchIn;
     var endTime = punchOut;

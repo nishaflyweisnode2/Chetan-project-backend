@@ -23,5 +23,6 @@ router.get('/api/v1/RechargeOffer/getRechargeOfferByUserId/:user', admin.getRech
 
 router.post('/api/v1/assignPermissionUserbyId/:id', admin.assignPermissionUserbyId);
 router.post('/api/v1/acceptRejectAddress/:id', admin.acceptRejectAddress);
+router.get('/api/v1/getAllLogs', admin.getAllLogs);
 
 module.exports = router;

@@ -1,4 +1,5 @@
 const Order = require("../Model/ShoppingCartOrderModel");
+const logs = require("../Model/logs");
 const Product = require("../Model/productModel");
 const Cart = require("../Model/cartModel");
 const Subscription = require("../Model/subscriptionModel");
@@ -241,6 +242,12 @@ const checkout = async (req, res, next) => {
         const address = await Order.create(obj);
         await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
         orders.push(address)
+        let obj1 = {
+          description: `Order has been create by ${req.user.name}.`,
+          title: 'Create order',
+          user: req.user._id,
+        }
+        await logs.create(obj1);
       }
       if (cart.products[i].orderType == 'Subscription') {
         let obj = {
@@ -270,6 +277,12 @@ const checkout = async (req, res, next) => {
         const address = await Subscription.create(obj);
         await address.populate([{ path: "product", select: { reviews: 0 } },]);
         orders.push(address)
+        let obj1 = {
+          description: `Subscription has been create by ${req.user.name}.`,
+          title: 'Create subscription',
+          user: req.user._id,
+        }
+        await logs.create(obj1);
       }
     }
     return res.status(200).json({ success: true, msg: "Order created", orders, });
@@ -540,7 +553,15 @@ const createSubscription = async (req, res, next) => {
       type: req.body.type,
     }
     const banner = await Subscription.create(obj);
-    return res.status(201).json({ message: 'Create subscription successfully', banner });
+    if (banner) {
+      let obj1 = {
+        description: `Subscription has been create by ${req.user.name}.`,
+        title: 'Create subscription',
+        user: req.user._id,
+      }
+      await logs.create(obj1);
+      return res.status(201).json({ message: 'Create subscription successfully', banner });
+    }
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: 'Failed to place order' });
@@ -581,6 +602,12 @@ const updateSubscription = async (req, res, next) => {
       type: req.body.type || order.type,
     }
     const banner = await Subscription.findByIdAndUpdate({ _id: order._id }, { $set: obj }, { new: true });
+    let obj1 = {
+      description: `Subscription has been update by ${req.user.name}.`,
+      title: 'Update subscription',
+      user: req.user._id,
+    }
+    await logs.create(obj1);
     return res.status(201).json({ message: 'Create subscription successfully', banner });
   } catch (error) {
     console.log(error);

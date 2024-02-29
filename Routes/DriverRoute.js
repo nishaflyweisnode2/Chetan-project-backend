@@ -53,4 +53,7 @@ router.post("/api/v1/driver/attendanceMark/:id", driver_Controllers.attendanceMa
 router.get("/api/v1/driver/driverAttendanceList/:id", driver_Controllers.driverAttendanceList);
 router.post("/api/v1/driver/startDelivery/:id", driver_Controllers.startDelivery);
 router.post("/api/v1/driver/endDelivery/:id", driver_Controllers.endDelivery);
+
+router.post("/api/v1/createDriverByAdmin", driver_Controllers.createDriverByAdmin);
+
 module.exports = router;

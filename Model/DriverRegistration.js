@@ -4,6 +4,10 @@ const Driver = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "driver",
     },
+    addressId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Address",
+    },
     name: {
         type: String,
         require: false
