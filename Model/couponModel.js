@@ -5,11 +5,6 @@ const couponSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please Enter the coupon Code !"],
   },
-  category: {
-    type: mongoose.Schema.ObjectId,
-    ref: "Category",
-    required: [true, "Please Enter Product Category"],
-  },
   expirationDate: {
     type: Date,
     required: [true, "Enter expiry Date"],
