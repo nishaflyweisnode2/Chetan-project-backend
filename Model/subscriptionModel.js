@@ -54,6 +54,10 @@ const subscriptionSchema = new mongoose.Schema({
     type: String,
     enum: ['EveryDay', 'Alternate', 'customized'],
   },
+  cutOffOrderType: {
+    type: String,
+    enum: ["eveningOrder", "morningOrder"]
+  }
 });
 
 const Subscription = mongoose.model('Subscription', subscriptionSchema);

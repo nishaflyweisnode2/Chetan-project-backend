@@ -75,7 +75,7 @@ const myOrders = catchAsyncErrors(async (req, res, next) => {
 });
 const mySubscriptionOrders = catchAsyncErrors(async (req, res, next) => {
   console.log("hi");
-  const orders = await Order.find({ user: req.user.id, orderType: "Subscription" });
+  const orders = await Subscription.find({ user: req.user._id, }).populate("userId product")
 
   console.log(orders);
   return res.status(200).json({
@@ -198,7 +198,9 @@ const checkout = async (req, res, next) => {
     const currentTimeString = `${currentHour}:${currentMinute1}:${currentSecond1}`;
     const CutOffTimes1 = await cutOffTime.findOne({ type: "morningOrder" });
     const CutOffTimes2 = await cutOffTime.findOne({ type: "eveningOrder" });
-    if ((CutOffTimes2.time < CutOffTimes1.time) && (currentTimeString < CutOffTimes2.time)) { cutOffOrderType = CutOffTimes2; } else { cutOffOrderType = CutOffTimes1; }
+    if ((CutOffTimes2.time < CutOffTimes1.time) && (currentTimeString < CutOffTimes2.time)) { cutOffOrderType = CutOffTimes2.type; } else {
+      cutOffOrderType = CutOffTimes1.type;
+    }
     let orders = [], pickUpBottleQuantity = 0, isPickUpBottle;
     for (let i = 0; i < cart.products.length; i++) {
       console.log(cart.products[i]);
@@ -616,8 +618,8 @@ const updateSubscription = async (req, res, next) => {
 };
 const mySubscription = async (req, res, next) => {
   try {
-    const { user } = req;
-    const subscriptions = await Subscription.find({ userId: user._id }).populate("userId productId");
+    consol.log(req.user)
+    const subscriptions = await Subscription.find({ userId: req.user._id }).populate("userId productId");
     return res.status(200).json({ subscriptions });
   } catch (error) {
     console.error(error);
