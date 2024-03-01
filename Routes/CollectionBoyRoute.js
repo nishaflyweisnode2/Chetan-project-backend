@@ -7,6 +7,7 @@ router.post('/api/v1/CollectionBoy/verify', CollectionBoy.accountVerificationOTP
 router.get('/api/v1/CollectionBoy/get/:id', CollectionBoy.getProfile);
 router.put('/api/v1/CollectionBoy/update/:id', CollectionBoy.AddCollectionBoyDetails);
 router.get('/api/v1/CollectionBoy/allCollectionBoy', CollectionBoy.AllCollectionBoys);
+router.put('/api/v1/CollectionBoy/Status/:id', CollectionBoy.UpdateCollectionBoyStatus);
 router.delete('/api/v1/CollectionBoy/:id', CollectionBoy.DeleteCollectionBoy);
 router.post('/api/v1/CollectionBoy/addEnquiry/:id', CollectionBoy.addEnquiry)
 router.post('/api/v1/CollectionBoy/assignDriverToCollectionBoy', CollectionBoy.assignDriverToCollectionBoy);

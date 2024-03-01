@@ -66,6 +66,19 @@ exports.createCollectionBoy = async (req, res, next) => {
         }
         next();
 }
+exports.UpdateCollectionBoyStatus = async (req, res, next) => {
+        try {
+                const id = req.params.id;
+                const users = await driver.findById(id);
+                if (!users) {
+                        return next(new ErrorHander(`Driver does not exist with Id: ${req.params.id}`, 400));
+                }
+                const data = await driver.updateOne({ _id: Data._id }, { $set: { status: req.body.status } }, { new: true });
+                return res.status(200).json({ success: true, data, });
+        } catch (error) {
+                return res.status(200).json({ error: `Something went wrong with Id: ${req.params}` });
+        }
+};
 exports.AddCollectionBoyDetails = async (req, res) => {
         try {
                 const Data1 = await driver.findOne({ _id: { $ne: req.params.id }, email: req.body.email, role: "collectionBoy" })
