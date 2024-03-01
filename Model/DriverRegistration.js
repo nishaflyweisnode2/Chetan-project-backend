@@ -42,7 +42,7 @@ const Driver = mongoose.Schema({
     },
     status: {
         type: String,
-        default: "disapprove"
+        default: "pending"
     },
     role: {
         type: String,

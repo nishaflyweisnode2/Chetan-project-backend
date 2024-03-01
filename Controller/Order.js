@@ -514,23 +514,23 @@ const pauseSubscription = async (req, res, next) => {
     if (!order) {
       return res.status(404).json({ error: 'Subscription not found' });
     }
-    const currentDate = new Date();
-    if (req.body.pauseDate && req.body.pauseDate.toDateString() === currentDate.toDateString()) {
+    const currentDate = new Date().toISOString().split('T')[0];
+    if (currentDate >= order.pauseDate && currentDate <= order.resumeDate) {
       order.status = 'pause';
-      order.endDate = new Date.now();
-    } else if (req.body.resumeDate && req.body.resumeDate.toDateString() === currentDate.toDateString()) {
+      order.endDate = new Date();
+    } else {
       order.status = 'start';
     }
     order.pauseDate = req.body.pauseDate;
     order.resumeDate = req.body.resumeDate;
     await order.save();
+
     return res.status(201).json({ message: 'Subscription status updated successfully', order });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: 'Failed to update subscription status' });
   }
 };
-
 const createSubscription = async (req, res, next) => {
   try {
     const findProduct = await Product.findById({ _id: req.body.productId });
