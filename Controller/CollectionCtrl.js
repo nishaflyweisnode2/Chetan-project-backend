@@ -163,6 +163,7 @@ exports.assignDriverToCollectionBoy = async (req, res) => {
                                 for (let i = 0; i < userData12.length; i++) {
                                         let update = await User.findByIdAndUpdate({ _id: userData12[i]._id }, { $set: { collectionBoyId: req.body.collectionBoyId }, }, { new: true });
                                 }
+                                let update = await driver.findByIdAndUpdate({ _id: userData._id }, { $addToSet: { driverId: req.body.driverId } }, { new: true });
                                 return res.status(200).json({ sucess: true, message: "Collection Boy Assigned Successfully" })
                         }
                 }

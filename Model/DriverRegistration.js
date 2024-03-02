@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
 const Driver = mongoose.Schema({
-    collectionBoyId: {
+    driverId: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "driver",
-    },
+    }],
     addressId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Address",
