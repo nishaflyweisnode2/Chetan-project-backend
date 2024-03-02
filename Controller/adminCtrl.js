@@ -11,7 +11,78 @@ const cutOffTime = require('../Model/cutOffTime');
 const rechargeOffer = require('../Model/rechargeOffer');
 const { UserInstance } = require("twilio/lib/rest/conversations/v1/user");
 const logs = require('../Model/logs');
-
+const Product = require("../Model/productModel");
+const Cart = require("../Model/cartModel");
+const Subscription = require("../Model/subscriptionModel");
+const Wallet = require('../Model/myWalletModel');
+const moment = require('moment');
+const Razorpay = require("razorpay");
+const OrderReturn = require('../Model/OrderReturnModel')
+const Address = require("../Model/addressModel");
+exports.userOrders = async (req, res, next) => {
+  console.log("hi");
+  const orders = await Order.find({ user: req.params.userId, orderType: "once" }).populate("user product")
+  if (orders.length == 0) {
+    return res.status(404).json({ success: false, });
+  }
+  return res.status(200).json({ success: true, orders, });
+};
+exports.userSubscriptionOrders = async (req, res, next) => {
+  const orders = await Subscription.find({ user: req.params.userId, }).populate("userId product")
+  if (orders.length == 0) {
+    return res.status(404).json({ success: false, });
+  }
+  console.log(orders);
+  return res.status(200).json({ success: true, orders });
+}
+exports.updateUserProfile = async (req, res, next) => {
+  try {
+    const users = await User.findById({ _id: req.params.userId });
+    if (!users) {
+      return next(new ErrorHander(`User does not exist with Id: ${req.params.userId}`, 400));
+    }
+    let image;
+    if (req.file) {
+      image = req.file.path;
+    } else {
+      image = users.profilePicture
+    }
+    let location;
+    if (req.body.currentLat && req.body.currentLong) {
+      let coordinates = [req.body.currentLat, req.body.currentLong];
+      location = { type: "Point", coordinates };
+    } else {
+      location = users.location
+    }
+    let obj = {
+      name: req.body.name || users.name,
+      phone: req.body.phone || users.phone,
+      profilePicture: image,
+      location: location
+    }
+    const updatedTeacher = await User.findByIdAndUpdate({ _id: users._id }, { $set: obj }, { new: true });
+    return res.json(updatedTeacher);
+  } catch (error) {
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+exports.activeBlockUser = async (req, res, next) => {
+  try {
+    const users = await User.findById({ _id: req.params.userId });
+    if (!users) {
+      return next(new ErrorHander(`User does not exist with Id: ${req.params.userId}`, 400));
+    }
+    if (users.status == "Block") {
+      const updatedTeacher = await User.findByIdAndUpdate({ _id: users._id }, { $set: { status: "Active" } }, { new: true });
+      return res.json({ status: 200, message: "User Active successfully.", data: updatedTeacher });
+    } else {
+      const updatedTeacher = await User.findByIdAndUpdate({ _id: users._id }, { $set: { status: "Block" } }, { new: true });
+      return res.json({ status: 200, message: "User Block successfully.", data: updatedTeacher });
+    }
+  } catch (error) {
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
 exports.createBrand = catchAsyncErrors(async (req, res, next) => {
   const imagesLinks = await multipleFileHandle(req.files);
 

@@ -76,6 +76,11 @@ const userSchema = new mongoose.Schema({
     enum: ["pending", "approved", "rejected"],
     default: "pending"
   },
+  status: {
+    type: String,
+    enum: ["Active", "Block"],
+    default: "Active"
+  },
   balance: {
     type: Number,
     default: 0,

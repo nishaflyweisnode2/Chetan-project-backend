@@ -25,4 +25,11 @@ router.post('/api/v1/assignPermissionUserbyId/:id', admin.assignPermissionUserby
 router.post('/api/v1/acceptRejectAddress/:id', admin.acceptRejectAddress);
 router.get('/api/v1/getAllLogs', admin.getAllLogs);
 
+
+
+router.get('/api/v1/userOrders/get/:userId', admin.userOrders);
+router.get('/api/v1/userSubscriptionOrders/get/:userId', admin.userSubscriptionOrders);
+router.put('/api/v1/updateUserProfile/put/:userId', admin.updateUserProfile);
+router.put('/api/v1/activeBlockUser/:userId', admin.activeBlockUser);
+
 module.exports = router;
