@@ -115,7 +115,7 @@ exports.RegisterAdmin = catchAsyncErrors(async (req, res, next) => {
 exports.signin = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email: email, userType: "Admin" });
+    const user = await User.findOne({ email: email });
     if (!user) {
       return res
         .status(404)
