@@ -101,7 +101,7 @@ exports.AddCollectionBoyDetails = async (req, res) => {
 }
 exports.AllCollectionBoys = async (req, res) => {
         try {
-                const Data = await driver.find({ role: "collectionBoy" })
+                const Data = await driver.find({ role: "collectionBoy" }).populate('driverId')
                 if (Data.length == 0) {
                         return res.status(201).json({ message: "No Data Found " })
                 } else {
