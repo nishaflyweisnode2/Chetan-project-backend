@@ -81,6 +81,16 @@ const userSchema = new mongoose.Schema({
     enum: ["Active", "Block"],
     default: "Active"
   },
+  userStatus: {
+    type: String,
+    enum: ["Approved", "UnApproved", "ServiceNotAvailable", "Pending"],
+    default: "Pending"
+  },
+  paymentMode: {
+    type: String,
+    enum: ["PostPaid", "PrePaid"],
+    default: "PostPaid"
+  },
   balance: {
     type: Number,
     default: 0,

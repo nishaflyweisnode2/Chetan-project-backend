@@ -23,6 +23,34 @@ mongoose.connect(process.env.MONGO_URI).then((data) => {
         console.log(`Mongodb connected with server: ${data.connection.host} : Chetan-project-backend`);
 });
 
+const axios = require('axios');
+const apiUrl = 'http://api.ask4sms.com/sms/1/text/query';
+const username = 'GIRORGANIC';
+const password = 'Gir2024@';
+const from = 'GROGNC';
+const to = '917983270583';
+const text = '145673 is your verification code for Gir Organic app';
+const indiaDltContentTemplateId = '1207163178705284094';
+const indiaDltPrincipalEntityId = '1201162297097138491';
+
+const params = {
+        username,
+        password,
+        from,
+        to,
+        text,
+        indiaDltContentTemplateId,
+        indiaDltPrincipalEntityId
+};
+
+// axios.get(apiUrl, { params })
+//         .then(response => {
+//                 console.log('Response:', response.data);
+//         })
+//         .catch(error => {
+//                 console.error('Error:', error.response);
+//         });
+
 app.listen(process.env.PORT, () => {
         console.log(`Listening on port ${process.env.PORT}!`);
 });
