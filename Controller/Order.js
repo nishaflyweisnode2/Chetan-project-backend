@@ -739,21 +739,13 @@ const addproductinOrder = async (req, res, next) => {
 const deleteproductinOrder = async (req, res, next) => {
   try {
     const { orderId } = req.params;
-    const { productId } = req.body;
     const order = await Order.findById(orderId);
     if (!order) {
       return res.status(404).json({ success: false, message: 'Order not found' });
     }
-    const productIndex = order.products.findIndex(
-      product => product && product.product && product.product.toString() === productId
-    );
-    if (productIndex === -1) {
-      return res.status(404).json({ success: false, message: 'Product not found in the order' });
-    }
-    const removedProduct = order.products.splice(productIndex, 1)[0];
-    order.grandTotal -= removedProduct.total;
-    await order.save();
-    return res.status(200).json({ success: true, removedProduct, order });
+    const del = await Order.findByIdAndDelete({ _id: order._id });
+
+    return res.status(200).json({ success: true, del });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ success: false, message: 'Internal Server Error' });

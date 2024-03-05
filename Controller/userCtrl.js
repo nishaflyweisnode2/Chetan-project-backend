@@ -9,6 +9,8 @@ const token = require("../utils/Token")
 const Wallet = require("../Model/myWalletModel");
 const twilio = require('twilio');
 const vacation = require("../Model/vacation");
+const rechargeTransaction = require("../Model/rechargeTransaction");
+const walletTransaction = require("../Model/walletTransaction");
 const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
@@ -393,6 +395,121 @@ exports.updateLocationofUser = async (req, res) => {
     res
       .status(500)
       .send({ status: 500, message: "Server error" + error.message });
+  }
+};
+exports.createRechargeTransaction = async (req, res) => {
+  try {
+    const user = await User.findOne({ _id: req.user.id });
+    if (!user) {
+      return res.status(404).send({ status: 404, message: "user not found" });
+    } else {
+      let month = new Date(Date.now()).getMonth() + 1;
+      let obj = {
+        user: user._id,
+        amount: req.body.amount,
+        month: month,
+        Status: "pending"
+      }
+      const faq = await rechargeTransaction.create(obj);
+      return res.status(200).send({ status: 200, message: "Recharge create successfully.", data: faq, });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ status: 500, message: "Server error" + error.message });
+  }
+};
+exports.getAllRechargeTransaction = async (req, res, next) => {
+  try {
+    const users = await User.findById({ _id: req.user.id });
+    if (!users) {
+      return next(new ErrorHander(`User does not exist with Id`, 400));
+    }
+    const user = await rechargeTransaction.find({ user: users._id });
+    if (user.length > 0) {
+      return res.status(200).json({ status: 200, message: "Recharge transaction successfully", data: user, });
+    } else {
+      return res.status(404).json({ status: 404, message: "Recharge transaction not found successfully", data: {}, });
+    }
+  } catch (error) {
+    return res.status(200).json({ error: "Something went wrong" });
+  }
+};
+exports.getRechargeTransactionById = async (req, res, next) => {
+  try {
+    const users = await rechargeTransaction.findById({ _id: req.params.id });
+    if (!users) {
+      return next(new ErrorHander(`Recharge transaction does not exist `, 400));
+    }
+    return res.status(200).json({ status: 200, message: "Recharge transaction successfully", data: users, });
+  } catch (error) {
+    return res.status(200).json({ error: `Something went wrong` });
+  }
+};
+exports.getAllRechargeTransactionByuserId = async (req, res, next) => {
+  try {
+    const user = await rechargeTransaction.find({ user: req.params.userId });
+    if (user.length > 0) {
+      return res.status(200).json({ status: 200, message: "Recharge transaction successfully", data: user, });
+    } else {
+      return res.status(404).json({ status: 404, message: "Recharge transaction not found successfully", data: {}, });
+    }
+  } catch (error) {
+    return res.status(200).json({ error: "Something went wrong" });
+  }
+};
+exports.updateRechargeTransaction = async (req, res) => {
+  try {
+    const user = await rechargeTransaction.findById({ _id: req.params.id });
+    if (!user) {
+      return res.status(404).send({ status: 404, message: "user not found" });
+    } else {
+      let update = await rechargeTransaction.findByIdAndUpdate({ _id: user._id }, { $set: { Status: req.body.Status } }, { new: true });
+      if (update) {
+        return res.status(200).send({ status: 200, message: "Recharge transaction update successfully.", data: update, });
+      }
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send({ status: 500, message: "Server error" + error.message });
+  }
+};
+exports.getAllWalletTransaction = async (req, res, next) => {
+  try {
+    const users = await User.findById({ _id: req.user.id });
+    if (!users) {
+      return next(new ErrorHander(`User does not exist with Id`, 400));
+    }
+    const user = await walletTransaction.find({ user: users._id });
+    if (user.length > 0) {
+      return res.status(200).json({ status: 200, message: "Wallet transaction successfully", data: user, });
+    } else {
+      return res.status(404).json({ status: 404, message: "Wallet transaction not found successfully", data: {}, });
+    }
+  } catch (error) {
+    return res.status(200).json({ error: "Something went wrong" });
+  }
+};
+exports.getWalletTransactionById = async (req, res, next) => {
+  try {
+    const users = await walletTransaction.findById({ _id: req.params.id });
+    if (!users) {
+      return next(new ErrorHander(`Wallet transaction does not exist `, 400));
+    }
+    return res.status(200).json({ status: 200, message: "Wallet transaction successfully", data: users, });
+  } catch (error) {
+    return res.status(200).json({ error: `Something went wrong` });
+  }
+};
+exports.getAllWalletTransactionByUserId = async (req, res, next) => {
+  try {
+    const user = await walletTransaction.find({ user: req.params.userId });
+    if (user.length > 0) {
+      return res.status(200).json({ status: 200, message: "Wallet transaction successfully", data: user, });
+    } else {
+      return res.status(404).json({ status: 404, message: "Wallet transaction not found successfully", data: {}, });
+    }
+  } catch (error) {
+    return res.status(200).json({ error: "Something went wrong" });
   }
 };
 // exports.loginUser = catchAsyncErrors(async (req, res, next) => {

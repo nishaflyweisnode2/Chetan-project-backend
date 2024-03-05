@@ -40,5 +40,13 @@ router.post("/api/v1/user/createVacation", isAuthenticatedUser, userCtrl.createV
 router.get("/api/v1/user/getAll/Vacation", isAuthenticatedUser, userCtrl.getAllVacation);
 router.get("/api/v1/user/getVacationById/:id", userCtrl.getVacationById);
 router.put("/api/v1/user/updateLocationofUser/:id", userCtrl.updateLocationofUser)
+router.post("/api/v1/user/createRechargeTransaction", isAuthenticatedUser, userCtrl.createRechargeTransaction);
+router.get("/api/v1/user/getAll/getAllRechargeTransaction", isAuthenticatedUser, userCtrl.getAllRechargeTransaction);
+router.get("/api/v1/user/getRechargeTransactionById/:id", userCtrl.getRechargeTransactionById);
+router.get("/api/v1/user/getAllRechargeTransactionByuserId/:userId", userCtrl.getAllRechargeTransactionByuserId);
+router.put("/api/v1/user/updateRechargeTransaction/:id", userCtrl.updateRechargeTransaction);
+router.get("/api/v1/user/getAll/getAllWalletTransaction", isAuthenticatedUser, userCtrl.getAllWalletTransaction);
+router.get("/api/v1/user/getWalletTransactionById/:id", userCtrl.getWalletTransactionById);
+router.get("/api/v1/user/getAllWalletTransactionByUserId/:userId", userCtrl.getAllWalletTransactionByUserId);
 
 module.exports = router;
