@@ -33,5 +33,5 @@ const transactionSchema = mongoose.Schema({
         },
 }, { timestamps: true });
 
-const transaction = mongoose.model("rechargeTransaction", transactionSchema);
+const transaction = mongoose.model("walletTransaction", transactionSchema);
 module.exports = transaction;

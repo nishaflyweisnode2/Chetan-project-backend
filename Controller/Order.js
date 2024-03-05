@@ -541,6 +541,22 @@ const createSubscription = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
+    const currentTime = new Date();
+    const currentHour = currentTime.getHours();
+    const currentMinute = currentTime.getMinutes();
+    const currentSecond = currentTime.getSeconds();
+    let currentSecond1, currentMinute1;
+    if (currentSecond < 10) { currentSecond1 = '' + 0 + currentSecond; } else { currentSecond1 = currentSecond };
+    if (currentMinute < 10) { currentMinute1 = '' + 0 + currentMinute; } else { currentMinute1 = currentMinute };
+    let cutOffOrderType;
+    const currentTimeString = `${currentHour}:${currentMinute1}:${currentSecond1}`;
+    const CutOffTimes1 = await cutOffTime.findOne({ type: "morningOrder" });
+    const CutOffTimes2 = await cutOffTime.findOne({ type: "eveningOrder" });
+    if ((CutOffTimes2.time < CutOffTimes1.time) && (currentTimeString < CutOffTimes2.time)) {
+      cutOffOrderType = CutOffTimes2.type;
+    } else {
+      cutOffOrderType = CutOffTimes1.type;
+    }
     let obj = {
       userId: req.user._id,
       driverId: user.driverId,
@@ -553,6 +569,7 @@ const createSubscription = async (req, res, next) => {
       instruction: req.body.instruction,
       days: req.body.days,
       type: req.body.type,
+      cutOffOrderType: cutOffOrderType,
     }
     const banner = await Subscription.create(obj);
     if (banner) {
