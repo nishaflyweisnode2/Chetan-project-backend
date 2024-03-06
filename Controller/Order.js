@@ -174,7 +174,6 @@ const getAllSubscription = async (req, res, next) => {
 };
 const checkout = async (req, res, next) => {
   try {
-    const { address } = req.body;
     let cart = await Cart.findOne({ user: req.user._id }).populate({ path: "products.product", select: { review: 0 }, }).populate({ path: "coupon", select: "couponCode discount expirationDate", });
     if (!cart) {
       return res.status(400).json({ success: false, msg: "Cart not found or empty." });
@@ -183,7 +182,7 @@ const checkout = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    const allAddress = await Address.findById({ _id: address });
+    const allAddress = await Address.findById({ _id: user.addressId });
     if (!allAddress) {
       return res.status(404).json({ error: 'Address not found' });
     }
@@ -242,24 +241,29 @@ const checkout = async (req, res, next) => {
         orderType: "once",
         mode: user.paymentMode
       }
-      let TotalAmount = (cart.products[i].quantity * cart.products[i].product.price) + 10
-      let wallet = await Wallet.findOne({ userId: Data.user });
-      if (!wallet) {
-        return res.status(200).json({ message: "InSufficent balance." })
-      } else {
-        if (wallet.balance < parseFloat(TotalAmount)) {
+      if (user.paymentMode == "PrePaid") {
+        let TotalAmount = (cart.products[i].quantity * cart.products[i].product.price) + 10
+        let wallet = await Wallet.findOne({ userId: Data.user });
+        if (!wallet) {
           return res.status(200).json({ message: "InSufficent balance." })
         } else {
-          const address = await Order.create(obj);
-          await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
-          orders.push(address)
-          let obj1 = {
-            description: `Order has been create by ${user.name}.`,
-            title: 'Create order',
-            user: user._id,
+          if (wallet.balance < parseFloat(TotalAmount)) {
+            return res.status(200).json({ message: "InSufficent balance." })
+          } else {
+            const address = await Order.create(obj);
+            await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+            orders.push(address)
+            let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, }
+            await logs.create(obj1);
           }
-          await logs.create(obj1);
         }
+      }
+      if (user.paymentMode == "PostPaid") {
+        const address = await Order.create(obj);
+        await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+        orders.push(address)
+        let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, }
+        await logs.create(obj1);
       }
       // }
       // if (cart.products[i].orderType == 'Subscription') {
