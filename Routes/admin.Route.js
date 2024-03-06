@@ -1,6 +1,11 @@
 const admin = require("../Controller/adminCtrl");
 const router = require("express").Router();
 router.post("/api/v1/admin/registerAdmin", admin.RegisterAdmin);
+
+router.post("/api/v1/admin/addStaff", admin.addStaff);
+router.get("/api/v1/admin/getAllStaff", admin.getAllStaff);
+
+
 router.post("/api/v1/admin/signin", admin.signin);
 router.get("/api/v1/admin/user", admin.getAllUser);
 router.get("/api/v1/admin/:id", admin.getUserbyId);

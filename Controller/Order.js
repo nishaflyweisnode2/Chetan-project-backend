@@ -204,99 +204,99 @@ const checkout = async (req, res, next) => {
     let orders = [], pickUpBottleQuantity = 0, isPickUpBottle;
     for (let i = 0; i < cart.products.length; i++) {
       console.log(cart.products[i]);
-      if (cart.products[i].orderType == 'once') {
-        if (cart.products[i].product.type == "Bottle") {
-          pickUpBottleQuantity = cart.products[i].quantity;
-          isPickUpBottle = false;
-        } else {
-          pickUpBottleQuantity = 0;
-          isPickUpBottle = true;
-        }
-        let obj = {
-          user: req.user._id,
-          driverId: user.driverId,
-          collectionBoyId: user.collectionBoyId,
-          address2: allAddress.address2,
-          country: allAddress.state,
-          state: allAddress.state,
-          houseNumber: allAddress.houseNumber,
-          street: allAddress.street,
-          city: allAddress.city,
-          pinCode: allAddress.pinCode,
-          landMark: allAddress.landMark,
-          unitPrice: cart.products[i].product.price,
-          product: cart.products[i].product._id,
-          quantity: cart.products[i].quantity,
-          total: cart.products[i].quantity * cart.products[i].product.price,
-          ringTheBell: cart.products[i].ringTheBell,
-          instruction: cart.products[i].instruction,
-          pickUpBottleQuantity: pickUpBottleQuantity,
-          productType: cart.products[i].product.type,
-          isPickUpBottle: isPickUpBottle,
-          discount: 0,
-          shippingPrice: 10,
-          startDate: cart.products[i].startDate,
-          cutOffOrderType: cutOffOrderType,
-          amountToBePaid: (cart.products[i].quantity * cart.products[i].product.price) + 10,
-          collectedAmount: (cart.products[i].quantity * cart.products[i].product.price) + 10,
-          orderType: "once",
-          mode: user.paymentMode
-        }
-        let TotalAmount = (cart.products[i].quantity * cart.products[i].product.price) + 10
-        let wallet = await Wallet.findOne({ userId: Data.user });
-        if (!wallet) {
+      // if (cart.products[i].orderType == 'once') {
+      if (cart.products[i].product.type == "Bottle") {
+        pickUpBottleQuantity = cart.products[i].quantity;
+        isPickUpBottle = false;
+      } else {
+        pickUpBottleQuantity = 0;
+        isPickUpBottle = true;
+      }
+      let obj = {
+        user: req.user._id,
+        driverId: user.driverId,
+        collectionBoyId: user.collectionBoyId,
+        address2: allAddress.address2,
+        country: allAddress.state,
+        state: allAddress.state,
+        houseNumber: allAddress.houseNumber,
+        street: allAddress.street,
+        city: allAddress.city,
+        pinCode: allAddress.pinCode,
+        landMark: allAddress.landMark,
+        unitPrice: cart.products[i].product.price,
+        product: cart.products[i].product._id,
+        quantity: cart.products[i].quantity,
+        total: cart.products[i].quantity * cart.products[i].product.price,
+        ringTheBell: cart.products[i].ringTheBell,
+        instruction: cart.products[i].instruction,
+        pickUpBottleQuantity: pickUpBottleQuantity,
+        productType: cart.products[i].product.type,
+        isPickUpBottle: isPickUpBottle,
+        discount: 0,
+        shippingPrice: 10,
+        startDate: cart.products[i].startDate,
+        cutOffOrderType: cutOffOrderType,
+        amountToBePaid: (cart.products[i].quantity * cart.products[i].product.price) + 10,
+        collectedAmount: (cart.products[i].quantity * cart.products[i].product.price) + 10,
+        orderType: "once",
+        mode: user.paymentMode
+      }
+      let TotalAmount = (cart.products[i].quantity * cart.products[i].product.price) + 10
+      let wallet = await Wallet.findOne({ userId: Data.user });
+      if (!wallet) {
+        return res.status(200).json({ message: "InSufficent balance." })
+      } else {
+        if (wallet.balance < parseFloat(TotalAmount)) {
           return res.status(200).json({ message: "InSufficent balance." })
         } else {
-          if (wallet.balance < parseFloat(TotalAmount)) {
-            return res.status(200).json({ message: "InSufficent balance." })
-          } else {
-            const address = await Order.create(obj);
-            await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
-            orders.push(address)
-            let obj1 = {
-              description: `Order has been create by ${user.name}.`,
-              title: 'Create order',
-              user: user._id,
-            }
-            await logs.create(obj1);
+          const address = await Order.create(obj);
+          await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+          orders.push(address)
+          let obj1 = {
+            description: `Order has been create by ${user.name}.`,
+            title: 'Create order',
+            user: user._id,
           }
+          await logs.create(obj1);
         }
       }
-      if (cart.products[i].orderType == 'Subscription') {
-        let obj = {
-          userId: req.user._id,
-          driverId: user.driverId,
-          collectionBoyId: user.collectionBoyId,
-          address2: allAddress.address2,
-          country: allAddress.state,
-          state: allAddress.state,
-          houseNumber: allAddress.houseNumber,
-          street: allAddress.street,
-          city: allAddress.city,
-          pinCode: allAddress.pinCode,
-          landMark: allAddress.landMark,
-          unitPrice: cart.products[i].product.price,
-          product: cart.products[i].product._id,
-          quantity: cart.products[i].quantity,
-          ringTheBell: cart.products[i].ringTheBell,
-          instruction: cart.products[i].instruction,
-          discount: 0,
-          shippingPrice: 10,
-          cutOffOrderType: cutOffOrderType,
-          startDate: cart.products[i].startDate,
-          amountToBePaid: (cart.products[i].quantity * cart.products[i].product.price) + 10,
-          collectedAmount: (cart.products[i].quantity * cart.products[i].product.price) + 10,
-        }
-        const address = await Subscription.create(obj);
-        await address.populate([{ path: "product", select: { reviews: 0 } },]);
-        orders.push(address)
-        let obj1 = {
-          description: `Subscription has been create by ${req.user.name}.`,
-          title: 'Create subscription',
-          user: req.user._id,
-        }
-        await logs.create(obj1);
-      }
+      // }
+      // if (cart.products[i].orderType == 'Subscription') {
+      //   let obj = {
+      //     userId: req.user._id,
+      //     driverId: user.driverId,
+      //     collectionBoyId: user.collectionBoyId,
+      //     address2: allAddress.address2,
+      //     country: allAddress.state,
+      //     state: allAddress.state,
+      //     houseNumber: allAddress.houseNumber,
+      //     street: allAddress.street,
+      //     city: allAddress.city,
+      //     pinCode: allAddress.pinCode,
+      //     landMark: allAddress.landMark,
+      //     unitPrice: cart.products[i].product.price,
+      //     product: cart.products[i].product._id,
+      //     quantity: cart.products[i].quantity,
+      //     ringTheBell: cart.products[i].ringTheBell,
+      //     instruction: cart.products[i].instruction,
+      //     discount: 0,
+      //     shippingPrice: 10,
+      //     cutOffOrderType: cutOffOrderType,
+      //     startDate: cart.products[i].startDate,
+      //     amountToBePaid: (cart.products[i].quantity * cart.products[i].product.price) + 10,
+      //     collectedAmount: (cart.products[i].quantity * cart.products[i].product.price) + 10,
+      //   }
+      //   const address = await Subscription.create(obj);
+      //   await address.populate([{ path: "product", select: { reviews: 0 } },]);
+      //   orders.push(address)
+      //   let obj1 = {
+      //     description: `Subscription has been create by ${req.user.name}.`,
+      //     title: 'Create subscription',
+      //     user: req.user._id,
+      //   }
+      //   await logs.create(obj1);
+      // }
     }
     return res.status(200).json({ success: true, msg: "Order created", orders, });
   } catch (error) {

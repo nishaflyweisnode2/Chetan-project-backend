@@ -1,6 +1,9 @@
 const mongoose = require("mongoose");
 const { ObjectId } = mongoose.Schema;
 const addressSchema = new mongoose.Schema({
+  address1: {
+    type: String,
+  },
   address2: {
     type: String,
   },
@@ -24,6 +27,10 @@ const addressSchema = new mongoose.Schema({
   },
   landMark: {
     type: String,
+  },
+  type: {
+    type: String,
+    enum: ["Home", "office"]
   },
   user: {
     type: ObjectId,

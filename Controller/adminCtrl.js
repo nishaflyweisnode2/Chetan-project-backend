@@ -112,6 +112,61 @@ exports.RegisterAdmin = catchAsyncErrors(async (req, res, next) => {
     return res.status(400).json({ message: "not ok", error: err.message })
   }
 })
+exports.addStaff = catchAsyncErrors(async (req, res, next) => {
+  try {
+    let findAdmin = await User.findOne({ email: req.body.email, role: "Staff" });
+    if (findAdmin) {
+      return res.status(409).json({ message: "Already Exit", result: {} })
+    }
+    req.body.password = bcrypt.hashSync(req.body.password, 8)
+    const data = { name: req.body.name, email: req.body.email, password: req.body.password, role: "Staff" };
+    const result = await User.create(data);
+    return res.status(200).json({ message: "ok", result: result })
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ message: "not ok", error: err.message })
+  }
+});
+exports.getAllStaff = async (req, res) => {
+  try {
+    const { search, fromDate, toDate, status, page, limit } = req.query;
+    let query = { role: "Staff" };
+    if (search) {
+      query.$or = [
+        { "name": { $regex: req.query.search, $options: "i" }, },
+        { "lastName": { $regex: req.query.search, $options: "i" }, },
+        { "firstName": { $regex: req.query.search, $options: "i" }, },
+        { "email": { $regex: req.query.search, $options: "i" }, },
+      ]
+    }
+    if (status) {
+      query.userStatus = status
+    }
+    if (fromDate && !toDate) {
+      query.createdAt = { $gte: fromDate };
+    }
+    if (!fromDate && toDate) {
+      query.createdAt = { $lte: toDate };
+    }
+    if (fromDate && toDate) {
+      query.$and = [
+        { createdAt: { $gte: fromDate } },
+        { createdAt: { $lte: toDate } },
+      ]
+    }
+    let options = {
+      page: Number(page) || 1,
+      limit: Number(limit) || 15,
+      sort: { createdAt: -1 },
+    };
+    let data = await User.paginate(query, options);
+    return res.status(200).json({ status: 200, message: "User data found.", data: data });
+
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ msg: "internal server error ", error: err.message, });
+  }
+};
 exports.signin = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -142,7 +197,6 @@ exports.getAllUser = async (req, res) => {
         { "lastName": { $regex: req.query.search, $options: "i" }, },
         { "firstName": { $regex: req.query.search, $options: "i" }, },
         { "email": { $regex: req.query.search, $options: "i" }, },
-        { "phone": { $regex: req.query.search, $options: "i" }, },
       ]
     }
     if (status) {
@@ -197,14 +251,9 @@ exports.deleteUser = async (req, res, next) => {
   try {
     const user = await User.findByIdAndDelete(id);
     if (!user) {
-      return next(
-        new ErrorHander(`User does not exist with Id: ${req.params.id}`, 400)
-      );
+      return next(new ErrorHander(`User does not exist with Id: ${req.params.id}`, 400));
     }
-    return res.status(200).json({
-      success: true,
-      message: "User Deleted Successfully",
-    });
+    return res.status(200).json({ success: true, message: "User Deleted Successfully" });
   } catch (error) {
     return res.status(200).json({ error: "Something went wrong when deleting user" });
   }
