@@ -1,8 +1,6 @@
 const mongoose = require("mongoose");
-const validator = require("validator");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
+const mongoosePaginate = require('mongoose-paginate-v2');
+const mongooseAggregatePaginate = require("mongoose-aggregate-paginate");
 const userSchema = new mongoose.Schema({
   driverId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -51,7 +49,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ["Admin", "User"],
+    enum: ["Admin", "User", "Staff",],
     default: "User",
   },
   phone: {
@@ -206,5 +204,6 @@ const userSchema = new mongoose.Schema({
 
 
 });
-
+userSchema.plugin(mongoosePaginate);
+userSchema.plugin(mongooseAggregatePaginate);
 module.exports = mongoose.model("User", userSchema);

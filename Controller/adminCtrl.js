@@ -132,16 +132,45 @@ exports.signin = async (req, res) => {
     return res.status(500).send({ message: "Server error" + error.message });
   }
 };
-exports.getAllUser = async (req, res, next) => {
+exports.getAllUser = async (req, res) => {
   try {
-    const users = await User.find({ role: "User" });
-    return res.status(200).json({
-      status: 200,
-      users,
-      total: users.length
-    });
-  } catch (error) {
-    return res.status(200).json({ error: "Something went wrong" });
+    const { search, fromDate, toDate, status, page, limit } = req.query;
+    let query = { role: "User" };
+    if (search) {
+      query.$or = [
+        { "name": { $regex: req.query.search, $options: "i" }, },
+        { "lastName": { $regex: req.query.search, $options: "i" }, },
+        { "firstName": { $regex: req.query.search, $options: "i" }, },
+        { "email": { $regex: req.query.search, $options: "i" }, },
+        { "phone": { $regex: req.query.search, $options: "i" }, },
+      ]
+    }
+    if (status) {
+      query.userStatus = status
+    }
+    if (fromDate && !toDate) {
+      query.createdAt = { $gte: fromDate };
+    }
+    if (!fromDate && toDate) {
+      query.createdAt = { $lte: toDate };
+    }
+    if (fromDate && toDate) {
+      query.$and = [
+        { createdAt: { $gte: fromDate } },
+        { createdAt: { $lte: toDate } },
+      ]
+    }
+    let options = {
+      page: Number(page) || 1,
+      limit: Number(limit) || 15,
+      sort: { createdAt: -1 },
+    };
+    let data = await User.paginate(query, options);
+    return res.status(200).json({ status: 200, message: "User data found.", data: data });
+
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ msg: "internal server error ", error: err.message, });
   }
 };
 exports.getUserbyId = async (req, res, next) => {

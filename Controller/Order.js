@@ -239,17 +239,28 @@ const checkout = async (req, res, next) => {
           cutOffOrderType: cutOffOrderType,
           amountToBePaid: (cart.products[i].quantity * cart.products[i].product.price) + 10,
           collectedAmount: (cart.products[i].quantity * cart.products[i].product.price) + 10,
-          orderType: "once"
+          orderType: "once",
+          mode: user.paymentMode
         }
-        const address = await Order.create(obj);
-        await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
-        orders.push(address)
-        let obj1 = {
-          description: `Order has been create by ${req.user.name}.`,
-          title: 'Create order',
-          user: req.user._id,
+        let TotalAmount = (cart.products[i].quantity * cart.products[i].product.price) + 10
+        let wallet = await Wallet.findOne({ userId: Data.user });
+        if (!wallet) {
+          return res.status(200).json({ message: "InSufficent balance." })
+        } else {
+          if (wallet.balance < parseFloat(TotalAmount)) {
+            return res.status(200).json({ message: "InSufficent balance." })
+          } else {
+            const address = await Order.create(obj);
+            await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+            orders.push(address)
+            let obj1 = {
+              description: `Order has been create by ${user.name}.`,
+              title: 'Create order',
+              user: user._id,
+            }
+            await logs.create(obj1);
+          }
         }
-        await logs.create(obj1);
       }
       if (cart.products[i].orderType == 'Subscription') {
         let obj = {
@@ -562,13 +573,15 @@ const createSubscription = async (req, res, next) => {
       driverId: user.driverId,
       collectionBoyId: user.collectionBoyId,
       productId: findProduct._id,
-      unitPrice: req.body.size,
+      price: req.body.price,
+      size: req.body.size,
       quantity: req.body.quantity,
       startDate: req.body.startDate,
       ringTheBell: req.body.ringTheBell,
       instruction: req.body.instruction,
       days: req.body.days,
       type: req.body.type,
+      alternateDay: req.body.alternateDay,
       cutOffOrderType: cutOffOrderType,
     }
     const banner = await Subscription.create(obj);
@@ -612,7 +625,9 @@ const updateSubscription = async (req, res, next) => {
       driverId: user.driverId,
       collectionBoyId: user.collectionBoyId,
       productId: productId,
-      unitPrice: req.body.size || order.size,
+      size: req.body.size || order.size,
+      price: req.body.price || order.price,
+      alternateDay: req.body.alternateDay || order.alternateDay,
       quantity: req.body.quantity || order.quantity,
       startDate: req.body.startDate || order.startDate,
       ringTheBell: req.body.ringTheBell || order.ringTheBell,

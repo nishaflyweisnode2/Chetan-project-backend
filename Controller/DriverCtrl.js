@@ -16,6 +16,8 @@ const Address = require("../Model/addressModel");
 const bankDetails = require("../Model/bankDetails");
 const punchInModel = require("../Model/punchIn");
 const collectionDeliveryPunchIn = require("../Model/cdPunchIn");
+const walletTransaction = require("../Model/walletTransaction");
+const Wallet = require('../Model/myWalletModel');
 const moment = require('moment')
 exports.sendOtp = async (req, res) => {
     try {
@@ -376,8 +378,51 @@ exports.GetPriceByDriverId = async (req, res) => {
 }
 exports.DeliveredOrder = async (req, res) => {
     try {
-        await order.updateOne({ _id: req.params.id }, { delivered: true, orderStatus: "Deliverd" }, { new: true })
-        return res.status(200).json({ message: "Delivered " })
+        const Data = await order.findById({ _id: req.params.id }).populate('user product');
+        if (!Data) {
+            return res.status(201).json({ message: "No Data Found " })
+        } else {
+            if (Data.mode == "PrePaid") {
+                let update = await order.updateOne({ _id: req.params.id }, { delivered: true, orderStatus: "Deliverd" }, { new: true })
+                if (update) {
+                    let wallet = await Wallet.findOne({ userId: Data.user });
+                    if (!wallet) {
+                        return res.status(200).json({ message: "Delivered " })
+                    } else {
+                        if (wallet.balance < update.collectedAmount) {
+                            return res.status(200).json({ message: "Delivered " })
+                        } else {
+                            wallet.balance = wallet.balance - parseFloat(update.collectedAmount);
+                            await wallet.save();
+                            let month = new Date(Date.now()).getMonth() + 1;
+                            let obj = {
+                                user: Data.user,
+                                order: Data._id,
+                                amount: parseFloat(update.collectedAmount),
+                                month: month,
+                                paymentMode: "Online",
+                                type: "Wallet",
+                                Status: "Paid",
+                            }
+                            const faq = await walletTransaction.create(obj);
+                            if (faq) {
+                                let obj = {
+                                    collectedAmount: Data.collectedAmount - Number(req.query.collectedAmount),
+                                    paymentMode: "Online",
+                                    collectedStatus: "Collected"
+                                }
+                                let update = await order.findByIdAndUpdate({ _id: Data._id }, { $set: obj }, { new: true })
+                                return res.status(200).json({ message: "Delivered " })
+                            }
+                        }
+                    }
+                }
+            }
+            if (Data.mode == "PostPaid") {
+                await order.updateOne({ _id: req.params.id }, { delivered: true, orderStatus: "Deliverd" }, { new: true })
+                return res.status(200).json({ message: "Delivered " })
+            }
+        }
     } catch (err) {
         console.log(err)
         return res.status(400).json({ message: err.message })

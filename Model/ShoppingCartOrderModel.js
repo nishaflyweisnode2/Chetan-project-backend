@@ -1,34 +1,4 @@
 const mongoose = require("mongoose");
-// const orderProductSchema = new mongoose.Schema({
-//   unitPrice: {
-//     type: Number
-//   },
-//   product: {
-//     type: mongoose.Schema.Types.ObjectId,
-//     ref: "Product"
-//   },
-//   quantity: {
-//     type: Number
-//   },
-//   total: {
-//     type: Number
-//   },
-//   ringTheBell: {
-//     type: Boolean,
-//   },
-//   instruction: {
-//     type: String,
-//   },
-//   days: {
-//     type: String,
-//     enum: ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'],
-//   },
-//   type: {
-//     type: String,
-//     enum: ['EveryDay', 'Alternate', 'customized'],
-//   },
-// }, { _id: false })
-
 const orderSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.ObjectId,
@@ -84,7 +54,10 @@ const orderSchema = new mongoose.Schema({
     enum: ["signed", "processed", "shipped", "Out For Delivery", "delivered", "canceled"],
     default: "processed"
   },
-  unitPrice: {
+  size: {
+    type: String
+  },
+  price: {
     type: Number
   },
   product: {
@@ -110,6 +83,9 @@ const orderSchema = new mongoose.Schema({
   days: {
     type: String,
     enum: ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'],
+  },
+  alternateDay: {
+    type: Number,
   },
   type: {
     type: String,
@@ -199,7 +175,11 @@ const orderSchema = new mongoose.Schema({
   cutOffOrderType: {
     type: String,
     enum: ["eveningOrder", "morningOrder"]
-  }
+  },
+  mode: {
+    type: String,
+    enum: ["PostPaid", "PrePaid"],
+  },
 }, {
   timestamps: true
 });

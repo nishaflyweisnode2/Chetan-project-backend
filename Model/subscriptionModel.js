@@ -17,7 +17,10 @@ const subscriptionSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Product"
   },
-  unitPrice: {
+  size: {
+    type: String
+  },
+  price: {
     type: Number
   },
   quantity: {
@@ -46,9 +49,12 @@ const subscriptionSchema = new mongoose.Schema({
     type: String,
     enum: ['pause', 'start'],
   },
-  days: {
+  days: [{
     type: String,
     enum: ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'],
+  }],
+  alternateDay: {
+    type: Number,
   },
   type: {
     type: String,
