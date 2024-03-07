@@ -13,6 +13,7 @@ const OrderReturn = require('../Model/OrderReturnModel')
 const Address = require("../Model/addressModel");
 const cutOffTime = require('../Model/cutOffTime');
 const cron = require('node-cron');
+const cronJob = require('cron').CronJob;
 const razorpayInstance = new Razorpay({ key_id: "rzp_test_8VsYUQmn8hHm69", key_secret: "Xcg3HItXaBuQ9OIpeOAFUgLI", });
 // const newOrder = catchAsyncErrors(async (req, res, next) => {
 //   const {
@@ -64,14 +65,37 @@ const getSingleOrder = catchAsyncErrors(async (req, res, next) => {
   return res.status(200).json({ success: true, order, });
 });
 const myOrders = catchAsyncErrors(async (req, res, next) => {
-  console.log("hi");
-  const orders = await Order.find({ user: req.user.id, orderType: "once" });
+  try {
+    const { fromDate, toDate, page, orderType, limit } = req.query;
+    let query = { user: req.user.id };
+    if (orderType) {
+      query.orderType = orderType;
+    }
+    if (fromDate && !toDate) {
+      query.createdAt = { $gte: fromDate };
+    }
+    if (!fromDate && toDate) {
+      query.createdAt = { $lte: toDate };
+    }
+    if (fromDate && toDate) {
+      query.$and = [
+        { createdAt: { $gte: fromDate } },
+        { createdAt: { $lte: toDate } },
+      ]
+    }
+    let options = {
+      page: Number(page) || 1,
+      limit: Number(limit) || 100,
+      sort: { createdAt: -1 },
+      populate: 'user product'
+    };
+    let data = await Order.paginate(query, options);
+    return res.status(200).json({ status: 200, message: "User data found.", data: data });
 
-  console.log(orders);
-  return res.status(200).json({
-    success: true,
-    orders,
-  });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ msg: "internal server error ", error: err.message, });
+  }
 });
 const mySubscriptionOrders = catchAsyncErrors(async (req, res, next) => {
   console.log("hi");
@@ -865,4 +889,112 @@ const returnBottleOrderForAdmin = async (req, res) => {
     return res.status(400).json({ message: err.message });
   }
 };
+new cronJob('* * * * * *', async function () {
+  const currentDayStart = moment().startOf('day');
+  const currentDayEnd = moment().endOf('day');
+  let findState = await Subscription.find({ startDate: { $gte: currentDayStart.toDate() }, endDate: { $lte: currentDayEnd.toDate() }, })
+  if (findState.length > 0) {
+    for (let i = 0; i < findState.length; i++) {
+      const banner = await Subscription.findByIdAndUpdate({ _id: findState[i]._id }, { $set: { status: 'pause', endDate: new Date() } }, { new: true });
+    }
+  }
+}).start();
+// }).stop()
+new cronJob('* * * * * *', async function () {
+  const currentDayStart = moment().startOf('day');
+  const currentDayEnd = moment().endOf('day');
+  let findState = await Subscription.find({ pauseDate: { $gte: currentDayStart.toDate() }, resumeDate: { $lte: currentDayEnd.toDate() }, })
+  if (findState.length > 0) {
+    for (let i = 0; i < findState.length; i++) {
+      const banner = await Subscription.findByIdAndUpdate({ _id: findState[i]._id }, { $set: { status: 'pause', endDate: new Date() } }, { new: true });
+    }
+  }
+}).start();
+// }).stop()
+new cronJob('0 0 * * *', async function () {
+  let findState = await Subscription.find({ cutOffOrderType: "morningOrder" }).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
+  if (findState.length > 0) {
+    for (let i = 0; i < findState.length; i++) {
+      if (findState[i].product.type == "Bottle") {
+        pickUpBottleQuantity = findState[i].quantity;
+        isPickUpBottle = false;
+      } else {
+        pickUpBottleQuantity = 0;
+        isPickUpBottle = true;
+      }
+      let obj = {
+        user: findState[i].userId._id,
+        driverId: findState[i].driverId,
+        collectionBoyId: findState[i].userId.collectionBoyId,
+        address2: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.address2,
+        houseNumber: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.houseNumber,
+        street: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.street,
+        city: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.city,
+        pinCode: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.pinCode,
+        landMark: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.landMark,
+        unitPrice: findState[i].price,
+        product: findState[i].product._id,
+        quantity: findState[i].quantity,
+        total: findState[i].quantity * findState[i].price,
+        ringTheBell: findState[i].ringTheBell,
+        instruction: findState[i].instruction,
+        pickUpBottleQuantity: pickUpBottleQuantity,
+        productType: findState[i].product.type,
+        isPickUpBottle: isPickUpBottle,
+        discount: 0,
+        shippingPrice: 10,
+        cutOffOrderType: findState[i].cutOffOrderType,
+        amountToBePaid: (findState[i].quantity * findState[i].price) + 10,
+        collectedAmount: (findState[i].quantity * findState[i].price) + 10,
+        orderType: "Subscription",
+        mode: findState[i].userId.paymentMode
+      }
+      const address = await Order.create(obj);
+    }
+  }
+}).start();
+// }).stop()
+new cronJob('0 15 * * *', async function () {
+  let findState = await Subscription.find({ cutOffOrderType: "eveningOrder" }).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
+  if (findState.length > 0) {
+    for (let i = 0; i < findState.length; i++) {
+      if (findState[i].product.type == "Bottle") {
+        pickUpBottleQuantity = findState[i].quantity;
+        isPickUpBottle = false;
+      } else {
+        pickUpBottleQuantity = 0;
+        isPickUpBottle = true;
+      }
+      let obj = {
+        user: findState[i].userId._id,
+        driverId: findState[i].driverId,
+        collectionBoyId: findState[i].userId.collectionBoyId,
+        address2: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.address2,
+        houseNumber: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.houseNumber,
+        street: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.street,
+        city: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.city,
+        pinCode: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.pinCode,
+        landMark: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.landMark,
+        unitPrice: findState[i].price,
+        product: findState[i].product._id,
+        quantity: findState[i].quantity,
+        total: findState[i].quantity * findState[i].price,
+        ringTheBell: findState[i].ringTheBell,
+        instruction: findState[i].instruction,
+        pickUpBottleQuantity: pickUpBottleQuantity,
+        productType: findState[i].product.type,
+        isPickUpBottle: isPickUpBottle,
+        discount: 0,
+        shippingPrice: 10,
+        cutOffOrderType: findState[i].cutOffOrderType,
+        amountToBePaid: (findState[i].quantity * findState[i].price) + 10,
+        collectedAmount: (findState[i].quantity * findState[i].price) + 10,
+        orderType: "Subscription",
+        mode: findState[i].userId.paymentMode
+      }
+      const address = await Order.create(obj);
+    }
+  }
+}).start();
+// }).stop()
 module.exports = { returnBottleOrderForAdmin, subscription, payBillStatusUpdate, returnBottleOrder, updateCollectedDate, createSubscription, pauseSubscription, updateSubscription, deleteSubscription, deleteproductinOrder, mySubscriptionOrders, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }
