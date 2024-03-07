@@ -123,6 +123,21 @@ const getAllOrders = catchAsyncErrors(async (req, res, next) => {
     orders,
   });
 });
+const deleteOrder = async (req, res, next) => {
+  try {
+    const { orderId } = req.params;
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    const del = await Order.findByIdAndDelete(orderId);
+
+    return res.status(201).json({ message: 'Order delete successfully', del });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to place order' });
+  }
+};
 const getAllOrdersVender = catchAsyncErrors(async (req, res, next) => {
   const orders = await Order.aggregate([
     {
@@ -176,6 +191,72 @@ const updateOrder = catchAsyncErrors(async (req, res, next) => {
       success: true,
       message: "Order successfully updated"
     });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+});
+const updateOrderDetails = catchAsyncErrors(async (req, res, next) => {
+  try {
+    const order = await Order.findByIdAndUpdate(req.params.id);
+    if (!order) {
+      return next(new ErrorHandler("Order not found with this Id", 404));
+    }
+    const user = await User.findOne({ _id: req.user._id });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    const allAddress = await Address.findById({ _id: user.addressId });
+    if (!allAddress) {
+      return res.status(404).json({ error: 'Address not found' });
+    }
+    const currentTime = new Date();
+    const currentHour = currentTime.getHours();
+    const currentMinute = currentTime.getMinutes();
+    const currentSecond = currentTime.getSeconds();
+    let currentSecond1, currentMinute1;
+    if (currentSecond < 10) { currentSecond1 = '' + 0 + currentSecond; } else { currentSecond1 = currentSecond };
+    if (currentMinute < 10) { currentMinute1 = '' + 0 + currentMinute; } else { currentMinute1 = currentMinute };
+    let cutOffOrderType;
+    const currentTimeString = `${currentHour}:${currentMinute1}:${currentSecond1}`;
+    const CutOffTimes1 = await cutOffTime.findOne({ type: "morningOrder" });
+    const CutOffTimes2 = await cutOffTime.findOne({ type: "eveningOrder" });
+    if ((CutOffTimes2.time < CutOffTimes1.time) && (currentTimeString < CutOffTimes2.time)) { cutOffOrderType = CutOffTimes2.type; } else {
+      cutOffOrderType = CutOffTimes1.type;
+    }
+    let obj = {
+      user: req.user._id,
+      driverId: user.driverId,
+      collectionBoyId: user.collectionBoyId,
+      address2: allAddress.address2,
+      country: allAddress.state,
+      state: allAddress.state,
+      houseNumber: allAddress.houseNumber,
+      street: allAddress.street,
+      city: allAddress.city,
+      pinCode: allAddress.pinCode,
+      landMark: allAddress.landMark,
+      unitPrice: req.body.price || order.unitPrice,
+      size: req.body.size || order.size,
+      product: order.product,
+      quantity: req.body.quantity || order.quantity,
+      total: (req.body.price * req.body.quantity) || order.total,
+      ringTheBell: order.ringTheBell,
+      instruction: order.instruction,
+      pickUpBottleQuantity: order.pickUpBottleQuantity,
+      productType: order.product.type,
+      isPickUpBottle: order.isPickUpBottle,
+      discount: order.discount,
+      shippingPrice: order.shippingPrice,
+      startDate: order.startDate,
+      cutOffOrderType: cutOffOrderType,
+      amountToBePaid: ((req.body.price * req.body.quantity) + 10) || (order.amountToBePaid),
+      collectedAmount: (req.body.price * req.body.quantity) + 10 || (order.collectedAmount),
+      orderType: order.orderType,
+      mode: order.paymentMode
+    }
+    let update = await Order.findByIdAndUpdate({ _id: driverData._id }, { $set: obj }, { new: true })
+
+    return res.status(200).json({ success: true, message: "Order successfully updated", data: update });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -954,7 +1035,9 @@ new cronJob('0 0 * * *', async function () {
   }
 }).start();
 // }).stop()
+// new cronJob('* * * * * *', async function () {
 new cronJob('0 15 * * *', async function () {
+  console.log("eveningOrder cron job is running");
   let findState = await Subscription.find({ cutOffOrderType: "eveningOrder" }).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
   if (findState.length > 0) {
     for (let i = 0; i < findState.length; i++) {
@@ -967,7 +1050,7 @@ new cronJob('0 15 * * *', async function () {
       }
       let obj = {
         user: findState[i].userId._id,
-        driverId: findState[i].driverId,
+        driverId: findState[i].userId.driverId,
         collectionBoyId: findState[i].userId.collectionBoyId,
         address2: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.address2,
         houseNumber: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.houseNumber,
@@ -993,8 +1076,9 @@ new cronJob('0 15 * * *', async function () {
         mode: findState[i].userId.paymentMode
       }
       const address = await Order.create(obj);
+      console.log(address)
     }
   }
 }).start();
 // }).stop()
-module.exports = { returnBottleOrderForAdmin, subscription, payBillStatusUpdate, returnBottleOrder, updateCollectedDate, createSubscription, pauseSubscription, updateSubscription, deleteSubscription, deleteproductinOrder, mySubscriptionOrders, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }
+module.exports = { deleteOrder, returnBottleOrderForAdmin, updateOrderDetails, subscription, payBillStatusUpdate, returnBottleOrder, updateCollectedDate, createSubscription, pauseSubscription, updateSubscription, deleteSubscription, deleteproductinOrder, mySubscriptionOrders, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }

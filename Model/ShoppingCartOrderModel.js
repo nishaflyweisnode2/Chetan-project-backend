@@ -74,7 +74,6 @@ const orderSchema = new mongoose.Schema({
   },
   startDate: {
     type: Date,
-    required: true,
   },
   ringTheBell: {
     type: Boolean,
@@ -142,7 +141,6 @@ const orderSchema = new mongoose.Schema({
   },
   shippingPrice: {
     type: Number,
-    required: true,
     default: 0,
   },
   amountToBePaid: {

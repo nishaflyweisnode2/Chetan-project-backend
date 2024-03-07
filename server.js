@@ -51,6 +51,25 @@ const params = {
 //                 console.error('Error:', error.response);
 //         });
 
+
+
+// const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+// console.log(timezone);
+// let currentDate = new Date();
+// let options = {
+//         timeZone: timezone,
+//         weekday: 'long',
+//         year: 'numeric',
+//         month: 'long',
+//         day: 'numeric',
+//         hour: 'numeric',
+//         minute: 'numeric',
+//         second: 'numeric',
+//         hour12: false
+// };
+// let texasTime = currentDate.toLocaleString('en-US', options);
+// console.log(`Current time: ${timezone} ` + texasTime);
+
 app.listen(process.env.PORT, () => {
         console.log(`Listening on port ${process.env.PORT}!`);
 });
