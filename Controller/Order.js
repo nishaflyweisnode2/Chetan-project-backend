@@ -125,12 +125,12 @@ const getAllOrders = catchAsyncErrors(async (req, res, next) => {
 });
 const deleteOrder = async (req, res, next) => {
   try {
-    const { orderId } = req.params;
-    const order = await Order.findById(orderId);
+    const { id } = req.params;
+    const order = await Order.findById({ _id: id });
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });
     }
-    const del = await Order.findByIdAndDelete(orderId);
+    const del = await Order.findByIdAndDelete({ _id: order._id });
 
     return res.status(201).json({ message: 'Order delete successfully', del });
   } catch (error) {
