@@ -576,7 +576,7 @@ const createSubscription = async (req, res, next) => {
       userId: req.user._id,
       driverId: user.driverId,
       collectionBoyId: user.collectionBoyId,
-      productId: findProduct._id,
+      product: findProduct._id,
       price: req.body.price,
       size: req.body.size,
       quantity: req.body.quantity,
