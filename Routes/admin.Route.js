@@ -36,5 +36,6 @@ router.get('/api/v1/userOrders/get/:userId', admin.userOrders);
 router.get('/api/v1/userSubscriptionOrders/get/:userId', admin.userSubscriptionOrders);
 router.put('/api/v1/updateUserProfile/put/:userId', admin.updateUserProfile);
 router.put('/api/v1/activeBlockUser/:userId', admin.activeBlockUser);
+router.put('/api/v1/prePostPaidUser/:userId', admin.prePostPaidUser);
 
 module.exports = router;

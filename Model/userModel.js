@@ -87,7 +87,7 @@ const userSchema = new mongoose.Schema({
   paymentMode: {
     type: String,
     enum: ["PostPaid", "PrePaid"],
-    default: "PostPaid"
+    default: "PrePaid"
   },
   balance: {
     type: Number,

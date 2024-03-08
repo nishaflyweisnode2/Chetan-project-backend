@@ -83,6 +83,23 @@ exports.activeBlockUser = async (req, res, next) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
+exports.prePostPaidUser = async (req, res, next) => {
+  try {
+    const users = await User.findById({ _id: req.params.userId });
+    if (!users) {
+      return next(new ErrorHander(`User does not exist with Id: ${req.params.userId}`, 400));
+    }
+    if (users.paymentMode == "PostPaid") {
+      const updatedTeacher = await User.findByIdAndUpdate({ _id: users._id }, { $set: { paymentMode: "PrePaid" } }, { new: true });
+      return res.json({ status: 200, message: "User PrePaid successfully.", data: updatedTeacher });
+    } else {
+      const updatedTeacher = await User.findByIdAndUpdate({ _id: users._id }, { $set: { paymentMode: "PostPaid" } }, { new: true });
+      return res.json({ status: 200, message: "User PostPaid successfully.", data: updatedTeacher });
+    }
+  } catch (error) {
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
 exports.createBrand = catchAsyncErrors(async (req, res, next) => {
   const imagesLinks = await multipleFileHandle(req.files);
 
@@ -189,7 +206,7 @@ exports.signin = async (req, res) => {
 };
 exports.getAllUser = async (req, res) => {
   try {
-    const { search, fromDate, toDate, status, page, limit } = req.query;
+    const { search, fromDate, toDate, status, userStatus, addressStatus, page, limit } = req.query;
     let query = { role: "User" };
     if (search) {
       query.$or = [
@@ -200,7 +217,13 @@ exports.getAllUser = async (req, res) => {
       ]
     }
     if (status) {
-      query.userStatus = status
+      query.status = status
+    }
+    if (addressStatus) {
+      query.addressStatus = addressStatus
+    }
+    if (userStatus) {
+      query.userStatus = userStatus
     }
     if (fromDate && !toDate) {
       query.createdAt = { $gte: fromDate };
