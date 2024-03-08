@@ -38,19 +38,6 @@ const cartProductsSchema = new mongoose.Schema({
     instruction: {
         type: String,
     },
-    days: {
-        type: String,
-        enum: ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'],
-    },
-    type: {
-        type: String,
-        enum: ['EveryDay', 'Alternate', 'customized'],
-    },
-    orderType: {
-        type: String,
-        enum: ['Subscription', 'once'],
-        default: 'once'
-    },
 }, { _id: false })
 
 const CartSchema = new mongoose.Schema({

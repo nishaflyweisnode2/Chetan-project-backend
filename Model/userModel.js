@@ -71,7 +71,7 @@ const userSchema = new mongoose.Schema({
   },
   addressStatus: {
     type: String,
-    enum: ["pending", "approved", "rejected"],
+    enum: ["pending", "Upload", "approved", "rejected"],
     default: "pending"
   },
   status: {
@@ -141,7 +141,6 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-
   banner: {
     type: Boolean,
     default: false
@@ -154,7 +153,6 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-
   coupons: {
     type: Boolean,
     default: false
@@ -167,7 +165,6 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-
   faq: {
     type: Boolean,
     default: false
@@ -180,7 +177,6 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-
   deliveryBoy: {
     type: Boolean,
     default: false
@@ -201,8 +197,6 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-
-
 });
 userSchema.plugin(mongoosePaginate);
 userSchema.plugin(mongooseAggregatePaginate);

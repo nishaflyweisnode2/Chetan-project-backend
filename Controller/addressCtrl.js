@@ -11,10 +11,10 @@ exports.createAddress = catchAsyncErrors(async (req, res, next) => {
   const findAddress = await Address.findOne({ user: users._id });
   if (findAddress) {
     await Address.findByIdAndUpdate({ _id: findAddress._id }, { $set: req.body }, { new: true, });
-    await User.findByIdAndUpdate({ _id: users._id }, { $set: { addressStatus: "pending", addressId: findAddress._id } }, { new: true, });
+    await User.findByIdAndUpdate({ _id: users._id }, { $set: { addressStatus: "Upload", addressId: findAddress._id } }, { new: true, });
   }
   const address = await Address.create(req.body);
-  await User.findByIdAndUpdate({ _id: users._id }, { $set: { addressStatus: "pending", addressId: address._id } }, { new: true, });
+  await User.findByIdAndUpdate({ _id: users._id }, { $set: { addressStatus: "Upload", addressId: address._id } }, { new: true, });
   return res.status(201).json({ success: true, address, });
 });
 exports.getAddressById = catchAsyncErrors(async (req, res, next) => {

@@ -16,14 +16,14 @@ const twilioClient = twilio(
   process.env.TWILIO_AUTH_TOKEN
 );
 exports.registerUser = catchAsyncErrors(async (req, res, next) => {
-  const { phone, address, name, email } = req.body;
+  const { phone, name, email } = req.body;
   try {
     let findUser = await User.findOne({ phone, role: "User" });
     if (findUser) {
       return res.status(409).json({ data: {}, message: "Already exit.", status: 409, });
     } else {
       const otp = OTP.generateOTP();
-      const user = await User.create({ phone, otp, address, name, email });
+      const user = await User.create({ phone, otp, name, email });
       if (user) {
         return res.status(201).json({ status: 200, message: "Registration susscessfully", data: user, });
       }
@@ -306,15 +306,9 @@ exports.getUserbyId = async (req, res, next) => {
   try {
     const users = await User.findById(id);
     if (!users) {
-      return next(
-        new ErrorHander(`User does not exist with Id: ${req.params.id}`, 400)
-      );
+      return next(new ErrorHander(`User does not exist with Id: ${req.params.id}`, 400));
     }
-    res.status(200).json({
-      success: true,
-      users,
-      total: users.length
-    });
+    return res.status(200).json({ success: true, users, total: 1 });
   } catch (error) {
     res.status(200).json({ error: `Something went wrong with Id: ${req.params}` });
   }
