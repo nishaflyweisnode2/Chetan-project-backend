@@ -136,26 +136,15 @@ exports.verifyOTP = catchAsyncErrors(async (req, res) => {
     if (!user) {
       return res.status(404).send({ message: "User not found" });
     }
-
-    // Check if OTP is valid
     const isOTPValid = user.otp === req.body.otp;
     if (!isOTPValid) {
       return res.status(400).send({ message: "Invalid OTP" });
     }
-
-
-    // Generate JWT token
     const Token = token.generateJwtToken(user._id);
-
-    // Update user's OTP status
     user.otp = null;
     user.phoneVerified = true;
     await user.save();
-
-    return res.status(200).send({
-      message: "OTP verified successfully",
-      Token,
-    });
+    return res.status(200).send({ message: "OTP verified successfully", Token, user });
   } catch (error) {
     res.status(400).send({ error: error.message });
   }

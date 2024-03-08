@@ -57,13 +57,125 @@ const razorpayInstance = new Razorpay({ key_id: "rzp_test_8VsYUQmn8hHm69", key_s
 // });
 
 // // get Single Order
-const getSingleOrder = catchAsyncErrors(async (req, res, next) => {
-  const order = await Order.findById(req.params.id);
-  if (!order) {
-    return next(new ErrorHander("Order not found with this Id", 404));
+const checkout = async (req, res, next) => {
+  try {
+    const user = await User.findOne({ _id: req.user._id, });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    } else {
+      if (user.userStatus == "Approved") {
+        let cart = await Cart.findOne({ user: req.user._id }).populate({ path: "products.product", select: { review: 0 }, }).populate({ path: "coupon", select: "couponCode discount expirationDate", });
+        if (!cart) {
+          return res.status(400).json({ success: false, msg: "Cart not found or empty." });
+        }
+        const allAddress = await Address.findById({ _id: user.addressId });
+        if (!allAddress) {
+          return res.status(404).json({ error: 'Address not found' });
+        }
+        const currentTime = new Date();
+        const currentHour = currentTime.getHours();
+        const currentMinute = currentTime.getMinutes();
+        const currentSecond = currentTime.getSeconds();
+        let currentSecond1, currentMinute1;
+        if (currentSecond < 10) { currentSecond1 = '' + 0 + currentSecond; } else { currentSecond1 = currentSecond };
+        if (currentMinute < 10) { currentMinute1 = '' + 0 + currentMinute; } else { currentMinute1 = currentMinute };
+        let cutOffOrderType;
+        const currentTimeString = `${currentHour}:${currentMinute1}:${currentSecond1}`;
+        const CutOffTimes1 = await cutOffTime.findOne({ type: "morningOrder" });
+        const CutOffTimes2 = await cutOffTime.findOne({ type: "eveningOrder" });
+        if ((CutOffTimes2.time < CutOffTimes1.time) && (currentTimeString < CutOffTimes2.time)) { cutOffOrderType = CutOffTimes2.type; } else {
+          cutOffOrderType = CutOffTimes1.type;
+        }
+        let orders = [], pickUpBottleQuantity = 0, isPickUpBottle;
+        for (let i = 0; i < cart.products.length; i++) {
+          console.log(cart.products[i]);
+          if (cart.products[i].product.type == "Bottle") {
+            pickUpBottleQuantity = cart.products[i].quantity;
+            isPickUpBottle = false;
+          } else {
+            pickUpBottleQuantity = 0;
+            isPickUpBottle = true;
+          }
+          let obj = {
+            user: req.user._id,
+            driverId: user.driverId,
+            collectionBoyId: user.collectionBoyId,
+            address2: allAddress.address2,
+            country: allAddress.state,
+            state: allAddress.state,
+            houseNumber: allAddress.houseNumber,
+            street: allAddress.street,
+            city: allAddress.city,
+            pinCode: allAddress.pinCode,
+            landMark: allAddress.landMark,
+            unitPrice: cart.products[i].product.price,
+            product: cart.products[i].product._id,
+            quantity: cart.products[i].quantity,
+            total: cart.products[i].quantity * cart.products[i].product.price,
+            ringTheBell: cart.products[i].ringTheBell,
+            instruction: cart.products[i].instruction,
+            pickUpBottleQuantity: pickUpBottleQuantity,
+            productType: cart.products[i].product.type,
+            isPickUpBottle: isPickUpBottle,
+            discount: 0,
+            shippingPrice: 10,
+            startDate: cart.products[i].startDate,
+            cutOffOrderType: cutOffOrderType,
+            amountToBePaid: (cart.products[i].quantity * cart.products[i].product.price) + 10,
+            collectedAmount: (cart.products[i].quantity * cart.products[i].product.price) + 10,
+            orderType: "once",
+            mode: user.paymentMode
+          }
+          if (user.paymentMode == "PrePaid") {
+            let TotalAmount = (cart.products[i].quantity * cart.products[i].product.price) + 10
+            let wallet = await Wallet.findOne({ userId: Data.user });
+            if (!wallet) {
+              return res.status(200).json({ message: "InSufficent balance." })
+            } else {
+              if (wallet.balance < parseFloat(TotalAmount)) {
+                return res.status(200).json({ message: "InSufficent balance." })
+              } else {
+                const address = await Order.create(obj);
+                await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                orders.push(address)
+                let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, }
+                await logs.create(obj1);
+              }
+            }
+          }
+          if (user.paymentMode == "PostPaid") {
+            const address = await Order.create(obj);
+            await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+            orders.push(address)
+            let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, }
+            await logs.create(obj1);
+          }
+        }
+        return res.status(200).json({ success: true, msg: "Order created", orders, });
+      } else if (user.status == "Block") {
+        return res.status(401).json({ message: "User block by admin. You can't place order, contact to admin." });
+      } else {
+        return res.status(401).json({ message: 'User status pending.' });
+      }
+    }
+  } catch (error) {
+    next(error);
   }
-  return res.status(200).json({ success: true, order, });
-});
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const myOrders = catchAsyncErrors(async (req, res, next) => {
   try {
     const { fromDate, toDate, page, orderType, limit } = req.query;
@@ -97,10 +209,16 @@ const myOrders = catchAsyncErrors(async (req, res, next) => {
     return res.status(500).send({ msg: "internal server error ", error: err.message, });
   }
 });
+const getSingleOrder = catchAsyncErrors(async (req, res, next) => {
+  const order = await Order.findById(req.params.id).populate('user product');
+  if (!order) {
+    return next(new ErrorHander("Order not found with this Id", 404));
+  }
+  return res.status(200).json({ success: true, order, });
+});
 const mySubscriptionOrders = catchAsyncErrors(async (req, res, next) => {
   console.log("hi");
   const orders = await Subscription.find({ user: req.user._id, }).populate("userId product")
-
   console.log(orders);
   return res.status(200).json({
     success: true,
@@ -277,141 +395,141 @@ const getAllSubscription = async (req, res, next) => {
     return res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
 };
-const checkout = async (req, res, next) => {
-  try {
-    let cart = await Cart.findOne({ user: req.user._id }).populate({ path: "products.product", select: { review: 0 }, }).populate({ path: "coupon", select: "couponCode discount expirationDate", });
-    if (!cart) {
-      return res.status(400).json({ success: false, msg: "Cart not found or empty." });
-    }
-    const user = await User.findOne({ _id: req.user._id });
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    const allAddress = await Address.findById({ _id: user.addressId });
-    if (!allAddress) {
-      return res.status(404).json({ error: 'Address not found' });
-    }
-    const currentTime = new Date();
-    const currentHour = currentTime.getHours();
-    const currentMinute = currentTime.getMinutes();
-    const currentSecond = currentTime.getSeconds();
-    let currentSecond1, currentMinute1;
-    if (currentSecond < 10) { currentSecond1 = '' + 0 + currentSecond; } else { currentSecond1 = currentSecond };
-    if (currentMinute < 10) { currentMinute1 = '' + 0 + currentMinute; } else { currentMinute1 = currentMinute };
-    let cutOffOrderType;
-    const currentTimeString = `${currentHour}:${currentMinute1}:${currentSecond1}`;
-    const CutOffTimes1 = await cutOffTime.findOne({ type: "morningOrder" });
-    const CutOffTimes2 = await cutOffTime.findOne({ type: "eveningOrder" });
-    if ((CutOffTimes2.time < CutOffTimes1.time) && (currentTimeString < CutOffTimes2.time)) { cutOffOrderType = CutOffTimes2.type; } else {
-      cutOffOrderType = CutOffTimes1.type;
-    }
-    let orders = [], pickUpBottleQuantity = 0, isPickUpBottle;
-    for (let i = 0; i < cart.products.length; i++) {
-      console.log(cart.products[i]);
-      // if (cart.products[i].orderType == 'once') {
-      if (cart.products[i].product.type == "Bottle") {
-        pickUpBottleQuantity = cart.products[i].quantity;
-        isPickUpBottle = false;
-      } else {
-        pickUpBottleQuantity = 0;
-        isPickUpBottle = true;
-      }
-      let obj = {
-        user: req.user._id,
-        driverId: user.driverId,
-        collectionBoyId: user.collectionBoyId,
-        address2: allAddress.address2,
-        country: allAddress.state,
-        state: allAddress.state,
-        houseNumber: allAddress.houseNumber,
-        street: allAddress.street,
-        city: allAddress.city,
-        pinCode: allAddress.pinCode,
-        landMark: allAddress.landMark,
-        unitPrice: cart.products[i].product.price,
-        product: cart.products[i].product._id,
-        quantity: cart.products[i].quantity,
-        total: cart.products[i].quantity * cart.products[i].product.price,
-        ringTheBell: cart.products[i].ringTheBell,
-        instruction: cart.products[i].instruction,
-        pickUpBottleQuantity: pickUpBottleQuantity,
-        productType: cart.products[i].product.type,
-        isPickUpBottle: isPickUpBottle,
-        discount: 0,
-        shippingPrice: 10,
-        startDate: cart.products[i].startDate,
-        cutOffOrderType: cutOffOrderType,
-        amountToBePaid: (cart.products[i].quantity * cart.products[i].product.price) + 10,
-        collectedAmount: (cart.products[i].quantity * cart.products[i].product.price) + 10,
-        orderType: "once",
-        mode: user.paymentMode
-      }
-      if (user.paymentMode == "PrePaid") {
-        let TotalAmount = (cart.products[i].quantity * cart.products[i].product.price) + 10
-        let wallet = await Wallet.findOne({ userId: Data.user });
-        if (!wallet) {
-          return res.status(200).json({ message: "InSufficent balance." })
-        } else {
-          if (wallet.balance < parseFloat(TotalAmount)) {
-            return res.status(200).json({ message: "InSufficent balance." })
-          } else {
-            const address = await Order.create(obj);
-            await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
-            orders.push(address)
-            let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, }
-            await logs.create(obj1);
-          }
-        }
-      }
-      if (user.paymentMode == "PostPaid") {
-        const address = await Order.create(obj);
-        await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
-        orders.push(address)
-        let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, }
-        await logs.create(obj1);
-      }
-      // }
-      // if (cart.products[i].orderType == 'Subscription') {
-      //   let obj = {
-      //     userId: req.user._id,
-      //     driverId: user.driverId,
-      //     collectionBoyId: user.collectionBoyId,
-      //     address2: allAddress.address2,
-      //     country: allAddress.state,
-      //     state: allAddress.state,
-      //     houseNumber: allAddress.houseNumber,
-      //     street: allAddress.street,
-      //     city: allAddress.city,
-      //     pinCode: allAddress.pinCode,
-      //     landMark: allAddress.landMark,
-      //     unitPrice: cart.products[i].product.price,
-      //     product: cart.products[i].product._id,
-      //     quantity: cart.products[i].quantity,
-      //     ringTheBell: cart.products[i].ringTheBell,
-      //     instruction: cart.products[i].instruction,
-      //     discount: 0,
-      //     shippingPrice: 10,
-      //     cutOffOrderType: cutOffOrderType,
-      //     startDate: cart.products[i].startDate,
-      //     amountToBePaid: (cart.products[i].quantity * cart.products[i].product.price) + 10,
-      //     collectedAmount: (cart.products[i].quantity * cart.products[i].product.price) + 10,
-      //   }
-      //   const address = await Subscription.create(obj);
-      //   await address.populate([{ path: "product", select: { reviews: 0 } },]);
-      //   orders.push(address)
-      //   let obj1 = {
-      //     description: `Subscription has been create by ${req.user.name}.`,
-      //     title: 'Create subscription',
-      //     user: req.user._id,
-      //   }
-      //   await logs.create(obj1);
-      // }
-    }
-    return res.status(200).json({ success: true, msg: "Order created", orders, });
-  } catch (error) {
-    next(error);
-  }
-};
+// const checkout = async (req, res, next) => {
+//   try {
+//     let cart = await Cart.findOne({ user: req.user._id }).populate({ path: "products.product", select: { review: 0 }, }).populate({ path: "coupon", select: "couponCode discount expirationDate", });
+//     if (!cart) {
+//       return res.status(400).json({ success: false, msg: "Cart not found or empty." });
+//     }
+//     const user = await User.findOne({ _id: req.user._id });
+//     if (!user) {
+//       return res.status(404).json({ error: 'User not found' });
+//     }
+//     const allAddress = await Address.findById({ _id: user.addressId });
+//     if (!allAddress) {
+//       return res.status(404).json({ error: 'Address not found' });
+//     }
+//     const currentTime = new Date();
+//     const currentHour = currentTime.getHours();
+//     const currentMinute = currentTime.getMinutes();
+//     const currentSecond = currentTime.getSeconds();
+//     let currentSecond1, currentMinute1;
+//     if (currentSecond < 10) { currentSecond1 = '' + 0 + currentSecond; } else { currentSecond1 = currentSecond };
+//     if (currentMinute < 10) { currentMinute1 = '' + 0 + currentMinute; } else { currentMinute1 = currentMinute };
+//     let cutOffOrderType;
+//     const currentTimeString = `${currentHour}:${currentMinute1}:${currentSecond1}`;
+//     const CutOffTimes1 = await cutOffTime.findOne({ type: "morningOrder" });
+//     const CutOffTimes2 = await cutOffTime.findOne({ type: "eveningOrder" });
+//     if ((CutOffTimes2.time < CutOffTimes1.time) && (currentTimeString < CutOffTimes2.time)) { cutOffOrderType = CutOffTimes2.type; } else {
+//       cutOffOrderType = CutOffTimes1.type;
+//     }
+//     let orders = [], pickUpBottleQuantity = 0, isPickUpBottle;
+//     for (let i = 0; i < cart.products.length; i++) {
+//       console.log(cart.products[i]);
+//       // if (cart.products[i].orderType == 'once') {
+//       if (cart.products[i].product.type == "Bottle") {
+//         pickUpBottleQuantity = cart.products[i].quantity;
+//         isPickUpBottle = false;
+//       } else {
+//         pickUpBottleQuantity = 0;
+//         isPickUpBottle = true;
+//       }
+//       let obj = {
+//         user: req.user._id,
+//         driverId: user.driverId,
+//         collectionBoyId: user.collectionBoyId,
+//         address2: allAddress.address2,
+//         country: allAddress.state,
+//         state: allAddress.state,
+//         houseNumber: allAddress.houseNumber,
+//         street: allAddress.street,
+//         city: allAddress.city,
+//         pinCode: allAddress.pinCode,
+//         landMark: allAddress.landMark,
+//         unitPrice: cart.products[i].product.price,
+//         product: cart.products[i].product._id,
+//         quantity: cart.products[i].quantity,
+//         total: cart.products[i].quantity * cart.products[i].product.price,
+//         ringTheBell: cart.products[i].ringTheBell,
+//         instruction: cart.products[i].instruction,
+//         pickUpBottleQuantity: pickUpBottleQuantity,
+//         productType: cart.products[i].product.type,
+//         isPickUpBottle: isPickUpBottle,
+//         discount: 0,
+//         shippingPrice: 10,
+//         startDate: cart.products[i].startDate,
+//         cutOffOrderType: cutOffOrderType,
+//         amountToBePaid: (cart.products[i].quantity * cart.products[i].product.price) + 10,
+//         collectedAmount: (cart.products[i].quantity * cart.products[i].product.price) + 10,
+//         orderType: "once",
+//         mode: user.paymentMode
+//       }
+//       if (user.paymentMode == "PrePaid") {
+//         let TotalAmount = (cart.products[i].quantity * cart.products[i].product.price) + 10
+//         let wallet = await Wallet.findOne({ userId: Data.user });
+//         if (!wallet) {
+//           return res.status(200).json({ message: "InSufficent balance." })
+//         } else {
+//           if (wallet.balance < parseFloat(TotalAmount)) {
+//             return res.status(200).json({ message: "InSufficent balance." })
+//           } else {
+//             const address = await Order.create(obj);
+//             await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+//             orders.push(address)
+//             let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, }
+//             await logs.create(obj1);
+//           }
+//         }
+//       }
+//       if (user.paymentMode == "PostPaid") {
+//         const address = await Order.create(obj);
+//         await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+//         orders.push(address)
+//         let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, }
+//         await logs.create(obj1);
+//       }
+//       // }
+//       // if (cart.products[i].orderType == 'Subscription') {
+//       //   let obj = {
+//       //     userId: req.user._id,
+//       //     driverId: user.driverId,
+//       //     collectionBoyId: user.collectionBoyId,
+//       //     address2: allAddress.address2,
+//       //     country: allAddress.state,
+//       //     state: allAddress.state,
+//       //     houseNumber: allAddress.houseNumber,
+//       //     street: allAddress.street,
+//       //     city: allAddress.city,
+//       //     pinCode: allAddress.pinCode,
+//       //     landMark: allAddress.landMark,
+//       //     unitPrice: cart.products[i].product.price,
+//       //     product: cart.products[i].product._id,
+//       //     quantity: cart.products[i].quantity,
+//       //     ringTheBell: cart.products[i].ringTheBell,
+//       //     instruction: cart.products[i].instruction,
+//       //     discount: 0,
+//       //     shippingPrice: 10,
+//       //     cutOffOrderType: cutOffOrderType,
+//       //     startDate: cart.products[i].startDate,
+//       //     amountToBePaid: (cart.products[i].quantity * cart.products[i].product.price) + 10,
+//       //     collectedAmount: (cart.products[i].quantity * cart.products[i].product.price) + 10,
+//       //   }
+//       //   const address = await Subscription.create(obj);
+//       //   await address.populate([{ path: "product", select: { reviews: 0 } },]);
+//       //   orders.push(address)
+//       //   let obj1 = {
+//       //     description: `Subscription has been create by ${req.user.name}.`,
+//       //     title: 'Create subscription',
+//       //     user: req.user._id,
+//       //   }
+//       //   await logs.create(obj1);
+//       // }
+//     }
+//     return res.status(200).json({ success: true, msg: "Order created", orders, });
+//   } catch (error) {
+//     next(error);
+//   }
+// };
 const placeOrder = async (req, res, next) => {
   try {
     const order = await Order.findOne({ user: req.user._id, orderStatus: "unconfirmed", });
