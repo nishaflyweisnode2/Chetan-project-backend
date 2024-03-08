@@ -2,6 +2,7 @@ const Order = require("../Model/ShoppingCartOrderModel");
 const logs = require("../Model/logs");
 const Product = require("../Model/productModel");
 const Cart = require("../Model/cartModel");
+const subscriptionCart = require("../Model/subscriptionCart");
 const Subscription = require("../Model/subscriptionModel");
 const User = require("../Model/userModel");
 const Wallet = require('../Model/myWalletModel');
@@ -15,48 +16,8 @@ const cutOffTime = require('../Model/cutOffTime');
 const cron = require('node-cron');
 const cronJob = require('cron').CronJob;
 const razorpayInstance = new Razorpay({ key_id: "rzp_test_8VsYUQmn8hHm69", key_secret: "Xcg3HItXaBuQ9OIpeOAFUgLI", });
-// const newOrder = catchAsyncErrors(async (req, res, next) => {
-//   const {
-//     shippingInfo,
-//     orderItems,
-//     paymentInfo,
-//     itemsPrice,
-//     taxPrice,
-//     shippingPrice,
-//     totalPrice,
-//   } = req.body;
 
-//   // const productIds = orderItems.map((order) => order.product);
-//   // let venders = []
-
-//   // for (let i = 0; productIds.length > 0; i++) {
-//   //   const product = await Product.findById(productIds[i]);
-//   //   const vender = await Vender.aggregate([
-//   //     { $match: { _id: product.user } },
-//   //     { $project: { _id: 1 } },
-//   //   ]);
-
-//   // }
-
-//   const order = await Order.create({
-//     shippingInfo,
-//     orderItems,
-//     paymentInfo,
-//     itemsPrice,
-//     taxPrice,
-//     shippingPrice,
-//     totalPrice,
-//     paidAt: Date.now(),
-//     user: req.user._id,
-//   });
-
-// return  res.status(201).json({
-//     success: true,
-//     order,
-//   });
-// });
-
-// // get Single Order
+//////////////////////////////////////////// user order section ////////////////////////////////////
 const checkout = async (req, res, next) => {
   try {
     const user = await User.findOne({ _id: req.user._id, });
@@ -162,20 +123,6 @@ const checkout = async (req, res, next) => {
     next(error);
   }
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 const myOrders = catchAsyncErrors(async (req, res, next) => {
   try {
     const { fromDate, toDate, page, orderType, limit } = req.query;
@@ -215,103 +162,6 @@ const getSingleOrder = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHander("Order not found with this Id", 404));
   }
   return res.status(200).json({ success: true, order, });
-});
-const mySubscriptionOrders = catchAsyncErrors(async (req, res, next) => {
-  console.log("hi");
-  const orders = await Subscription.find({ user: req.user._id, }).populate("userId product")
-  console.log(orders);
-  return res.status(200).json({
-    success: true,
-    orders,
-  });
-});
-const getAllOrders = catchAsyncErrors(async (req, res, next) => {
-  console.log("hi");
-  const orders = await Order.find().populate('user') // Populate the 'user' field
-    .populate('product');
-  let totalAmount = 0;
-
-  orders.forEach((orders) => {
-    totalAmount += orders.totalPrice;
-  });
-
-  return res.status(200).json({
-    success: true,
-    totalAmount,
-    orders,
-  });
-});
-const deleteOrder = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const order = await Order.findById({ _id: id });
-    if (!order) {
-      return res.status(404).json({ error: 'Order not found' });
-    }
-    const del = await Order.findByIdAndDelete({ _id: order._id });
-
-    return res.status(201).json({ message: 'Order delete successfully', del });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to place order' });
-  }
-};
-const getAllOrdersVender = catchAsyncErrors(async (req, res, next) => {
-  const orders = await Order.aggregate([
-    {
-      $project: {
-        orderItems: {
-          $filter: {
-            input: "$orderItems",
-            as: "newOrderItems",
-            cond: { "$$newOrderItems.venderId": req.user._id },
-          },
-        },
-      },
-    },
-  ]);
-
-  return res.status(200).json({
-    success: true,
-    orders,
-  });
-});
-const updateOrder = catchAsyncErrors(async (req, res, next) => {
-  try {
-    const order = await Order.findByIdAndUpdate(req.params.id);
-
-    if (!order) {
-      return next(new ErrorHandler("Order not found with this Id", 404));
-    }
-
-    if (order.status === "delivered") {
-
-      return next(new ErrorHander("You have already delivered this order", 400));
-    }
-
-    if (req.body.status === "shipped") {
-      order.status = "shipped";
-    }
-    if (req.body.status === "canceled") {
-      order.status = "canceled";
-    }
-
-    if (req.body.status === "outforDelivery") {
-      order.status = "Out For Delivery";
-
-    }
-    if (req.body.status === "delivered") {
-      order.status = "delivered";
-      order.deliveredAt = Date.now();
-    }
-    await order.save();
-    return res.status(200).json({
-      success: true,
-      message: "Order successfully updated"
-    });
-  } catch (error) {
-    return res.status(500).json({ message: error.message });
-  }
 });
 const updateOrderDetails = catchAsyncErrors(async (req, res, next) => {
   try {
@@ -379,6 +229,474 @@ const updateOrderDetails = catchAsyncErrors(async (req, res, next) => {
     return res.status(500).json({ message: error.message });
   }
 });
+const deleteOrder = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const order = await Order.findById({ _id: id });
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    const del = await Order.findByIdAndDelete({ _id: order._id });
+    return res.status(201).json({ message: 'Order delete successfully', del });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to place order' });
+  }
+};
+const getAllOrders = catchAsyncErrors(async (req, res, next) => {
+  const orders = await Order.find().populate('user product')
+  let totalAmount = 0;
+  orders.forEach((orders) => {
+    totalAmount += orders.totalPrice;
+  });
+  return res.status(200).json({ success: true, totalAmount, orders });
+});
+const updateOrder = catchAsyncErrors(async (req, res, next) => {
+  try {
+    const order = await Order.findByIdAndUpdate(req.params.id);
+    if (!order) {
+      return next(new ErrorHandler("Order not found with this Id", 404));
+    }
+    if (order.status === "delivered") {
+      return next(new ErrorHander("You have already delivered this order", 400));
+    }
+    if (req.body.status === "shipped") {
+      order.status = "shipped";
+    }
+    if (req.body.status === "canceled") {
+      order.status = "canceled";
+    }
+    if (req.body.status === "outforDelivery") {
+      order.status = "Out For Delivery";
+    }
+    if (req.body.status === "delivered") {
+      order.status = "delivered";
+      order.deliveredAt = Date.now();
+    }
+    await order.save();
+    return res.status(200).json({
+      success: true,
+      message: "Order successfully updated"
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+});
+const payBills = async (req, res) => {
+  try {
+    const { fromDate, toDate } = req.body;
+    const body = { user: req.user._id, paymentStatus: { $ne: "paid" } };
+    if (fromDate && toDate) {
+      body.createdAt = { $gte: new Date(fromDate), $lte: new Date(toDate) };
+    }
+    let total = 0, orderIds = [];
+    const data = await Order.find(body).populate('product');
+    if (data.length > 0) {
+      for (let i = 0; i < data.length; i++) {
+        total = total + data[i].collectedAmount
+        orderIds.push(data[i]._id);
+        console.log(orderIds);
+      }
+      return res.status(200).json({ data: data, total, fromDate, toDate, orderIds });
+    } else {
+      return res.status(404).json({ success: false, data: {} });
+    }
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ message: err.message });
+  }
+};
+const payBillStatusUpdate = async (req, res) => {
+  try {
+    let orders = [];
+    for (let i = 0; i < req.body.orderIds.length; i++) {
+      const driverData = await Order.findOne({ _id: req.body.orderIds[i] })
+      let update = await Order.findByIdAndUpdate({ _id: driverData._id }, { $set: { paymentMode: 'Online', paymentStatus: 'paid', collectedStatus: "Collected" } }, { new: true })
+      orders.push(update)
+    }
+    return res.status(200).json({ message: "ok", result: orders })
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ error: err.message })
+  }
+};
+const returnBottleOrder = async (req, res) => {
+  try {
+    const data = await Order.find({ user: req.params.userId, productType: "Bottle", isPickUpBottle: false }).populate('user product');
+    if (data.length == 0) {
+      return res.status(201).json({ message: "No Delivered Order " })
+    } else {
+      return res.status(200).json({ message: data })
+    }
+  } catch (err) {
+    return res.status(400).json({ message: err.message })
+  }
+}
+const returnBottleOrderForAdmin = async (req, res) => {
+  try {
+    const orders = await Order.find({ productType: "Bottle", isPickUpBottle: false }).populate('user product');
+    if (orders.length === 0) {
+      return res.status(201).json({ message: "No Delivered Order " });
+    } else {
+      const consolidatedOrders = {};
+      orders.forEach(order => {
+        const key = `${order.product._id}_${order.user._id}`;
+        if (!consolidatedOrders[key]) {
+          consolidatedOrders[key] = {
+            product: order.product,
+            user: order.user,
+            quantity: order.quantity,
+            pickUpBottleQuantity: order.pickUpBottleQuantity
+          };
+        } else {
+          consolidatedOrders[key].quantity += order.quantity;
+          consolidatedOrders[key].pickUpBottleQuantity += order.pickUpBottleQuantity;
+        }
+      });
+      const consolidatedOrdersArray = Object.values(consolidatedOrders);
+      return res.status(200).json({ message: consolidatedOrdersArray });
+    }
+  } catch (err) {
+    return res.status(400).json({ message: err.message });
+  }
+};
+const createSubscription = async (req, res, next) => {
+  try {
+    const user = await User.findOne({ _id: req.user._id, });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    } else {
+      if (user.userStatus == "Approved") {
+        let cart = await subscriptionCart.findOne({ user: req.user._id }).populate({ path: "products.product", select: { review: 0 }, }).populate({ path: "coupon", select: "couponCode discount expirationDate", });
+        if (!cart) {
+          return res.status(400).json({ success: false, msg: "Cart not found or empty." });
+        }
+        const allAddress = await Address.findById({ _id: user.addressId });
+        if (!allAddress) {
+          return res.status(404).json({ error: 'Address not found' });
+        }
+        const currentTime = new Date();
+        const currentHour = currentTime.getHours();
+        const currentMinute = currentTime.getMinutes();
+        const currentSecond = currentTime.getSeconds();
+        let currentSecond1, currentMinute1;
+        if (currentSecond < 10) { currentSecond1 = '' + 0 + currentSecond; } else { currentSecond1 = currentSecond };
+        if (currentMinute < 10) { currentMinute1 = '' + 0 + currentMinute; } else { currentMinute1 = currentMinute };
+        let cutOffOrderType;
+        const currentTimeString = `${currentHour}:${currentMinute1}:${currentSecond1}`;
+        const CutOffTimes1 = await cutOffTime.findOne({ type: "morningOrder" });
+        const CutOffTimes2 = await cutOffTime.findOne({ type: "eveningOrder" });
+        if ((CutOffTimes2.time < CutOffTimes1.time) && (currentTimeString < CutOffTimes2.time)) { cutOffOrderType = CutOffTimes2.type; } else {
+          cutOffOrderType = CutOffTimes1.type;
+        }
+        let orders = [];
+        for (let i = 0; i < cart.products.length; i++) {
+          let obj = {
+            userId: req.user._id,
+            driverId: user.driverId,
+            collectionBoyId: user.collectionBoyId,
+            product: cart.products[i].product,
+            price: cart.products[i].price,
+            size: cart.products[i].size,
+            quantity: cart.products[i].quantity,
+            startDate: cart.products[i].startDate,
+            ringTheBell: cart.products[i].ringTheBell,
+            instruction: cart.products[i].instruction,
+            days: cart.products[i].days,
+            type: cart.products[i].type,
+            alternateDay: cart.products[i].alternateDay,
+            cutOffOrderType: cutOffOrderType,
+          }
+          const banner = await Subscription.create(obj);
+          if (banner) {
+            orders.push(banner);
+          }
+        }
+        let obj1 = { description: `Subscription has been create by ${req.user.name}.`, title: 'Create subscription', user: req.user._id, }
+        await logs.create(obj1);
+        return res.status(201).json({ message: 'Create subscription successfully', orders });
+      } else if (user.status == "Block") {
+        return res.status(401).json({ message: "User block by admin. You can't place order, contact to admin." });
+      } else {
+        return res.status(401).json({ message: 'User status pending.' });
+      }
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: 'Failed to place order' });
+  }
+};
+const pauseSubscription = async (req, res, next) => {
+  try {
+    const { subscriptionId } = req.params;
+    const order = await Subscription.findById(subscriptionId);
+    if (!order) {
+      return res.status(404).json({ error: 'Subscription not found' });
+    }
+    const currentDate = new Date().toISOString().split('T')[0];
+    if (currentDate >= order.pauseDate && currentDate <= order.resumeDate) {
+      order.status = 'pause';
+      order.endDate = new Date();
+    } else {
+      order.status = 'start';
+    }
+    order.pauseDate = req.body.pauseDate;
+    order.resumeDate = req.body.resumeDate;
+    await order.save();
+
+    return res.status(201).json({ message: 'Subscription status updated successfully', order });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to update subscription status' });
+  }
+};
+const updateSubscription = async (req, res, next) => {
+  try {
+    const { subscriptionId } = req.params;
+    const order = await Subscription.findById(subscriptionId);
+    if (!order) {
+      return res.status(404).json({ error: 'Subscription not found' });
+    }
+    let productId;
+    if (req.body.productId != (null || undefined)) {
+      const findProduct = await Product.findById({ _id: req.body.productId });
+      if (!findProduct) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+      productId = findProduct._id;
+    } else {
+      productId = order.product;
+    }
+    const user = await User.findOne({ _id: req.user._id });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    let obj = {
+      userId: req.user._id,
+      driverId: user.driverId,
+      collectionBoyId: user.collectionBoyId,
+      product: productId,
+      size: req.body.size || order.size,
+      price: req.body.price || order.price,
+      alternateDay: req.body.alternateDay || order.alternateDay,
+      quantity: req.body.quantity || order.quantity,
+      startDate: req.body.startDate || order.startDate,
+      ringTheBell: req.body.ringTheBell || order.ringTheBell,
+      instruction: req.body.instruction || order.instruction,
+      days: req.body.days || order.days,
+      type: req.body.type || order.type,
+    }
+    const banner = await Subscription.findByIdAndUpdate({ _id: order._id }, { $set: obj }, { new: true });
+    let obj1 = {
+      description: `Subscription has been update by ${req.user.name}.`,
+      title: 'Update subscription',
+      user: req.user._id,
+    }
+    await logs.create(obj1);
+    return res.status(201).json({ message: 'Create subscription successfully', banner });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: 'Failed to place order' });
+  }
+};
+const mySubscription = async (req, res, next) => {
+  try {
+    consol.log(req.user)
+    const subscriptions = await Subscription.find({ userId: req.user._id }).populate("userId product");
+    return res.status(200).json({ subscriptions });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to get user subscriptions' });
+  }
+};
+const deleteSubscription = async (req, res, next) => {
+  try {
+    const { subscriptionId } = req.params;
+    const order = await Subscription.findById(subscriptionId);
+    if (!order) {
+      return res.status(404).json({ error: 'Subscription not found' });
+    }
+    const del = await Subscription.findByIdAndDelete(subscriptionId);
+
+    return res.status(201).json({ message: 'Subscription delete successfully', del });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to place order' });
+  }
+};
+/////////////////////////////////////////////////////////// collection boy //////////////////////////
+const updateCollectedDate = async (req, res) => {
+  try {
+    for (let i = 0; i < req.body.orderIds.length; i++) {
+      const driverData = await Order.findOne({ _id: req.body.orderIds[i] })
+      let update = await Order.findByIdAndUpdate({ _id: driverData._id }, { $set: { collectedDate: req.body.collectedDate, } }, { new: true })
+    }
+    return res.status(200).json({ message: "ok", result: {} })
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ error: err.message })
+  }
+}
+new cronJob('* * * * * *', async function () {
+  const currentDayStart = moment().startOf('day');
+  const currentDayEnd = moment().endOf('day');
+  let findState = await Subscription.find({ startDate: { $gte: currentDayStart.toDate() }, endDate: { $lte: currentDayEnd.toDate() }, })
+  if (findState.length > 0) {
+    for (let i = 0; i < findState.length; i++) {
+      const banner = await Subscription.findByIdAndUpdate({ _id: findState[i]._id }, { $set: { status: 'pause', endDate: new Date() } }, { new: true });
+    }
+  }
+}).start();
+// }).stop()
+new cronJob('* * * * * *', async function () {
+  const currentDayStart = moment().startOf('day');
+  const currentDayEnd = moment().endOf('day');
+  let findState = await Subscription.find({ pauseDate: { $gte: currentDayStart.toDate() }, resumeDate: { $lte: currentDayEnd.toDate() }, })
+  if (findState.length > 0) {
+    for (let i = 0; i < findState.length; i++) {
+      const banner = await Subscription.findByIdAndUpdate({ _id: findState[i]._id }, { $set: { status: 'pause', endDate: new Date() } }, { new: true });
+    }
+  }
+}).start();
+// }).stop()
+new cronJob('0 0 * * *', async function () {
+  let findState = await Subscription.find({ cutOffOrderType: "morningOrder" }).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
+  if (findState.length > 0) {
+    for (let i = 0; i < findState.length; i++) {
+      if (findState[i].product.type == "Bottle") {
+        pickUpBottleQuantity = findState[i].quantity;
+        isPickUpBottle = false;
+      } else {
+        pickUpBottleQuantity = 0;
+        isPickUpBottle = true;
+      }
+      let obj = {
+        user: findState[i].userId._id,
+        driverId: findState[i].driverId,
+        collectionBoyId: findState[i].userId.collectionBoyId,
+        address2: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.address2,
+        houseNumber: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.houseNumber,
+        street: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.street,
+        city: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.city,
+        pinCode: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.pinCode,
+        landMark: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.landMark,
+        unitPrice: findState[i].price,
+        product: findState[i].product._id,
+        quantity: findState[i].quantity,
+        total: findState[i].quantity * findState[i].price,
+        ringTheBell: findState[i].ringTheBell,
+        instruction: findState[i].instruction,
+        pickUpBottleQuantity: pickUpBottleQuantity,
+        productType: findState[i].product.type,
+        isPickUpBottle: isPickUpBottle,
+        discount: 0,
+        shippingPrice: 10,
+        cutOffOrderType: findState[i].cutOffOrderType,
+        amountToBePaid: (findState[i].quantity * findState[i].price) + 10,
+        collectedAmount: (findState[i].quantity * findState[i].price) + 10,
+        orderType: "Subscription",
+        mode: findState[i].userId.paymentMode
+      }
+      const address = await Order.create(obj);
+    }
+  }
+}).start();
+// }).stop()
+// new cronJob('* * * * * *', async function () {
+new cronJob('0 15 * * *', async function () {
+  console.log("eveningOrder cron job is running");
+  let findState = await Subscription.find({ cutOffOrderType: "eveningOrder" }).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
+  if (findState.length > 0) {
+    for (let i = 0; i < findState.length; i++) {
+      if (findState[i].product.type == "Bottle") {
+        pickUpBottleQuantity = findState[i].quantity;
+        isPickUpBottle = false;
+      } else {
+        pickUpBottleQuantity = 0;
+        isPickUpBottle = true;
+      }
+      let obj = {
+        user: findState[i].userId._id,
+        driverId: findState[i].userId.driverId,
+        collectionBoyId: findState[i].userId.collectionBoyId,
+        address2: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.address2,
+        houseNumber: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.houseNumber,
+        street: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.street,
+        city: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.city,
+        pinCode: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.pinCode,
+        landMark: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.landMark,
+        unitPrice: findState[i].price,
+        product: findState[i].product._id,
+        quantity: findState[i].quantity,
+        total: findState[i].quantity * findState[i].price,
+        ringTheBell: findState[i].ringTheBell,
+        instruction: findState[i].instruction,
+        pickUpBottleQuantity: pickUpBottleQuantity,
+        productType: findState[i].product.type,
+        isPickUpBottle: isPickUpBottle,
+        discount: 0,
+        shippingPrice: 10,
+        cutOffOrderType: findState[i].cutOffOrderType,
+        amountToBePaid: (findState[i].quantity * findState[i].price) + 10,
+        collectedAmount: (findState[i].quantity * findState[i].price) + 10,
+        orderType: "Subscription",
+        mode: findState[i].userId.paymentMode
+      }
+      const address = await Order.create(obj);
+      console.log(address)
+    }
+  }
+}).start();
+// }).stop()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const mySubscriptionOrders = catchAsyncErrors(async (req, res, next) => {
+  console.log("hi");
+  const orders = await Subscription.find({ user: req.user._id, }).populate("userId product")
+  console.log(orders);
+  return res.status(200).json({
+    success: true,
+    orders,
+  });
+});
+const getAllOrdersVender = catchAsyncErrors(async (req, res, next) => {
+  const orders = await Order.aggregate([
+    {
+      $project: {
+        orderItems: {
+          $filter: {
+            input: "$orderItems",
+            as: "newOrderItems",
+            cond: { "$$newOrderItems.venderId": req.user._id },
+          },
+        },
+      },
+    },
+  ]);
+
+  return res.status(200).json({
+    success: true,
+    orders,
+  });
+});
 async function updateStock(id, quantity) {
   const product = await Product.findById(id);
 
@@ -395,6 +713,49 @@ const getAllSubscription = async (req, res, next) => {
     return res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
 };
+// const newOrder = catchAsyncErrors(async (req, res, next) => {
+//   const {
+//     shippingInfo,
+//     orderItems,
+//     paymentInfo,
+//     itemsPrice,
+//     taxPrice,
+//     shippingPrice,
+//     totalPrice,
+//   } = req.body;
+
+//   // const productIds = orderItems.map((order) => order.product);
+//   // let venders = []
+
+//   // for (let i = 0; productIds.length > 0; i++) {
+//   //   const product = await Product.findById(productIds[i]);
+//   //   const vender = await Vender.aggregate([
+//   //     { $match: { _id: product.user } },
+//   //     { $project: { _id: 1 } },
+//   //   ]);
+
+//   // }
+
+//   const order = await Order.create({
+//     shippingInfo,
+//     orderItems,
+//     paymentInfo,
+//     itemsPrice,
+//     taxPrice,
+//     shippingPrice,
+//     totalPrice,
+//     paidAt: Date.now(),
+//     user: req.user._id,
+//   });
+
+// return  res.status(201).json({
+//     success: true,
+//     order,
+//   });
+// });
+
+// // get Single Order
+
 // const checkout = async (req, res, next) => {
 //   try {
 //     let cart = await Cart.findOne({ user: req.user._id }).populate({ path: "products.product", select: { review: 0 }, }).populate({ path: "coupon", select: "couponCode discount expirationDate", });
@@ -588,18 +949,6 @@ const getOrders = async (req, res, next) => {
     return res.status(400).json({ message: error.message })
   }
 };
-const updateCollectedDate = async (req, res) => {
-  try {
-    for (let i = 0; i < req.body.orderIds.length; i++) {
-      const driverData = await Order.findOne({ _id: req.body.orderIds[i] })
-      let update = await Order.findByIdAndUpdate({ _id: driverData._id }, { $set: { collectedDate: req.body.collectedDate, } }, { new: true })
-    }
-    return res.status(200).json({ message: "ok", result: {} })
-  } catch (err) {
-    console.log(err);
-    return res.status(400).json({ error: err.message })
-  }
-}
 const orderReturn = async (req, res) => {
   try {
     const orderId = req.params.id;
@@ -745,161 +1094,6 @@ const insertNewProduct = async (req, res, next) => {
     return res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
 };
-const pauseSubscription = async (req, res, next) => {
-  try {
-    const { subscriptionId } = req.params;
-    const order = await Subscription.findById(subscriptionId);
-    if (!order) {
-      return res.status(404).json({ error: 'Subscription not found' });
-    }
-    const currentDate = new Date().toISOString().split('T')[0];
-    if (currentDate >= order.pauseDate && currentDate <= order.resumeDate) {
-      order.status = 'pause';
-      order.endDate = new Date();
-    } else {
-      order.status = 'start';
-    }
-    order.pauseDate = req.body.pauseDate;
-    order.resumeDate = req.body.resumeDate;
-    await order.save();
-
-    return res.status(201).json({ message: 'Subscription status updated successfully', order });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to update subscription status' });
-  }
-};
-const createSubscription = async (req, res, next) => {
-  try {
-    const findProduct = await Product.findById({ _id: req.body.productId });
-    if (!findProduct) {
-      return res.status(404).json({ error: 'Product not found' });
-    }
-    const user = await User.findOne({ _id: req.user._id });
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    const currentTime = new Date();
-    const currentHour = currentTime.getHours();
-    const currentMinute = currentTime.getMinutes();
-    const currentSecond = currentTime.getSeconds();
-    let currentSecond1, currentMinute1;
-    if (currentSecond < 10) { currentSecond1 = '' + 0 + currentSecond; } else { currentSecond1 = currentSecond };
-    if (currentMinute < 10) { currentMinute1 = '' + 0 + currentMinute; } else { currentMinute1 = currentMinute };
-    let cutOffOrderType;
-    const currentTimeString = `${currentHour}:${currentMinute1}:${currentSecond1}`;
-    const CutOffTimes1 = await cutOffTime.findOne({ type: "morningOrder" });
-    const CutOffTimes2 = await cutOffTime.findOne({ type: "eveningOrder" });
-    if ((CutOffTimes2.time < CutOffTimes1.time) && (currentTimeString < CutOffTimes2.time)) {
-      cutOffOrderType = CutOffTimes2.type;
-    } else {
-      cutOffOrderType = CutOffTimes1.type;
-    }
-    let obj = {
-      userId: req.user._id,
-      driverId: user.driverId,
-      collectionBoyId: user.collectionBoyId,
-      product: findProduct._id,
-      price: req.body.price,
-      size: req.body.size,
-      quantity: req.body.quantity,
-      startDate: req.body.startDate,
-      ringTheBell: req.body.ringTheBell,
-      instruction: req.body.instruction,
-      days: req.body.days,
-      type: req.body.type,
-      alternateDay: req.body.alternateDay,
-      cutOffOrderType: cutOffOrderType,
-    }
-    const banner = await Subscription.create(obj);
-    if (banner) {
-      let obj1 = {
-        description: `Subscription has been create by ${req.user.name}.`,
-        title: 'Create subscription',
-        user: req.user._id,
-      }
-      await logs.create(obj1);
-      return res.status(201).json({ message: 'Create subscription successfully', banner });
-    }
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({ error: 'Failed to place order' });
-  }
-};
-const updateSubscription = async (req, res, next) => {
-  try {
-    const { subscriptionId } = req.params;
-    const order = await Subscription.findById(subscriptionId);
-    if (!order) {
-      return res.status(404).json({ error: 'Subscription not found' });
-    }
-    let productId;
-    if (req.body.productId != (null || undefined)) {
-      const findProduct = await Product.findById({ _id: req.body.productId });
-      if (!findProduct) {
-        return res.status(404).json({ error: 'Product not found' });
-      }
-      productId = findProduct._id;
-    } else {
-      productId = order.productId;
-    }
-    const user = await User.findOne({ _id: req.user._id });
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    let obj = {
-      userId: req.user._id,
-      driverId: user.driverId,
-      collectionBoyId: user.collectionBoyId,
-      productId: productId,
-      size: req.body.size || order.size,
-      price: req.body.price || order.price,
-      alternateDay: req.body.alternateDay || order.alternateDay,
-      quantity: req.body.quantity || order.quantity,
-      startDate: req.body.startDate || order.startDate,
-      ringTheBell: req.body.ringTheBell || order.ringTheBell,
-      instruction: req.body.instruction || order.instruction,
-      days: req.body.days || order.days,
-      type: req.body.type || order.type,
-    }
-    const banner = await Subscription.findByIdAndUpdate({ _id: order._id }, { $set: obj }, { new: true });
-    let obj1 = {
-      description: `Subscription has been update by ${req.user.name}.`,
-      title: 'Update subscription',
-      user: req.user._id,
-    }
-    await logs.create(obj1);
-    return res.status(201).json({ message: 'Create subscription successfully', banner });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({ error: 'Failed to place order' });
-  }
-};
-const mySubscription = async (req, res, next) => {
-  try {
-    consol.log(req.user)
-    const subscriptions = await Subscription.find({ userId: req.user._id }).populate("userId productId");
-    return res.status(200).json({ subscriptions });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to get user subscriptions' });
-  }
-};
-const deleteSubscription = async (req, res, next) => {
-  try {
-    const { subscriptionId } = req.params;
-    const order = await Subscription.findById(subscriptionId);
-    if (!order) {
-      return res.status(404).json({ error: 'Subscription not found' });
-    }
-    const del = await Subscription.findByIdAndDelete(subscriptionId);
-
-    return res.status(201).json({ message: 'Subscription delete successfully', del });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to place order' });
-  }
-};
 const subscription = async (req, res, next) => {
   try {
     const { user } = req.user._id;
@@ -1010,193 +1204,4 @@ const deleteproductinOrder = async (req, res, next) => {
     return res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
-const payBills = async (req, res) => {
-  try {
-    const { fromDate, toDate } = req.body;
-    const body = { user: req.user._id, paymentStatus: { $ne: "paid" } };
-    if (fromDate && toDate) {
-      body.createdAt = { $gte: new Date(fromDate), $lte: new Date(toDate) };
-    }
-    let total = 0, orderIds = [];
-    const data = await Order.find(body).populate('product');
-    if (data.length > 0) {
-      for (let i = 0; i < data.length; i++) {
-        total = total + data[i].collectedAmount
-        orderIds.push(data[i]._id);
-        console.log(orderIds);
-      }
-      return res.status(200).json({ data: data, total, fromDate, toDate, orderIds });
-    } else {
-      return res.status(404).json({ success: false, data: {} });
-    }
-  } catch (err) {
-    console.log(err);
-    return res.status(400).json({ message: err.message });
-  }
-};
-const payBillStatusUpdate = async (req, res) => {
-  try {
-    let orders = [];
-    for (let i = 0; i < req.body.orderIds.length; i++) {
-      const driverData = await Order.findOne({ _id: req.body.orderIds[i] })
-      let update = await Order.findByIdAndUpdate({ _id: driverData._id }, { $set: { paymentMode: 'Online', paymentStatus: 'paid', collectedStatus: "Collected" } }, { new: true })
-      orders.push(update)
-    }
-    return res.status(200).json({ message: "ok", result: orders })
-  } catch (err) {
-    console.log(err);
-    return res.status(400).json({ error: err.message })
-  }
-};
-const returnBottleOrder = async (req, res) => {
-  try {
-    const data = await Order.find({ user: req.params.userId, productType: "Bottle", isPickUpBottle: false }).populate('user product');
-    if (data.length == 0) {
-      return res.status(201).json({ message: "No Delivered Order " })
-    } else {
-      return res.status(200).json({ message: data })
-    }
-  } catch (err) {
-    return res.status(400).json({ message: err.message })
-  }
-}
-const returnBottleOrderForAdmin = async (req, res) => {
-  try {
-    const orders = await Order.find({ productType: "Bottle", isPickUpBottle: false }).populate('user product');
-    if (orders.length === 0) {
-      return res.status(201).json({ message: "No Delivered Order " });
-    } else {
-      const consolidatedOrders = {};
-      orders.forEach(order => {
-        const key = `${order.product._id}_${order.user._id}`;
-        if (!consolidatedOrders[key]) {
-          consolidatedOrders[key] = {
-            product: order.product,
-            user: order.user,
-            quantity: order.quantity,
-            pickUpBottleQuantity: order.pickUpBottleQuantity
-          };
-        } else {
-          consolidatedOrders[key].quantity += order.quantity;
-          consolidatedOrders[key].pickUpBottleQuantity += order.pickUpBottleQuantity;
-        }
-      });
-      const consolidatedOrdersArray = Object.values(consolidatedOrders);
-      return res.status(200).json({ message: consolidatedOrdersArray });
-    }
-  } catch (err) {
-    return res.status(400).json({ message: err.message });
-  }
-};
-new cronJob('* * * * * *', async function () {
-  const currentDayStart = moment().startOf('day');
-  const currentDayEnd = moment().endOf('day');
-  let findState = await Subscription.find({ startDate: { $gte: currentDayStart.toDate() }, endDate: { $lte: currentDayEnd.toDate() }, })
-  if (findState.length > 0) {
-    for (let i = 0; i < findState.length; i++) {
-      const banner = await Subscription.findByIdAndUpdate({ _id: findState[i]._id }, { $set: { status: 'pause', endDate: new Date() } }, { new: true });
-    }
-  }
-}).start();
-// }).stop()
-new cronJob('* * * * * *', async function () {
-  const currentDayStart = moment().startOf('day');
-  const currentDayEnd = moment().endOf('day');
-  let findState = await Subscription.find({ pauseDate: { $gte: currentDayStart.toDate() }, resumeDate: { $lte: currentDayEnd.toDate() }, })
-  if (findState.length > 0) {
-    for (let i = 0; i < findState.length; i++) {
-      const banner = await Subscription.findByIdAndUpdate({ _id: findState[i]._id }, { $set: { status: 'pause', endDate: new Date() } }, { new: true });
-    }
-  }
-}).start();
-// }).stop()
-new cronJob('0 0 * * *', async function () {
-  let findState = await Subscription.find({ cutOffOrderType: "morningOrder" }).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
-  if (findState.length > 0) {
-    for (let i = 0; i < findState.length; i++) {
-      if (findState[i].product.type == "Bottle") {
-        pickUpBottleQuantity = findState[i].quantity;
-        isPickUpBottle = false;
-      } else {
-        pickUpBottleQuantity = 0;
-        isPickUpBottle = true;
-      }
-      let obj = {
-        user: findState[i].userId._id,
-        driverId: findState[i].driverId,
-        collectionBoyId: findState[i].userId.collectionBoyId,
-        address2: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.address2,
-        houseNumber: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.houseNumber,
-        street: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.street,
-        city: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.city,
-        pinCode: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.pinCode,
-        landMark: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.landMark,
-        unitPrice: findState[i].price,
-        product: findState[i].product._id,
-        quantity: findState[i].quantity,
-        total: findState[i].quantity * findState[i].price,
-        ringTheBell: findState[i].ringTheBell,
-        instruction: findState[i].instruction,
-        pickUpBottleQuantity: pickUpBottleQuantity,
-        productType: findState[i].product.type,
-        isPickUpBottle: isPickUpBottle,
-        discount: 0,
-        shippingPrice: 10,
-        cutOffOrderType: findState[i].cutOffOrderType,
-        amountToBePaid: (findState[i].quantity * findState[i].price) + 10,
-        collectedAmount: (findState[i].quantity * findState[i].price) + 10,
-        orderType: "Subscription",
-        mode: findState[i].userId.paymentMode
-      }
-      const address = await Order.create(obj);
-    }
-  }
-}).start();
-// }).stop()
-// new cronJob('* * * * * *', async function () {
-new cronJob('0 15 * * *', async function () {
-  console.log("eveningOrder cron job is running");
-  let findState = await Subscription.find({ cutOffOrderType: "eveningOrder" }).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
-  if (findState.length > 0) {
-    for (let i = 0; i < findState.length; i++) {
-      if (findState[i].product.type == "Bottle") {
-        pickUpBottleQuantity = findState[i].quantity;
-        isPickUpBottle = false;
-      } else {
-        pickUpBottleQuantity = 0;
-        isPickUpBottle = true;
-      }
-      let obj = {
-        user: findState[i].userId._id,
-        driverId: findState[i].userId.driverId,
-        collectionBoyId: findState[i].userId.collectionBoyId,
-        address2: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.address2,
-        houseNumber: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.houseNumber,
-        street: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.street,
-        city: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.city,
-        pinCode: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.pinCode,
-        landMark: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.landMark,
-        unitPrice: findState[i].price,
-        product: findState[i].product._id,
-        quantity: findState[i].quantity,
-        total: findState[i].quantity * findState[i].price,
-        ringTheBell: findState[i].ringTheBell,
-        instruction: findState[i].instruction,
-        pickUpBottleQuantity: pickUpBottleQuantity,
-        productType: findState[i].product.type,
-        isPickUpBottle: isPickUpBottle,
-        discount: 0,
-        shippingPrice: 10,
-        cutOffOrderType: findState[i].cutOffOrderType,
-        amountToBePaid: (findState[i].quantity * findState[i].price) + 10,
-        collectedAmount: (findState[i].quantity * findState[i].price) + 10,
-        orderType: "Subscription",
-        mode: findState[i].userId.paymentMode
-      }
-      const address = await Order.create(obj);
-      console.log(address)
-    }
-  }
-}).start();
-// }).stop()
 module.exports = { deleteOrder, returnBottleOrderForAdmin, updateOrderDetails, subscription, payBillStatusUpdate, returnBottleOrder, updateCollectedDate, createSubscription, pauseSubscription, updateSubscription, deleteSubscription, deleteproductinOrder, mySubscriptionOrders, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }

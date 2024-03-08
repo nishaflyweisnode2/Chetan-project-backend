@@ -8,44 +8,53 @@ const { placeOrderCOD, getOrders, updateCollectedDate, payBills, mySubscriptionO
         getAllOrders, checkout, updateOrderDetails, placeOrder, myOrders, payBillStatusUpdate, returnBottleOrder, returnBottleOrderForAdmin, deleteOrder } = require("../Controller/Order");
 
 router.post("/api/v1/order/checkout", isAuthenticatedUser, checkout);
-router.post("/api/v1/order/place-order", isAuthenticatedUser, placeOrder);
-router.post('/place-order/cod', isAuthenticatedUser, placeOrderCOD)
-
-router.post('/api/v1/order/updateCollectedDate', updateCollectedDate)
-
-router.get("/api/v1/order/Allorders", isAuthenticatedUser, getOrders)
-router.get("/api/v1/order/mySubscriptionOrders", isAuthenticatedUser, mySubscriptionOrders)
-router.get("/api/v1/order/subscription/all", getAllSubscription)
-router.post('/insert-product/:orderId/:productId', insertNewProduct)
-// router.route("/api/v1/order/order/new").post(isAuthenticatedUser, newOrder);
-router.get("/api/v1/order/:id", getSingleOrder);
-//Return Router 
-router.post('/return/:id', orderReturn);
-router.get('/return/:userId', GetAllReturnOrderbyUserId)
-router.get('/return/orderId/:id', GetReturnByOrderId);
 router.get("/api/v1/order/", isAuthenticatedUser, myOrders);
-router.put("/api/v1/order/admin/:id", updateOrder)
+router.get("/api/v1/order/:id", getSingleOrder);
 router.put("/api/v1/order/updateOrderDetails/:id", updateOrderDetails)
 router.delete("/api/v1/order/admin/:id", deleteOrder)
-router.get("/api/v1/order/admin/orders", getAllOrders);
-router.get("/api/v1/order/all/user/orders", getUnconfirmedOrders);
-router.get("/api/v1/order/", isAuthenticatedUser, myOrders);
-router.post("/api/v1/order/subscribe/:orderId", isAuthenticatedUser, subscription);
-
+router.get("/api/v1/order/admin/orders", getAllOrders)
+router.put("/api/v1/order/admin/:id", updateOrder)
+router.post('/api/v1/order/updateCollectedDate', updateCollectedDate)
+router.post("/api/v1/order/pay/Bills", isAuthenticatedUser, payBills)
+router.post("/api/v1/order/payBillStatusUpdate", isAuthenticatedUser, payBillStatusUpdate)
+router.get('/api/v1/order/returnBottleOrder/:userId', returnBottleOrder)
+router.get('/api/v1/order/return/BottleOrderForAdmin', returnBottleOrderForAdmin)
 router.post("/api/v1/order/createSubscription", isAuthenticatedUser, createSubscription);
 router.put("/api/v1/order/pauseSubscription/:subscriptionId", isAuthenticatedUser, pauseSubscription);
 router.put("/api/v1/order/updateSubscription/:subscriptionId", isAuthenticatedUser, updateSubscription);
 router.delete("/api/v1/order/deleteSubscription/:subscriptionId", isAuthenticatedUser, deleteSubscription);
 router.get("/api/v1/order/my/subscribe", isAuthenticatedUser, mySubscription);
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+router.post("/api/v1/order/place-order", isAuthenticatedUser, placeOrder);
+router.post('/place-order/cod', isAuthenticatedUser, placeOrderCOD)
+router.get("/api/v1/order/mySubscriptionOrders", isAuthenticatedUser, mySubscriptionOrders)
+router.get("/api/v1/order/subscription/all", getAllSubscription)
+router.post('/insert-product/:orderId/:productId', insertNewProduct)
+// router.route("/api/v1/order/order/new").post(isAuthenticatedUser, newOrder);
+router.post('/return/:id', orderReturn);
+router.get("/api/v1/order/Allorders", isAuthenticatedUser, getOrders)
+router.get('/return/:userId', GetAllReturnOrderbyUserId)
+router.get('/return/orderId/:id', GetReturnByOrderId);
+router.get("/api/v1/order/all/user/orders", getUnconfirmedOrders);
+router.post("/api/v1/order/subscribe/:orderId", isAuthenticatedUser, subscription);
 router.put("/api/v1/order/add/product/order/:orderId", addproductinOrder);
 router.delete("/api/v1/order/delete/product/order/:orderId", deleteproductinOrder);
-
-router.post("/api/v1/order/pay/Bills", isAuthenticatedUser, payBills)
-router.post("/api/v1/order/payBillStatusUpdate", isAuthenticatedUser, payBillStatusUpdate)
-router.get('/api/v1/order/returnBottleOrder/:userId', returnBottleOrder)
-router.get('/api/v1/order/return/BottleOrderForAdmin', returnBottleOrderForAdmin)
-
 module.exports = router;
 
 
