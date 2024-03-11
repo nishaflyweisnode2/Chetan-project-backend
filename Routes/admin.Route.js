@@ -37,6 +37,7 @@ router.get('/api/v1/userOrders/get/:userId', admin.userOrders);
 router.get('/api/v1/userSubscriptionOrders/get/:userId', admin.userSubscriptionOrders);
 router.put('/api/v1/updateUserProfile/put/:userId', admin.updateUserProfile);
 router.put('/api/v1/activeBlockUser/:userId', admin.activeBlockUser);
+router.put('/api/v1/changeUserStatus/:id', admin.changeUserStatus);
 router.put('/api/v1/prePostPaidUser/:userId', admin.prePostPaidUser);
 router.put("/api/v1/admin/updateSubscription/:subscriptionId", admin.updateSubscription);
 router.delete("/api/v1/admin/deleteSubscription/:subscriptionId", admin.deleteSubscription);

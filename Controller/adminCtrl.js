@@ -623,6 +623,21 @@ exports.acceptRejectAddress = async (req, res, next) => {
     return res.status(200).json({ error: `Something went wrong with Id: ${req.params}` });
   }
 };
+exports.changeUserStatus = async (req, res, next) => {
+  try {
+    const users = await User.findById({ _id: req.params.id });
+    if (!users) {
+      return next(new ErrorHander(`User does not exist with Id: ${req.params.id}`, 400));
+    }
+    let obj = {
+      userStatus: req.body.userStatus,
+    }
+    let update = await User.findByIdAndUpdate({ _id: users._id }, { $set: obj }, { new: true });
+    return res.status(200).json({ message: "Permission assign successfully.", data: update });
+  } catch (error) {
+    return res.status(200).json({ error: `Something went wrong with Id: ${req.params}` });
+  }
+};
 exports.getAllLogs = async (req, res) => {
   try {
     const Driver = await logs.find().populate('driver user');
