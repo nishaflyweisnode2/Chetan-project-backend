@@ -97,7 +97,7 @@ exports.createDriverForAdmin = async (req, res, next) => {
         if (findDriver) {
             return res.status(409).json({ data: {}, message: "Already exist.", status: 409 });
         } else {
-            const CutOffTimes = await cutOffTime.findById({ _id: req.params.id });
+            const CutOffTimes = await cutOffTime.findById({ _id: cutOffTimeId });
             if (!CutOffTimes) {
                 return res.status(404).json({ data: {}, message: "cutOffTime not found.", status: 404 });
             }
