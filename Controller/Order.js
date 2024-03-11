@@ -537,6 +537,61 @@ const updateCollectedDate = async (req, res) => {
     return res.status(400).json({ error: err.message })
   }
 }
+const getAllOrdersForAdmin = catchAsyncErrors(async (req, res, next) => {
+  const currentTime = new Date();
+  const currentHour = currentTime.getHours();
+  const currentMinute = currentTime.getMinutes();
+  const currentSecond = currentTime.getSeconds();
+  let currentSecond1, currentMinute1;
+  if (currentSecond < 10) { currentSecond1 = '' + 0 + currentSecond; } else { currentSecond1 = currentSecond };
+  if (currentMinute < 10) { currentMinute1 = '' + 0 + currentMinute; } else { currentMinute1 = currentMinute };
+  let cutOffOrderType;
+  const currentTimeString = `${currentHour}:${currentMinute1}:${currentSecond1}`;
+  const CutOffTimes1 = await cutOffTime.findOne({ type: "morningOrder" });
+  const CutOffTimes2 = await cutOffTime.findOne({ type: "eveningOrder" });
+  if ((CutOffTimes2.time < CutOffTimes1.time) && (currentTimeString < CutOffTimes2.time)) { cutOffOrderType = CutOffTimes2.type; } else {
+    cutOffOrderType = CutOffTimes1.type;
+  }
+  const orders = await Order.find({ cutOffOrderType: cutOffOrderType }).populate('user product');
+  if (orders.length > 0) {
+    return res.status(200).json({ success: true, orders });
+  } else {
+    return res.status(200).json({ success: false, });
+  }
+});
+const getAllOrdersForInvoice = catchAsyncErrors(async (req, res, next) => {
+  try {
+    const { userId, fromDate, toDate, page, orderType, limit } = req.query;
+    let query = { user: userId };
+    if (orderType) {
+      query.orderType = orderType;
+    }
+    if (fromDate && !toDate) {
+      query.createdAt = { $gte: fromDate };
+    }
+    if (!fromDate && toDate) {
+      query.createdAt = { $lte: toDate };
+    }
+    if (fromDate && toDate) {
+      query.$and = [
+        { createdAt: { $gte: fromDate } },
+        { createdAt: { $lte: toDate } },
+      ]
+    }
+    let options = {
+      page: Number(page) || 1,
+      limit: Number(limit) || 100,
+      sort: { createdAt: -1 },
+      populate: 'user product'
+    };
+    let data = await Order.paginate(query, options);
+    return res.status(200).json({ status: 200, message: "User data found.", data: data });
+
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ msg: "internal server error ", error: err.message, });
+  }
+});
 new cronJob('* * * * * *', async function () {
   const currentDayStart = moment().startOf('day');
   const currentDayEnd = moment().endOf('day');
@@ -648,6 +703,190 @@ new cronJob('0 15 * * *', async function () {
   }
 }).start();
 // }).stop()
+const updateOrderDetailsByAdmin = catchAsyncErrors(async (req, res, next) => {
+  try {
+    const order = await Order.findByIdAndUpdate(req.params.id);
+    if (!order) {
+      return next(new ErrorHandler("Order not found with this Id", 404));
+    }
+    const user = await User.findOne({ _id: req.user._id });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    let quantity, total, amountToBePaid, collectedAmount, unitPrice;
+    if (req.body.price && req.body.quantity) {
+      unitPrice = req.body.price || order.unitPrice;
+      quantity = req.body.quantity || order.quantity;
+      total = (unitPrice * quantity) || order.total;
+      amountToBePaid = ((req.body.price * req.body.quantity) + 10) || (order.amountToBePaid);
+      collectedAmount = (req.body.price * req.body.quantity) + 10 || (order.collectedAmount);
+    } else if (req.body.price && !req.body.quantity) {
+      unitPrice = req.body.price || order.unitPrice;
+      quantity = order.quantity;
+      total = (unitPrice * quantity) || order.total;
+      amountToBePaid = ((req.body.price * quantity) + 10) || (order.amountToBePaid);
+      collectedAmount = (req.body.price * quantity) + 10 || (order.collectedAmount);
+    } else if (!req.body.price && req.body.quantity) {
+      unitPrice = order.unitPrice;
+      quantity = req.body.quantity || order.quantity;
+      total = (unitPrice * quantity) || order.total;
+      amountToBePaid = ((order.unitPrice * req.body.quantity) + 10) || (order.amountToBePaid);
+      collectedAmount = (order.unitPrice * req.body.quantity) + 10 || (order.collectedAmount);
+    } else {
+      unitPrice = order.unitPrice;
+      quantity = order.quantity;
+      total = order.total;
+      amountToBePaid = (order.amountToBePaid);
+      collectedAmount = (order.collectedAmount);
+    }
+    if (user.paymentMode == "PrePaid") {
+      let wallet = await Wallet.findOne({ userId: Data.user });
+      if (!wallet) {
+        return res.status(200).json({ message: "InSufficent balance." })
+      } else {
+        if (wallet.balance < parseFloat(amountToBePaid)) {
+          return res.status(200).json({ message: "InSufficent balance." })
+        } else {
+          let obj = {
+            user: req.user._id,
+            unitPrice: unitPrice,
+            product: order.product,
+            quantity: quantity,
+            total: total,
+            amountToBePaid: amountToBePaid,
+            collectedAmount: collectedAmount,
+            mode: order.paymentMode
+          }
+          let update = await Order.findByIdAndUpdate({ _id: driverData._id }, { $set: obj }, { new: true })
+          return res.status(200).json({ success: true, message: "Order successfully updated", data: update });
+        }
+      }
+    } else {
+      let obj = {
+        user: req.user._id,
+        unitPrice: unitPrice,
+        product: order.product,
+        quantity: quantity,
+        total: total,
+        amountToBePaid: amountToBePaid,
+        collectedAmount: collectedAmount,
+        mode: order.paymentMode
+      }
+      let update = await Order.findByIdAndUpdate({ _id: driverData._id }, { $set: obj }, { new: true })
+      return res.status(200).json({ success: true, message: "Order successfully updated", data: update });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+});
+const checkoutForAdmin = async (req, res, next) => {
+  try {
+    const user = await User.findOne({ _id: req.body.userId, });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    } else {
+      if (user.userStatus == "Approved") {
+        const allAddress = await Address.findById({ _id: user.addressId });
+        if (!allAddress) {
+          return res.status(404).json({ error: 'Address not found' });
+        }
+        const currentTime = new Date();
+        const currentHour = currentTime.getHours();
+        const currentMinute = currentTime.getMinutes();
+        const currentSecond = currentTime.getSeconds();
+        let currentSecond1, currentMinute1;
+        if (currentSecond < 10) { currentSecond1 = '' + 0 + currentSecond; } else { currentSecond1 = currentSecond };
+        if (currentMinute < 10) { currentMinute1 = '' + 0 + currentMinute; } else { currentMinute1 = currentMinute };
+        let cutOffOrderType;
+        const currentTimeString = `${currentHour}:${currentMinute1}:${currentSecond1}`;
+        const CutOffTimes1 = await cutOffTime.findOne({ type: "morningOrder" });
+        const CutOffTimes2 = await cutOffTime.findOne({ type: "eveningOrder" });
+        if ((CutOffTimes2.time < CutOffTimes1.time) && (currentTimeString < CutOffTimes2.time)) { cutOffOrderType = CutOffTimes2.type; } else {
+          cutOffOrderType = CutOffTimes1.type;
+        }
+        const product = await Product.findById({ _id: req.body.productId })
+        let orders = [], pickUpBottleQuantity = 0, isPickUpBottle;
+        if (product.type == "Bottle") {
+          pickUpBottleQuantity = req.body.quantity;
+          isPickUpBottle = false;
+        } else {
+          pickUpBottleQuantity = 0;
+          isPickUpBottle = true;
+        }
+        let obj = {
+          user: req.user._id,
+          driverId: user.driverId,
+          collectionBoyId: user.collectionBoyId,
+          address2: allAddress.address2,
+          country: allAddress.state,
+          state: allAddress.state,
+          houseNumber: allAddress.houseNumber,
+          street: allAddress.street,
+          city: allAddress.city,
+          pinCode: allAddress.pinCode,
+          landMark: allAddress.landMark,
+          unitPrice: req.body.price,
+          product: req.body.productId,
+          quantity: req.body.quantity,
+          total: req.body.total,
+          ringTheBell: req.body.ringTheBell,
+          instruction: req.body.instruction,
+          pickUpBottleQuantity: pickUpBottleQuantity,
+          productType: product.type,
+          isPickUpBottle: isPickUpBottle,
+          discount: req.body.discount,
+          shippingPrice: req.body.shippingPrice,
+          startDate: new Date.now(),
+          cutOffOrderType: cutOffOrderType,
+          amountToBePaid: req.body.amountToBePaid + req.body.shippingPrice - req.body.discount,
+          collectedAmount: req.body.amountToBePaid + req.body.shippingPrice - req.body.discount,
+          orderType: "once",
+          mode: user.paymentMode,
+          status: req.body.status
+        }
+        if (user.paymentMode == "PrePaid") {
+          let TotalAmount = req.body.amountToBePaid
+          let wallet = await Wallet.findOne({ userId: Data.user });
+          if (!wallet) {
+            return res.status(200).json({ message: "InSufficent balance." })
+          } else {
+            if (wallet.balance < parseFloat(TotalAmount)) {
+              return res.status(200).json({ message: "InSufficent balance." })
+            } else {
+              const address = await Order.create(obj);
+              await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+              orders.push(address)
+              let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, }
+              await logs.create(obj1);
+            }
+          }
+        }
+        if (user.paymentMode == "PostPaid") {
+          const address = await Order.create(obj);
+          await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+          orders.push(address)
+          let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, }
+          await logs.create(obj1);
+        }
+        return res.status(200).json({ success: true, msg: "Order created", orders, });
+      } else if (user.status == "Block") {
+        return res.status(401).json({ message: "User block by admin. You can't place order, contact to admin." });
+      } else {
+        return res.status(401).json({ message: 'User status pending.' });
+      }
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
+
+
+
+
+
 
 
 
@@ -1204,4 +1443,4 @@ const deleteproductinOrder = async (req, res, next) => {
     return res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
-module.exports = { deleteOrder, returnBottleOrderForAdmin, updateOrderDetails, subscription, payBillStatusUpdate, returnBottleOrder, updateCollectedDate, createSubscription, pauseSubscription, updateSubscription, deleteSubscription, deleteproductinOrder, mySubscriptionOrders, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }
+module.exports = { deleteOrder, getAllOrdersForInvoice, checkoutForAdmin, updateOrderDetailsByAdmin, getAllOrdersForAdmin, returnBottleOrderForAdmin, updateOrderDetails, subscription, payBillStatusUpdate, returnBottleOrder, updateCollectedDate, createSubscription, pauseSubscription, updateSubscription, deleteSubscription, deleteproductinOrder, mySubscriptionOrders, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }

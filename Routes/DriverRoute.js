@@ -7,16 +7,22 @@ const cloudinary = require("cloudinary").v2;
 const storage = new CloudinaryStorage({ cloudinary: cloudinary, params: { folder: "images/image", allowed_formats: ["jpg", "jpeg", "png", "PNG", "xlsx", "xls", "pdf", "PDF"], }, });
 const upload = multer({ storage: storage });
 router.post('/api/v1/driver/create', driver_Controllers.createDriver);
+router.post('/api/v1/driver/createDriverForAdmin', driver_Controllers.createDriverForAdmin);
 router.post('/api/v1/driver/sendotp', driver_Controllers.sendOtp);
 router.post('/api/v1/driver/reSendOtp/:id', driver_Controllers.reSendOtp);
 router.post('/api/v1/driver/verify/:id', driver_Controllers.accountVerificationOTP);
 router.get('/api/v1/driver/get/:id', driver_Controllers.getProfile);
 router.get('/api/v1/driver/getUser/:id', driver_Controllers.getUserbyId);
+router.put('/api/v1/driver/assignTimeSlotToDriver', driver_Controllers.assignTimeSlotToDriver);
 router.put('/api/v1/driver/update/:id', upload.single('profile'), driver_Controllers.AddDeriverDetails);
 // router.post('/api/v1/driver/addOrder', driver_Controllers.AssignOrdertoDriver);
 // router.put('/api/v1/driver/accept/:id', driver_Controllers.DriverAccept);
 // router.put('/api/v1/driver/reject/:id', driver_Controllers.DriverReject);
 router.get('/api/v1/driver/alldriver', driver_Controllers.AllDrivers);
+router.get('/api/v1/driver/getAllDriverForAdmin', driver_Controllers.getAllDriverForAdmin);
+router.get('/api/v1/driver/DriverAllOrderProductWithQuantity/:id', driver_Controllers.DriverAllOrderProductWithQuantity);
+router.get('/api/v1/driver/getAllOrderByProductId/:id', driver_Controllers.getAllOrderByProductId);
+
 router.get('/api/v1/driver/allorders', driver_Controllers.DriverAllOrder);
 router.get('/api/v1/driver/allorders/:id', driver_Controllers.DriverSingleOrder);
 
@@ -54,6 +60,5 @@ router.get("/api/v1/driver/driverAttendanceList/:id", driver_Controllers.driverA
 router.post("/api/v1/driver/startDelivery/:id", driver_Controllers.startDelivery);
 router.post("/api/v1/driver/endDelivery/:id", driver_Controllers.endDelivery);
 
-router.post("/api/v1/createDriverByAdmin", driver_Controllers.createDriverByAdmin);
 
 module.exports = router;

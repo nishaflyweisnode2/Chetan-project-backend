@@ -8,6 +8,10 @@ const Driver = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Address",
     },
+    cutOffTimeId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "cutOffTime",
+    },
     name: {
         type: String,
         require: false

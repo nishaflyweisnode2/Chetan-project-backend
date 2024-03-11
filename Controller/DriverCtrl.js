@@ -19,6 +19,8 @@ const collectionDeliveryPunchIn = require("../Model/cdPunchIn");
 const walletTransaction = require("../Model/walletTransaction");
 const Wallet = require('../Model/myWalletModel');
 const moment = require('moment')
+const cutOffTime = require('../Model/cutOffTime');
+const notDelivered = require('../Model/notDelivered');
 exports.sendOtp = async (req, res) => {
     try {
         const Data = await driver.findOne({ phone: req.body.phone, role: req.body.role })
@@ -87,6 +89,45 @@ exports.createDriver = async (req, res, next) => {
         return res.status(500).json({ message: error.message });
     }
     next();
+}
+exports.createDriverForAdmin = async (req, res, next) => {
+    try {
+        const { phone, cutOffTimeId, name } = req.body;
+        let findDriver = await driver.findOne({ phone, role: 'driver' });
+        if (findDriver) {
+            return res.status(409).json({ data: {}, message: "Already exist.", status: 409 });
+        } else {
+            const CutOffTimes = await cutOffTime.findById({ _id: req.params.id });
+            if (!CutOffTimes) {
+                return res.status(404).json({ data: {}, message: "cutOffTime not found.", status: 404 });
+            }
+            const Driver = await driver.create({ phone, cutOffTimeId, name, role: 'driver' });
+            if (Driver) {
+                return res.status(201).json({ data: Driver, message: "Registration successfully", status: 200 });
+            }
+        }
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+    next();
+}
+exports.assignTimeSlotToDriver = async (req, res) => {
+    try {
+        const userData = await driver.findById({ _id: req.body.driverId })
+        if (!userData) {
+            return res.status(500).json({ message: "User not found " })
+        } else {
+            const CutOffTimes = await cutOffTime.findById({ _id: req.body.cutOffTimeId });
+            if (!CutOffTimes) {
+                return res.status(404).json({ data: {}, message: "cutOffTime not found.", status: 404 });
+            }
+            let update = await driver.findByIdAndUpdate({ _id: userData._id }, { $set: { cutOffTimeId: CutOffTimes._id }, }, { new: true });
+            return res.status(200).json({ sucess: true, message: update })
+        }
+    } catch (err) {
+        console.log(err)
+        return res.status(400).json({ message: err.message })
+    }
 }
 exports.getProfile = async (req, res) => {
     try {
@@ -431,11 +472,20 @@ exports.DeliveredOrder = async (req, res) => {
 exports.reasonOfReduceQuantity = async (req, res) => {
     try {
         const driverData = await order.findOne({ _id: req.params.id })
+        let obj = {
+            user: driverData.user,
+            driverId: driverData.driverId,
+            collectionBoyId: driverData.collectionBoyId,
+            product: driverData.product,
+            orderId: driverData._id,
+            quantity: driverData.quantity - req.body.quantity,
+        }
         driverData.reasonOfReduce = req.body.reasonOfReduce;
         driverData.quantity = req.body.quantity;
         driverData.total = req.body.quantity * driverData.unitPrice;
         driverData.amountToBePaid = (req.body.quantity * driverData.unitPrice) + driverData.shippingPrice;
         driverData.save();
+        await notDelivered.create(obj);
         return res.status(200).json({ message: "ok", result: driverData })
     } catch (err) {
         console.log(err);
@@ -748,36 +798,6 @@ exports.allUserOrder = async (req, res) => {
         return res.status(400).json({ message: err.message });
     }
 };
-exports.createDriverByAdmin = async (req, res, next) => {
-    try {
-        let findDriver = await driver.findOne({ phone: req.body.phone, role: 'driver' });
-        if (findDriver) {
-            return res.status(409).json({ data: {}, message: "Already exist.", status: 409 });
-        } else {
-            const otp = OTP.generateOTP();
-            const Driver = await driver.create({ phone: req.body.phone, otp, name: req.body.name, role: 'driver' });
-            if (Driver) {
-                let obj = {
-                    address2: req.body.address2,
-                    country: req.body.country,
-                    state: req.body.state,
-                    houseNumber: req.body.houseNumber,
-                    street: req.body.street,
-                    city: req.body.city,
-                    pinCode: req.body.pinCode,
-                    landMark: req.body.landMark,
-                    driver: Driver._id
-                }
-                const address = await Address.create(obj);
-                await driver.findByIdAndUpdate({ _id: Driver._id }, { $set: { addressId: address._id } }, { new: true, });
-                return res.status(201).json({ data: Driver, message: "Registration successfully", status: 200 });
-            }
-        }
-    } catch (error) {
-        return res.status(500).json({ message: error.message });
-    }
-    next();
-}
 const totalTime1 = async (punchIn, punchOut) => {
     var startTime = punchIn;
     var endTime = punchOut;
@@ -833,7 +853,117 @@ const hourCalculate = async (hour, minute, second) => {
     let punchIn = hr1 + ':' + min1 + ':' + sec1;
     return punchIn;
 };
+exports.getAllDriverForAdmin = async (req, res, next) => {
+    try {
+        const currentTime = new Date();
+        const currentHour = currentTime.getHours();
+        const currentMinute = currentTime.getMinutes();
+        const currentSecond = currentTime.getSeconds();
+        let currentSecond1, currentMinute1;
+        if (currentSecond < 10) { currentSecond1 = '' + 0 + currentSecond; } else { currentSecond1 = currentSecond };
+        if (currentMinute < 10) { currentMinute1 = '' + 0 + currentMinute; } else { currentMinute1 = currentMinute };
+        let cutOffOrderType, cutOffTimeId;
+        const currentTimeString = `${currentHour}:${currentMinute1}:${currentSecond1}`;
+        const CutOffTimes1 = await cutOffTime.findOne({ type: "morningOrder" });
+        const CutOffTimes2 = await cutOffTime.findOne({ type: "eveningOrder" });
+        if ((CutOffTimes2.time < CutOffTimes1.time) && (currentTimeString < CutOffTimes2.time)) { cutOffTimeId = CutOffTimes2._id; cutOffOrderType = CutOffTimes2.type; } else {
+            cutOffTimeId = CutOffTimes1._id;
+            cutOffOrderType = CutOffTimes1.type;
+        }
+        const drivers = await driver.find({ role: "driver", cutOffTimeId: cutOffTimeId });
+        const driversWithTotalQuantity = [];
+        for (const driver of drivers) {
+            const orders = await order.find({ driverId: driver._id, cutOffOrderType: cutOffOrderType, createdAt: { $gte: new Date().setHours(0, 0, 0, 0), $lt: new Date().setHours(23, 59, 59, 999) } });
+            let totalQuantity = 0;
+            orders.forEach(order => {
+                totalQuantity += order.quantity;
+            });
+            driversWithTotalQuantity.push({ driver, totalQuantity });
+        }
+        if (driversWithTotalQuantity.length > 0) {
+            return res.status(200).json({ success: true, driversWithTotalQuantity });
+        } else {
+            return res.status(200).json({ success: false });
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, error: "Internal server error" });
+    }
+};
+exports.DriverAllOrderProductWithQuantity = async (req, res) => {
+    try {
+        const currentTime = new Date();
+        const currentHour = currentTime.getHours();
+        const currentMinute = currentTime.getMinutes();
+        const currentSecond = currentTime.getSeconds();
+        let currentSecond1, currentMinute1;
+        if (currentSecond < 10) { currentSecond1 = '' + 0 + currentSecond; } else { currentSecond1 = currentSecond };
+        if (currentMinute < 10) { currentMinute1 = '' + 0 + currentMinute; } else { currentMinute1 = currentMinute };
+        let cutOffOrderType, cutOffTimeId;
+        const currentTimeString = `${currentHour}:${currentMinute1}:${currentSecond1}`;
+        const CutOffTimes1 = await cutOffTime.findOne({ type: "morningOrder" });
+        const CutOffTimes2 = await cutOffTime.findOne({ type: "eveningOrder" });
+        if ((CutOffTimes2.time < CutOffTimes1.time) && (currentTimeString < CutOffTimes2.time)) { cutOffTimeId = CutOffTimes2._id; cutOffOrderType = CutOffTimes2.type; } else {
+            cutOffTimeId = CutOffTimes1._id;
+            cutOffOrderType = CutOffTimes1.type;
+        }
+        const orders = await order.find({
+            driverId: req.params.id,
+            cutOffOrderType: cutOffOrderType,
+            createdAt: { $gte: new Date().setHours(0, 0, 0, 0), $lt: new Date().setHours(23, 59, 59, 999) }
+        }).populate('product');
+        const productQuantities = [];
+        orders.forEach(order => {
+            if (order.product) {
+                let existingProduct = productQuantities.find(item => item.productId === order.product._id);
+                if (existingProduct) {
+                    existingProduct.quantity += order.quantity;
+                } else {
+                    productQuantities.push({
+                        productId: order.product._id,
+                        productName: order.product.name,
+                        quantity: order.quantity
+                    });
+                }
+            }
+        });
 
+        return res.status(200).json({ success: true, productQuantities });
+    } catch (err) {
+        return res.status(400).json({ success: false, message: err.message });
+    }
+}
+exports.getAllOrderByProductId = async (req, res, next) => {
+    try {
+        const currentTime = new Date();
+        const currentHour = currentTime.getHours();
+        const currentMinute = currentTime.getMinutes();
+        const currentSecond = currentTime.getSeconds();
+        let currentSecond1, currentMinute1;
+        if (currentSecond < 10) { currentSecond1 = '' + 0 + currentSecond; } else { currentSecond1 = currentSecond };
+        if (currentMinute < 10) { currentMinute1 = '' + 0 + currentMinute; } else { currentMinute1 = currentMinute };
+        let cutOffOrderType;
+        const currentTimeString = `${currentHour}:${currentMinute1}:${currentSecond1}`;
+        const CutOffTimes1 = await cutOffTime.findOne({ type: "morningOrder" });
+        const CutOffTimes2 = await cutOffTime.findOne({ type: "eveningOrder" });
+        if ((CutOffTimes2.time < CutOffTimes1.time) && (currentTimeString < CutOffTimes2.time)) { cutOffOrderType = CutOffTimes2.type; } else {
+            cutOffOrderType = CutOffTimes1.type;
+        }
+        const findProduct = await Product.findById(req.params.id);
+        if (!findProduct) {
+            return res.status(404).json({ status: 404, message: "Product not found", });
+        }
+        const orders = await order.find({ product: findProduct._id, cutOffOrderType: cutOffOrderType, createdAt: { $gte: new Date().setHours(0, 0, 0, 0), $lt: new Date().setHours(23, 59, 59, 999) } }).populate("user");
+        if (orders.length > 0) {
+            return res.status(200).json({ success: true, orders });
+        } else {
+            return res.status(404).json({ success: false });
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, error: "Internal server error" });
+    }
+};
 // exports.DeleteAssignOrder = async (req, res) => {
 //     try {
 //         await order.findByIdAndDelete({ _id: req.params.id });

@@ -44,6 +44,7 @@ exports.createProduct = catchAsyncErrors(async (req, res, next) => {
     subCategory: req.body.subCategory,
     includeGst: req.body.includeGst,
     Stock: req.body.Stock,
+    companyName: req.body.companyName,
     deliveryPinCodes: req.body.deliveryPinCodes
   }
   const product = await Product.create(data);
@@ -165,6 +166,7 @@ exports.updateProduct = catchAsyncErrors(async (req, res, next) => {
         subCategory: req.body.subCategory,
         includeGst: req.body.includeGst,
         Stock: req.body.Stock,
+        companyName: req.body.companyName,
         deliveryPinCodes: req.body.deliveryPinCodes
       },
       {

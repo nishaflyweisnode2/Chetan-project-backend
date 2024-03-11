@@ -34,3 +34,12 @@ exports.deleteAddress = catchAsyncErrors(async (req, res, next) => {
   await address.deleteOne();
   return res.status(200).json({ success: true, message: "Address Deleted Successfully", });
 });
+
+exports.updateAddressStatus = catchAsyncErrors(async (req, res, next) => {
+  const users = await User.findById({ _id: req.params.userId });
+  if (!users) {
+    return next(new ErrorHander(`User does not exist with Id: ${req.params.userId}`, 400));
+  }
+  let update = await User.findByIdAndUpdate({ _id: users._id }, { $set: { addressStatus: req.body.addressStatus } }, { new: true, });
+  return res.status(201).json({ success: true, update, });
+});

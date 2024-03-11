@@ -5,11 +5,14 @@ const { placeOrderCOD, getOrders, updateCollectedDate, payBills, mySubscriptionO
         insertNewProduct, deleteproductinOrder, addproductinOrder, mySubscription,
         subscription, getSingleOrder, getAllSubscription, getUnconfirmedOrders,
         GetAllReturnOrderbyUserId, GetReturnByOrderId, orderReturn, updateOrder,
-        getAllOrders, checkout, updateOrderDetails, placeOrder, myOrders, payBillStatusUpdate, returnBottleOrder, returnBottleOrderForAdmin, deleteOrder } = require("../Controller/Order");
+        getAllOrders, updateOrderDetailsByAdmin, getAllOrdersForInvoice, checkoutForAdmin, checkout, getAllOrdersForAdmin, updateOrderDetails, placeOrder, myOrders, payBillStatusUpdate, returnBottleOrder, returnBottleOrderForAdmin, deleteOrder } = require("../Controller/Order");
 
 router.post("/api/v1/order/checkout", isAuthenticatedUser, checkout);
+router.post("/api/v1/order/checkoutForAdmin", checkoutForAdmin);
 router.get("/api/v1/order/", isAuthenticatedUser, myOrders);
+router.get("/api/v1/order/getAllOrders/ForInvoice", getAllOrdersForInvoice);
 router.get("/api/v1/order/:id", getSingleOrder);
+router.put("/api/v1/order/updateOrderDetailsByAdmin/:id", updateOrderDetailsByAdmin)
 router.put("/api/v1/order/updateOrderDetails/:id", updateOrderDetails)
 router.delete("/api/v1/order/admin/:id", deleteOrder)
 router.get("/api/v1/order/admin/orders", getAllOrders)
@@ -26,6 +29,7 @@ router.delete("/api/v1/order/deleteSubscription/:subscriptionId", isAuthenticate
 router.get("/api/v1/order/my/subscribe", isAuthenticatedUser, mySubscription);
 
 
+router.get("/api/v1/order/getAllOrdersForAdmin", getAllOrdersForAdmin);
 
 
 

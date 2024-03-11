@@ -19,6 +19,7 @@ const moment = require('moment');
 const Razorpay = require("razorpay");
 const OrderReturn = require('../Model/OrderReturnModel')
 const Address = require("../Model/addressModel");
+const notDelivered = require('../Model/notDelivered');
 exports.userOrders = async (req, res, next) => {
   console.log("hi");
   const orders = await Order.find({ user: req.params.userId, orderType: "once" }).populate("user product")
@@ -35,6 +36,64 @@ exports.userSubscriptionOrders = async (req, res, next) => {
   console.log(orders);
   return res.status(200).json({ success: true, orders });
 }
+exports.deleteSubscription = async (req, res, next) => {
+  try {
+    const { subscriptionId } = req.params;
+    const order = await Subscription.findById(subscriptionId);
+    if (!order) {
+      return res.status(404).json({ error: 'Subscription not found' });
+    }
+    const del = await Subscription.findByIdAndDelete(subscriptionId);
+
+    return res.status(201).json({ message: 'Subscription delete successfully', del });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to place order' });
+  }
+};
+exports.updateSubscription = async (req, res, next) => {
+  try {
+    const { subscriptionId } = req.params;
+    const order = await Subscription.findById(subscriptionId);
+    if (!order) {
+      return res.status(404).json({ error: 'Subscription not found' });
+    }
+    let productId;
+    if (req.body.productId != (null || undefined)) {
+      const findProduct = await Product.findById({ _id: req.body.productId });
+      if (!findProduct) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+      productId = findProduct._id;
+    } else {
+      productId = order.product;
+    }
+    const user = await User.findOne({ _id: req.params.userId });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    let obj = {
+      userId: req.params.userId,
+      driverId: user.driverId,
+      collectionBoyId: user.collectionBoyId,
+      product: productId,
+      size: req.body.size || order.size,
+      price: req.body.price || order.price,
+      alternateDay: req.body.alternateDay || order.alternateDay,
+      quantity: req.body.quantity || order.quantity,
+      startDate: req.body.startDate || order.startDate,
+      ringTheBell: req.body.ringTheBell || order.ringTheBell,
+      instruction: req.body.instruction || order.instruction,
+      days: req.body.days || order.days,
+      type: req.body.type || order.type,
+    }
+    const banner = await Subscription.findByIdAndUpdate({ _id: order._id }, { $set: obj }, { new: true });
+    return res.status(201).json({ message: 'Create subscription successfully', banner });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: 'Failed to place order' });
+  }
+};
 exports.updateUserProfile = async (req, res, next) => {
   try {
     const users = await User.findById({ _id: req.params.userId });
@@ -242,6 +301,7 @@ exports.getAllUser = async (req, res) => {
       limit: Number(limit) || 15,
       sort: { createdAt: -1 },
     };
+    console.log(query)
     let data = await User.paginate(query, options);
     return res.status(200).json({ status: 200, message: "User data found.", data: data });
 
@@ -566,6 +626,18 @@ exports.acceptRejectAddress = async (req, res, next) => {
 exports.getAllLogs = async (req, res) => {
   try {
     const Driver = await logs.find().populate('driver user');
+    if (Driver.length > 0) {
+      return res.status(200).json({ status: 200, message: "Logs found successfully", data: Driver });
+    } else {
+      return res.status(404).json({ status: 404, message: "Logs Not found", data: {} })
+    }
+  } catch (err) {
+    return res.status(400).json({ message: err.message })
+  }
+};
+exports.getAllNotDelivered = async (req, res) => {
+  try {
+    const Driver = await notDelivered.find().populate('product driverId user');
     if (Driver.length > 0) {
       return res.status(200).json({ status: 200, message: "Logs found successfully", data: Driver });
     } else {

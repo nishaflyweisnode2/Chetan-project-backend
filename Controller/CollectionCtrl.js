@@ -16,6 +16,7 @@ const Order = require("../Model/ShoppingCartOrderModel");
 const punchInModel = require("../Model/punchIn");
 const collectionDeliveryPunchIn = require("../Model/cdPunchIn");
 const Address = require("../Model/addressModel");
+const collectedAmount = require("../Model/collectedAmount");
 const moment = require('moment')
 exports.sendOtp = async (req, res) => {
         try {
@@ -66,6 +67,56 @@ exports.createCollectionBoy = async (req, res, next) => {
         }
         next();
 }
+exports.createCollectionBoyByAdmin = async (req, res, next) => {
+        try {
+                const { phone, name, drivers } = req.body;
+                let findDriver = await driver.findOne({ phone, role: "collectionBoy" });
+                if (findDriver) {
+                        return res.status(409).json({ data: {}, message: "Already exist.", status: 409 });
+                } else {
+                        let driverId = [];
+                        for (let i = 0; i < drivers; i++) {
+                                driverId.push(drivers[i])
+                        }
+                        const Driver = await driver.create({ phone, name, role: "collectionBoy", driverId: driverId });
+                        if (Driver) {
+                                return res.status(201).json({ data: Driver, message: "Registration successfully", status: 200 });
+                        }
+                }
+        } catch (error) {
+                return res.status(500).json({ message: error.message });
+        }
+        next();
+}
+exports.updateCollectionBoyByAdmin = async (req, res) => {
+        try {
+                const Data1 = await driver.findOne({ _id: req.params.id, role: "collectionBoy" })
+                if (!Data1) {
+                        return res.status(404).json({ message: "collectionBoy not found" })
+                }
+                const Data = await driver.findOne({ _id: { $ne: req.params.id }, email: req.body.email, role: "collectionBoy" })
+                if (Data) {
+                        return res.status(201).json({ message: "Email is Already regtration" })
+                }
+                let driverId = [];
+                if (req.body.drivers.length > 0) {
+                        for (let i = 0; i < req.body.drivers; i++) {
+                                driverId.push(req.body.drivers[i])
+                        }
+                } else {
+                        driverId = Data1.drivers
+                }
+                let obj = {
+                        name: req.body.name || Data1.name,
+                        phone: req.body.phone || Data1.phone,
+                        drivers: driverId,
+                }
+                const data = await driver.findOneAndUpdate({ _id: req.params.id }, { $set: obj }, { new: true });
+                return res.status(200).json({ success: true, details: data })
+        } catch (err) {
+                return res.status(400).json({ message: err.message })
+        }
+}
 exports.UpdateCollectionBoyStatus = async (req, res, next) => {
         try {
                 const users = await driver.findById({ _id: req.params.id });
@@ -80,9 +131,9 @@ exports.UpdateCollectionBoyStatus = async (req, res, next) => {
 };
 exports.AddCollectionBoyDetails = async (req, res) => {
         try {
-                const Data1 = await driver.findOne({ _id: { $ne: req.params.id }, email: req.body.email, role: "collectionBoy" })
-                if (Data1) {
-                        return res.status(201).json({ message: "Email is Already regtration" })
+                const Data1 = await driver.findOne({ _id: req.params.id, role: "collectionBoy" })
+                if (!Data1) {
+                        return res.status(404).json({ message: "collectionBoy not found" })
                 }
                 const Data = await driver.findOne({ _id: { $ne: req.params.id }, email: req.body.email, role: "collectionBoy" })
                 if (Data) {
@@ -97,6 +148,46 @@ exports.AddCollectionBoyDetails = async (req, res) => {
                 return res.status(200).json({ success: true, details: data })
         } catch (err) {
                 return res.status(400).json({ message: err.message })
+        }
+}
+exports.CollectionBoysWithCollectedAmount = async (req, res) => {
+        try {
+                const { startDate, endDate } = req.query;
+                if (!startDate || !endDate) {
+                        const collectionBoys = await driver.find({ role: "collectionBoy" })
+                        const result = [];
+                        for (const collectionBoy of collectionBoys) {
+                                const collectedAmounts = await collectedAmount.find({ driverId: collectionBoy._id, });
+                                let totalCollectedAmount = 0;
+                                collectedAmounts.forEach(amount => {
+                                        totalCollectedAmount += parseFloat(amount.amount);
+                                });
+                                result.push({ collectionBoy, totalCollectedAmount });
+                        }
+                        return res.status(200).json({ success: true, data: result });
+                } else {
+                        const startDateTime = new Date(startDate);
+                        const endDateTime = new Date(endDate);
+                        if (startDateTime >= endDateTime) {
+                                return res.status(400).json({ success: false, message: "Start date should be before end date" });
+                        }
+                        const collectionBoys = await driver.find({ role: "collectionBoy" })
+                        const result = [];
+                        for (const collectionBoy of collectionBoys) {
+                                const collectedAmounts = await collectedAmount.find({
+                                        driverId: collectionBoy._id,
+                                        createdAt: { $gte: startDateTime, $lte: endDateTime }
+                                });
+                                let totalCollectedAmount = 0;
+                                collectedAmounts.forEach(amount => {
+                                        totalCollectedAmount += parseFloat(amount.amount);
+                                });
+                                result.push({ collectionBoy, totalCollectedAmount });
+                        }
+                        return res.status(200).json({ success: true, data: result });
+                }
+        } catch (err) {
+                return res.status(500).json({ success: false, message: err.message });
         }
 }
 exports.AllCollectionBoys = async (req, res) => {
@@ -264,8 +355,15 @@ exports.ChangeStatus = async (req, res) => {
                         paymentMode: req.query.paymentMode1,
                         collectedStatus: collectedStatus
                 }
+                let obj1 = {
+                        amount: req.query.collectedAmount,
+                        driverId: driverData.collectionBoyId
+                }
                 let update = await Order.findByIdAndUpdate({ _id: driverData._id }, { $set: obj }, { new: true })
-                return res.status(200).json({ message: "ok", result: update })
+                if (update) {
+                        await collectedAmount.create(obj1);
+                        return res.status(200).json({ message: "ok", result: update })
+                }
         } catch (err) {
                 console.log(err);
                 return res.status(400).json({ error: err.message })

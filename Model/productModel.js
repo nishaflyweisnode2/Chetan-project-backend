@@ -17,6 +17,9 @@ const productSchema = mongoose.Schema({
   size: {
     type: Number
   },
+  companyName: {
+    type: String
+  },
   sizeInWord: {
     type: String
   },
