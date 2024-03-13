@@ -504,7 +504,7 @@ const updateSubscription = async (req, res, next) => {
 };
 const mySubscription = async (req, res, next) => {
   try {
-    consol.log(req.user)
+    console.log(req.user)
     const subscriptions = await Subscription.find({ userId: req.user._id }).populate("userId product");
     return res.status(200).json({ subscriptions });
   } catch (error) {
