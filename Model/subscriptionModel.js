@@ -45,6 +45,9 @@ const subscriptionSchema = new mongoose.Schema({
   instruction: {
     type: String,
   },
+  orderCreateTill: {
+    type: Date,
+  },
   status: {
     type: String,
     enum: ['pause', 'start'],

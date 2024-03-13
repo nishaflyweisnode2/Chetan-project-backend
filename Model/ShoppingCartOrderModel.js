@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 const mongoosePaginate = require('mongoose-paginate-v2');
 const mongooseAggregatePaginate = require("mongoose-aggregate-paginate");
 const orderSchema = new mongoose.Schema({
+  subscription: {
+    type: mongoose.Schema.ObjectId,
+    ref: "Subscription",
+  },
   user: {
     type: mongoose.Schema.ObjectId,
     ref: "User",

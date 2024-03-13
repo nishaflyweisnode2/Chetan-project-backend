@@ -367,7 +367,7 @@ const createSubscription = async (req, res, next) => {
       return res.status(404).json({ error: 'User not found' });
     } else {
       if (user.userStatus == "Approved") {
-        let cart = await subscriptionCart.findOne({ user: req.user._id }).populate({ path: "products.product", select: { review: 0 }, }).populate({ path: "coupon", select: "couponCode discount expirationDate", });
+        let cart = await subscriptionCart.findOne({ userId: req.user._id }).populate({ path: "products.product", select: { review: 0 }, });
         if (!cart) {
           return res.status(400).json({ success: false, msg: "Cart not found or empty." });
         }
@@ -390,6 +390,7 @@ const createSubscription = async (req, res, next) => {
           cutOffOrderType = CutOffTimes1.type;
         }
         let orders = [];
+        console.log(cart)
         for (let i = 0; i < cart.products.length; i++) {
           let obj = {
             userId: req.user._id,
@@ -400,6 +401,7 @@ const createSubscription = async (req, res, next) => {
             size: cart.products[i].size,
             quantity: cart.products[i].quantity,
             startDate: cart.products[i].startDate,
+            orderCreateTill: cart.products[i].startDate,
             ringTheBell: cart.products[i].ringTheBell,
             instruction: cart.products[i].instruction,
             days: cart.products[i].days,
@@ -407,6 +409,7 @@ const createSubscription = async (req, res, next) => {
             alternateDay: cart.products[i].alternateDay,
             cutOffOrderType: cutOffOrderType,
           }
+          console.log(obj)
           const banner = await Subscription.create(obj);
           if (banner) {
             orders.push(banner);
@@ -614,95 +617,136 @@ new cronJob('* * * * * *', async function () {
   }
 }).start();
 // }).stop()
-new cronJob('0 0 * * *', async function () {
-  let findState = await Subscription.find({ cutOffOrderType: "morningOrder" }).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
+new cronJob('* * * * * *', async function () {
+  const currentDate = moment().utc(); // Get current date in UTC  
+  let findState = await Subscription.find({
+    cutOffOrderType: "morningOrder",
+    orderCreateTill: {
+      $gte: currentDate.startOf('day').toDate(),
+      $lte: currentDate.endOf('day').toDate()    // Convert moment object to Date
+    }
+  }).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
   if (findState.length > 0) {
     for (let i = 0; i < findState.length; i++) {
-      if (findState[i].product.type == "Bottle") {
-        pickUpBottleQuantity = findState[i].quantity;
-        isPickUpBottle = false;
-      } else {
-        pickUpBottleQuantity = 0;
-        isPickUpBottle = true;
+      const startDate = moment(findState[i].startDate).startOf('month');
+      const endDate = moment(findState[i].startDate).endOf('month');
+      for (let date = startDate.clone(); date.isSameOrBefore(endDate); date.add(1, 'day')) {
+        let findState1 = await Subscription.findByIdAndUpdate({ _id: findState[i]._id }, { $set: { orderCreateTill: endDate } }, { new: true });
+        if (date.isBefore(endDate)) {
+          if (findState[i].product.type == "Bottle") {
+            pickUpBottleQuantity = findState[i].quantity;
+            isPickUpBottle = false;
+          } else {
+            pickUpBottleQuantity = 0;
+            isPickUpBottle = true;
+          }
+          let obj = {
+            subscription: findState[i]._id,
+            user: findState[i].userId._id,
+            driverId: findState[i].driverId,
+            collectionBoyId: findState[i].userId.collectionBoyId,
+            address2: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.address2,
+            houseNumber: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.houseNumber,
+            street: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.street,
+            city: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.city,
+            pinCode: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.pinCode,
+            landMark: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.landMark,
+            unitPrice: findState[i].price,
+            product: findState[i].product._id,
+            quantity: findState[i].quantity,
+            total: findState[i].quantity * findState[i].price,
+            ringTheBell: findState[i].ringTheBell,
+            instruction: findState[i].instruction,
+            pickUpBottleQuantity: pickUpBottleQuantity,
+            productType: findState[i].product.type,
+            isPickUpBottle: isPickUpBottle,
+            discount: 0,
+            shippingPrice: 10,
+            startDate: date,
+            cutOffOrderType: findState[i].cutOffOrderType,
+            amountToBePaid: (findState[i].quantity * findState[i].price) + 10,
+            collectedAmount: (findState[i].quantity * findState[i].price) + 10,
+            orderType: "Subscription",
+            mode: findState[i].userId.paymentMode
+          };
+          let findData = await Order.findOne(obj);
+          if (findData) {
+            console.log("666")
+          } else {
+            const address = await Order.create(obj);
+            console.log(address)
+          }
+        }
       }
-      let obj = {
-        user: findState[i].userId._id,
-        driverId: findState[i].driverId,
-        collectionBoyId: findState[i].userId.collectionBoyId,
-        address2: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.address2,
-        houseNumber: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.houseNumber,
-        street: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.street,
-        city: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.city,
-        pinCode: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.pinCode,
-        landMark: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.landMark,
-        unitPrice: findState[i].price,
-        product: findState[i].product._id,
-        quantity: findState[i].quantity,
-        total: findState[i].quantity * findState[i].price,
-        ringTheBell: findState[i].ringTheBell,
-        instruction: findState[i].instruction,
-        pickUpBottleQuantity: pickUpBottleQuantity,
-        productType: findState[i].product.type,
-        isPickUpBottle: isPickUpBottle,
-        discount: 0,
-        shippingPrice: 10,
-        cutOffOrderType: findState[i].cutOffOrderType,
-        amountToBePaid: (findState[i].quantity * findState[i].price) + 10,
-        collectedAmount: (findState[i].quantity * findState[i].price) + 10,
-        orderType: "Subscription",
-        mode: findState[i].userId.paymentMode
-      }
-      const address = await Order.create(obj);
     }
   }
 }).start();
 // }).stop()
-// new cronJob('* * * * * *', async function () {
-new cronJob('0 15 * * *', async function () {
-  console.log("eveningOrder cron job is running");
-  let findState = await Subscription.find({ cutOffOrderType: "eveningOrder" }).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
+new cronJob('* * * * * *', async function () {
+  const currentDate = moment().utc(); // Get current date in UTC  
+  let findState = await Subscription.find({
+    cutOffOrderType: "eveningOrder",
+    orderCreateTill: {
+      $gte: currentDate.startOf('day').toDate(),
+      $lte: currentDate.endOf('day').toDate()    // Convert moment object to Date
+    }
+  }).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
   if (findState.length > 0) {
     for (let i = 0; i < findState.length; i++) {
-      if (findState[i].product.type == "Bottle") {
-        pickUpBottleQuantity = findState[i].quantity;
-        isPickUpBottle = false;
-      } else {
-        pickUpBottleQuantity = 0;
-        isPickUpBottle = true;
+      const startDate = moment(findState[i].startDate).startOf('month');
+      const endDate = moment(findState[i].startDate).endOf('month');
+      for (let date = startDate.clone(); date.isSameOrBefore(endDate); date.add(1, 'day')) {
+        let findState1 = await Subscription.findByIdAndUpdate({ _id: findState[i]._id }, { $set: { orderCreateTill: endDate } }, { new: true });
+        if (date.isBefore(endDate)) {
+          if (findState[i].product.type == "Bottle") {
+            pickUpBottleQuantity = findState[i].quantity;
+            isPickUpBottle = false;
+          } else {
+            pickUpBottleQuantity = 0;
+            isPickUpBottle = true;
+          }
+          let obj = {
+            subscription: findState[i]._id,
+            user: findState[i].userId._id,
+            driverId: findState[i].driverId,
+            collectionBoyId: findState[i].userId.collectionBoyId,
+            address2: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.address2,
+            houseNumber: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.houseNumber,
+            street: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.street,
+            city: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.city,
+            pinCode: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.pinCode,
+            landMark: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.landMark,
+            unitPrice: findState[i].price,
+            product: findState[i].product._id,
+            quantity: findState[i].quantity,
+            total: findState[i].quantity * findState[i].price,
+            ringTheBell: findState[i].ringTheBell,
+            instruction: findState[i].instruction,
+            pickUpBottleQuantity: pickUpBottleQuantity,
+            productType: findState[i].product.type,
+            isPickUpBottle: isPickUpBottle,
+            discount: 0,
+            shippingPrice: 10,
+            startDate: date,
+            cutOffOrderType: findState[i].cutOffOrderType,
+            amountToBePaid: (findState[i].quantity * findState[i].price) + 10,
+            collectedAmount: (findState[i].quantity * findState[i].price) + 10,
+            orderType: "Subscription",
+            mode: findState[i].userId.paymentMode
+          };
+          let findData = await Order.findOne(obj);
+          if (findData) {
+            console.log("666")
+          } else {
+            const address = await Order.create(obj);
+            console.log(address)
+          }
+        }
       }
-      let obj = {
-        user: findState[i].userId._id,
-        driverId: findState[i].userId.driverId,
-        collectionBoyId: findState[i].userId.collectionBoyId,
-        address2: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.address2,
-        houseNumber: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.houseNumber,
-        street: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.street,
-        city: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.city,
-        pinCode: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.pinCode,
-        landMark: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.landMark,
-        unitPrice: findState[i].price,
-        product: findState[i].product._id,
-        quantity: findState[i].quantity,
-        total: findState[i].quantity * findState[i].price,
-        ringTheBell: findState[i].ringTheBell,
-        instruction: findState[i].instruction,
-        pickUpBottleQuantity: pickUpBottleQuantity,
-        productType: findState[i].product.type,
-        isPickUpBottle: isPickUpBottle,
-        discount: 0,
-        shippingPrice: 10,
-        cutOffOrderType: findState[i].cutOffOrderType,
-        amountToBePaid: (findState[i].quantity * findState[i].price) + 10,
-        collectedAmount: (findState[i].quantity * findState[i].price) + 10,
-        orderType: "Subscription",
-        mode: findState[i].userId.paymentMode
-      }
-      const address = await Order.create(obj);
-      console.log(address)
     }
   }
-}).start();
-// }).stop()
+  // }).start();
+}).stop()
 const updateOrderDetailsByAdmin = catchAsyncErrors(async (req, res, next) => {
   try {
     const order = await Order.findByIdAndUpdate(req.params.id);
