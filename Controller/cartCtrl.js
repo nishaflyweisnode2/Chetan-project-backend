@@ -195,7 +195,7 @@ exports.updateSubscriptionCart = async (req, res, next) => {
       }
       productId = findProduct._id;
     } else {
-      productId = order.productId;
+      productId = order.product;
     }
     const user = await User.findOne({ _id: req.user._id });
     if (!user) {
@@ -287,7 +287,7 @@ exports.deleteSubscriptionCartItem = async (req, res, next) => {
   try {
     const { id } = req.params;
     const userId = req.user._id;
-    let cart = await subscriptionCart.findOne({ user: userId });
+    let cart = await subscriptionCart.findOne({ userId: userId });
     const productIndex = cart.products.findIndex(
       (product) => product.product.toString() === id
     );

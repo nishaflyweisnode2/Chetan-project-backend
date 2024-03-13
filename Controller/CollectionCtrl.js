@@ -69,16 +69,12 @@ exports.createCollectionBoy = async (req, res, next) => {
 }
 exports.createCollectionBoyByAdmin = async (req, res, next) => {
         try {
-                const { phone, name, drivers } = req.body;
+                const { phone, name } = req.body;
                 let findDriver = await driver.findOne({ phone, role: "collectionBoy" });
                 if (findDriver) {
                         return res.status(409).json({ data: {}, message: "Already exist.", status: 409 });
                 } else {
-                        let driverId = [];
-                        for (let i = 0; i < drivers; i++) {
-                                driverId.push(drivers[i])
-                        }
-                        const Driver = await driver.create({ phone, name, role: "collectionBoy", driverId: driverId });
+                        const Driver = await driver.create({ phone, name, role: "collectionBoy" });
                         if (Driver) {
                                 return res.status(201).json({ data: Driver, message: "Registration successfully", status: 200 });
                         }
@@ -94,22 +90,13 @@ exports.updateCollectionBoyByAdmin = async (req, res) => {
                 if (!Data1) {
                         return res.status(404).json({ message: "collectionBoy not found" })
                 }
-                const Data = await driver.findOne({ _id: { $ne: req.params.id }, email: req.body.email, role: "collectionBoy" })
+                const Data = await driver.findOne({ _id: { $ne: req.params.id }, phone: req.body.phone, role: "collectionBoy" })
                 if (Data) {
-                        return res.status(201).json({ message: "Email is Already regtration" })
-                }
-                let driverId = [];
-                if (req.body.drivers.length > 0) {
-                        for (let i = 0; i < req.body.drivers; i++) {
-                                driverId.push(req.body.drivers[i])
-                        }
-                } else {
-                        driverId = Data1.drivers
+                        return res.status(201).json({ message: "Phone is Already regtration" })
                 }
                 let obj = {
                         name: req.body.name || Data1.name,
                         phone: req.body.phone || Data1.phone,
-                        drivers: driverId,
                 }
                 const data = await driver.findOneAndUpdate({ _id: req.params.id }, { $set: obj }, { new: true });
                 return res.status(200).json({ success: true, details: data })
@@ -245,18 +232,20 @@ exports.assignDriverToCollectionBoy = async (req, res) => {
                 if (!userData) {
                         return res.status(500).json({ message: "User not found " })
                 } else {
-                        const Data = await driver.findOne({ _id: req.body.driverId, role: "driver" })
-                        if (!Data) {
-                                return res.status(201).json({ message: "Driver not found", status: 404, data: {}, })
-                        }
-                        const userData12 = await User.find({ driverId: req.body.driverId })
-                        if (userData12) {
-                                for (let i = 0; i < userData12.length; i++) {
-                                        let update = await User.findByIdAndUpdate({ _id: userData12[i]._id }, { $set: { collectionBoyId: req.body.collectionBoyId }, }, { new: true });
+                        for (let i = 0; i < req.body.driverId.length; i++) {
+                                const Data = await driver.findOne({ _id: req.body.driverId[i], role: "driver" })
+                                if (!Data) {
+                                        return res.status(201).json({ message: "Driver not found", status: 404, data: {}, })
                                 }
-                                let update = await driver.findByIdAndUpdate({ _id: userData._id }, { $addToSet: { driverId: req.body.driverId } }, { new: true });
-                                return res.status(200).json({ sucess: true, message: "Collection Boy Assigned Successfully" })
+                                const userData12 = await User.find({ driverId: req.body.driverId[i] })
+                                if (userData12) {
+                                        for (let i = 0; i < userData12.length; i++) {
+                                                let update = await User.findByIdAndUpdate({ _id: userData12[i]._id }, { $set: { collectionBoyId: req.body.collectionBoyId }, }, { new: true });
+                                        }
+                                        let update = await driver.findByIdAndUpdate({ _id: userData._id }, { $addToSet: { driverId: req.body.driverId[i] } }, { new: true });
+                                }
                         }
+                        return res.status(200).json({ sucess: true, message: "Collection Boy Assigned Successfully" })
                 }
         } catch (err) {
                 console.log(err)
