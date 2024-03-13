@@ -282,7 +282,7 @@ exports.allAssignUserToCollectionBoy = async (req, res) => {
                                 query.addressId = { $in: addressIds };
                         }
                 }
-                const users = await User.find(query);
+                const users = await User.find(query).populate('driverId');
                 if (users.length > 0) {
                         return res.status(200).json({ success: true, message: users });
                 } else {
