@@ -28,6 +28,11 @@ const addressSchema = new mongoose.Schema({
   landMark: {
     type: String,
   },
+  addressType: {
+    type: String,
+    enum: ["Change", "My"],
+    default: "My"
+  },
   type: {
     type: String,
     enum: ["Home", "office"]

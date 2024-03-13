@@ -29,7 +29,7 @@ router.delete("/api/v1/order/deleteSubscription/:subscriptionId", isAuthenticate
 router.get("/api/v1/order/my/subscribe", isAuthenticatedUser, mySubscription);
 
 
-router.get("/api/v1/order/getAllOrdersForAdmin", getAllOrdersForAdmin);
+router.get("/api/v1/order/getAllOrders/ForAdmin", getAllOrdersForAdmin);
 
 
 

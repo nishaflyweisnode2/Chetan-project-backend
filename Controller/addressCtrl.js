@@ -8,13 +8,22 @@ exports.createAddress = catchAsyncErrors(async (req, res, next) => {
   if (!users) {
     return next(new ErrorHander(`User does not exist with Id: ${req.params.userId}`, 400));
   }
-  const findAddress = await Address.findOne({ user: users._id });
+  const findAddress = await Address.findOne({ user: users._id, addressType: "My" });
   if (findAddress) {
-    await Address.findByIdAndUpdate({ _id: findAddress._id }, { $set: req.body }, { new: true, });
-    await User.findByIdAndUpdate({ _id: users._id }, { $set: { addressStatus: "Upload", addressId: findAddress._id } }, { new: true, });
+    const findAddress1 = await Address.findOne({ user: users._id, addressType: "Change" });
+    if (findAddress1) {
+      await Address.findByIdAndUpdate({ _id: findAddress1._id }, { $set: req.body }, { new: true, });
+      await User.findByIdAndUpdate({ _id: users._id }, { $set: { changeAddressId: findAddress1._id, addressStatus: "Upload" } }, { new: true, });
+    } else {
+      req.body.user = users._id;
+      req.body.addressType = "Change";
+      const address = await Address.create(req.body);
+      await User.findByIdAndUpdate({ _id: users._id }, { $set: { changeAddressId: address._id, addressStatus: "Upload" } }, { new: true, });
+    }
   }
+  req.body.user = users._id;
   const address = await Address.create(req.body);
-  await User.findByIdAndUpdate({ _id: users._id }, { $set: { addressStatus: "Upload", addressId: address._id } }, { new: true, });
+  await User.findByIdAndUpdate({ _id: users._id }, { $set: { addressStatus: "approved", addressId: address._id } }, { new: true, });
   return res.status(201).json({ success: true, address, });
 });
 exports.getAddressById = catchAsyncErrors(async (req, res, next) => {
@@ -34,12 +43,21 @@ exports.deleteAddress = catchAsyncErrors(async (req, res, next) => {
   await address.deleteOne();
   return res.status(200).json({ success: true, message: "Address Deleted Successfully", });
 });
-
 exports.updateAddressStatus = catchAsyncErrors(async (req, res, next) => {
   const users = await User.findById({ _id: req.params.userId });
   if (!users) {
     return next(new ErrorHander(`User does not exist with Id: ${req.params.userId}`, 400));
+  } else {
+    const findAddress = await Address.findOne({ user: users._id, addressType: "My" });
+    const findAddress1 = await Address.findOne({ user: users._id, addressType: "Change" });
+    if (req.body.addressStatus == "approved") {
+      await Address.findByIdAndUpdate({ _id: findAddress1._id }, { $set: { addressStatus: "My" } }, { new: true, });
+      await Address.findByIdAndDelete({ _id: findAddress._id });
+      let update = await User.findByIdAndUpdate({ _id: users._id }, { $set: { addressStatus: req.body.addressStatus, changeAddressId: null, addressId: findAddress1._id } }, { new: true, });
+      return res.status(201).json({ success: true, update, });
+    } else {
+      let update = await User.findByIdAndUpdate({ _id: users._id }, { $set: { addressStatus: req.body.addressStatus } }, { new: true, });
+      return res.status(201).json({ success: true, update, });
+    }
   }
-  let update = await User.findByIdAndUpdate({ _id: users._id }, { $set: { addressStatus: req.body.addressStatus } }, { new: true, });
-  return res.status(201).json({ success: true, update, });
 });

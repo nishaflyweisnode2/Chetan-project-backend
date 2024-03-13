@@ -14,6 +14,10 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Address",
   },
+  changeAddressId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Address",
+  },
   firstName: {
     type: String,
   },
