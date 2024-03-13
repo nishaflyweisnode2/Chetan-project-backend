@@ -13,6 +13,7 @@ router.put('/api/v1/CollectionBoyStatus/update/:id', CollectionBoy.UpdateCollect
 router.delete('/api/v1/CollectionBoy/:id', CollectionBoy.DeleteCollectionBoy);
 router.post('/api/v1/CollectionBoy/addEnquiry/:id', CollectionBoy.addEnquiry)
 router.post('/api/v1/CollectionBoy/assignDriverToCollectionBoy', CollectionBoy.assignDriverToCollectionBoy);
+router.post('/api/v1/CollectionBoy/unAssignDriverToCollectionBoy', CollectionBoy.unAssignDriverToCollectionBoy);
 router.get('/api/v1/CollectionBoy/allAssignUserToCollectionBoy/:collectionBoyId', CollectionBoy.allAssignUserToCollectionBoy)
 router.get('/api/v1/CollectionBoy/allCollectedOrder/:collectionBoyId', CollectionBoy.allCollectedOrder)
 router.get('/api/v1/CollectionBoy/allFeaturedOrder/:collectionBoyId', CollectionBoy.allFeaturedOrder)

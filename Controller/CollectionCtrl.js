@@ -141,10 +141,10 @@ exports.CollectionBoysWithCollectedAmount = async (req, res) => {
         try {
                 const { startDate, endDate } = req.query;
                 if (!startDate || !endDate) {
-                        const collectionBoys = await driver.find({ role: "collectionBoy" })
+                        const collectionBoys = await driver.find({ role: "collectionBoy" }).populate('driverId')
                         const result = [];
                         for (const collectionBoy of collectionBoys) {
-                                const collectedAmounts = await collectedAmount.find({ driverId: collectionBoy._id, });
+                                const collectedAmounts = await collectedAmount.find({ driverId: collectionBoy._id, })
                                 let totalCollectedAmount = 0;
                                 collectedAmounts.forEach(amount => {
                                         totalCollectedAmount += parseFloat(amount.amount);
@@ -158,7 +158,7 @@ exports.CollectionBoysWithCollectedAmount = async (req, res) => {
                         if (startDateTime >= endDateTime) {
                                 return res.status(400).json({ success: false, message: "Start date should be before end date" });
                         }
-                        const collectionBoys = await driver.find({ role: "collectionBoy" })
+                        const collectionBoys = await driver.find({ role: "collectionBoy" }).populate('driverId')
                         const result = [];
                         for (const collectionBoy of collectionBoys) {
                                 const collectedAmounts = await collectedAmount.find({
@@ -246,6 +246,30 @@ exports.assignDriverToCollectionBoy = async (req, res) => {
                                 }
                         }
                         return res.status(200).json({ sucess: true, message: "Collection Boy Assigned Successfully" })
+                }
+        } catch (err) {
+                console.log(err)
+                return res.status(400).json({ message: err.message })
+        }
+}
+exports.unAssignDriverToCollectionBoy = async (req, res) => {
+        try {
+                const userData = await driver.findById({ _id: req.body.collectionBoyId, role: "collectionBoy" })
+                if (!userData) {
+                        return res.status(500).json({ message: "User not found " })
+                } else {
+                        const Data = await driver.findOne({ _id: req.body.driverId, role: "driver" })
+                        if (!Data) {
+                                return res.status(201).json({ message: "Driver not found", status: 404, data: {}, })
+                        }
+                        const userData12 = await User.find({ driverId: req.body.driverId })
+                        if (userData12) {
+                                for (let i = 0; i < userData12.length; i++) {
+                                        let update = await User.findByIdAndUpdate({ _id: userData12[i]._id }, { $set: { collectionBoyId: null }, }, { new: true });
+                                }
+                                let update = await driver.findByIdAndUpdate({ _id: userData._id }, { $pull: { driverId: req.body.driverId } }, { new: true });
+                        }
+                        return res.status(200).json({ sucess: true, message: "Collection Boy unassigned Successfully" })
                 }
         } catch (err) {
                 console.log(err)
