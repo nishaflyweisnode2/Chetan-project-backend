@@ -660,10 +660,11 @@ new cronJob('* * * * * *', async function () {
             pickUpBottleQuantity = 0;
             isPickUpBottle = true;
           }
+          console.log(findState[i].userId)
           let obj = {
             subscription: findState[i]._id,
             user: findState[i].userId._id,
-            driverId: findState[i].driverId,
+            driverId: findState[i].userId.driverId,
             collectionBoyId: findState[i].userId.collectionBoyId,
             address2: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.address2,
             houseNumber: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.houseNumber,
@@ -765,8 +766,8 @@ new cronJob('* * * * * *', async function () {
       }
     }
   }
-  // }).start();
-}).stop()
+}).start();
+// }).stop()
 const updateOrderDetailsByAdmin = catchAsyncErrors(async (req, res, next) => {
   try {
     const order = await Order.findByIdAndUpdate(req.params.id);
