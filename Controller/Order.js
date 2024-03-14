@@ -89,7 +89,7 @@ const checkout = async (req, res, next) => {
           }
           if (user.paymentMode == "PrePaid") {
             let TotalAmount = (cart.products[i].quantity * cart.products[i].product.price) + 10
-            let wallet = await Wallet.findOne({ userId: Data.user });
+            let wallet = await Wallet.findOne({ userId: cart.user });
             if (!wallet) {
               return res.status(200).json({ message: "InSufficent balance." })
             } else {
@@ -575,11 +575,55 @@ const getAllOrdersForAdmin = catchAsyncErrors(async (req, res, next) => {
   if ((CutOffTimes2.time < CutOffTimes1.time) && (currentTimeString < CutOffTimes2.time)) { cutOffOrderType = CutOffTimes2.type; } else {
     cutOffOrderType = CutOffTimes1.type;
   }
-  const orders = await Order.find({ cutOffOrderType: cutOffOrderType }).populate('user product');
+  const orders = await Order.find({ cutOffOrderType: cutOffOrderType, orderType: "Subscription" }).populate('user product');
   if (orders.length > 0) {
     return res.status(200).json({ success: true, orders });
   } else {
     return res.status(200).json({ success: false, });
+  }
+});
+const getAllOneTimeOrdersForAdmin = catchAsyncErrors(async (req, res, next) => {
+  try {
+    const { toStartDate, fromStartDate, fromDate, toDate, page, limit } = req.query;
+    let query = { orderType: "once" };
+
+    if (fromStartDate && !toStartDate) {
+      query.startDate = { $gte: fromStartDate };
+    }
+    if (!fromStartDate && toStartDate) {
+      query.startDate = { $lte: toStartDate };
+    }
+    if (fromStartDate && toStartDate) {
+      query.$and = [
+        { startDate: { $gte: fromStartDate } },
+        { startDate: { $lte: toStartDate } },
+      ]
+    }
+
+    if (fromDate && !toDate) {
+      query.createdAt = { $gte: fromDate };
+    }
+    if (!fromDate && toDate) {
+      query.createdAt = { $lte: toDate };
+    }
+    if (fromDate && toDate) {
+      query.$and = [
+        { createdAt: { $gte: fromDate } },
+        { createdAt: { $lte: toDate } },
+      ]
+    }
+    let options = {
+      page: Number(page) || 1,
+      limit: Number(limit) || 100,
+      sort: { createdAt: -1 },
+      populate: 'user product'
+    };
+    let data = await Order.paginate(query, options);
+    return res.status(200).json({ status: 200, message: "User data found.", data: data });
+
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ msg: "internal server error ", error: err.message, });
   }
 });
 const getAllOrdersForInvoice = catchAsyncErrors(async (req, res, next) => {
@@ -1508,4 +1552,4 @@ const deleteproductinOrder = async (req, res, next) => {
     return res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
-module.exports = { deleteOrder, getAllOrdersForInvoice, getSubscriptionById, checkoutForAdmin, updateOrderDetailsByAdmin, getAllOrdersForAdmin, returnBottleOrderForAdmin, updateOrderDetails, subscription, payBillStatusUpdate, returnBottleOrder, updateCollectedDate, createSubscription, pauseSubscription, updateSubscription, deleteSubscription, deleteproductinOrder, mySubscriptionOrders, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }
+module.exports = { deleteOrder, getAllOneTimeOrdersForAdmin, getAllOrdersForInvoice, getSubscriptionById, checkoutForAdmin, updateOrderDetailsByAdmin, getAllOrdersForAdmin, returnBottleOrderForAdmin, updateOrderDetails, subscription, payBillStatusUpdate, returnBottleOrder, updateCollectedDate, createSubscription, pauseSubscription, updateSubscription, deleteSubscription, deleteproductinOrder, mySubscriptionOrders, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }

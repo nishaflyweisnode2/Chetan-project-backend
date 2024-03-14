@@ -5,7 +5,7 @@ const { placeOrderCOD, getOrders, updateCollectedDate, payBills, mySubscriptionO
         insertNewProduct, deleteproductinOrder, addproductinOrder, mySubscription,
         subscription, getSingleOrder, getAllSubscription, getUnconfirmedOrders,
         GetAllReturnOrderbyUserId, GetReturnByOrderId, orderReturn, updateOrder,
-        getAllOrders, updateOrderDetailsByAdmin, getSubscriptionById, getAllOrdersForInvoice, checkoutForAdmin, checkout, getAllOrdersForAdmin, updateOrderDetails, placeOrder, myOrders, payBillStatusUpdate, returnBottleOrder, returnBottleOrderForAdmin, deleteOrder } = require("../Controller/Order");
+        getAllOrders, updateOrderDetailsByAdmin, getAllOneTimeOrdersForAdmin, getSubscriptionById, getAllOrdersForInvoice, checkoutForAdmin, checkout, getAllOrdersForAdmin, updateOrderDetails, placeOrder, myOrders, payBillStatusUpdate, returnBottleOrder, returnBottleOrderForAdmin, deleteOrder } = require("../Controller/Order");
 
 router.post("/api/v1/order/checkout", isAuthenticatedUser, checkout);
 router.post("/api/v1/order/checkoutForAdmin", checkoutForAdmin);
@@ -31,7 +31,7 @@ router.get("/api/v1/order/my/subscribe", isAuthenticatedUser, mySubscription);
 
 
 router.get("/api/v1/order/getAllOrders/ForAdmin", getAllOrdersForAdmin);
-
+router.get("/api/v1/order/getAllOneTimeOrders/ForAdmin", getAllOneTimeOrdersForAdmin);
 
 
 
