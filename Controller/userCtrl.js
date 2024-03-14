@@ -11,6 +11,12 @@ const twilio = require('twilio');
 const vacation = require("../Model/vacation");
 const rechargeTransaction = require("../Model/rechargeTransaction");
 const walletTransaction = require("../Model/walletTransaction");
+const axios = require('axios');
+const username = 'GIRORGANIC';
+const password = 'Girorganic@789';
+const from = 'GIRORG';
+const indiaDltContentTemplateId = '1207170970346789539';
+const indiaDltPrincipalEntityId = '1201162297097138491';
 const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
@@ -20,12 +26,16 @@ exports.registerUser = catchAsyncErrors(async (req, res, next) => {
   try {
     let findUser = await User.findOne({ phone, role: "User" });
     if (findUser) {
-      return res.status(409).json({ data: {}, message: "Already exit.", status: 409, });
+      return res.status(409).json({ data: {}, message: "Already exist.", status: 409 });
     } else {
       const otp = OTP.generateOTP();
       const user = await User.create({ phone, otp, name, email });
       if (user) {
-        return res.status(201).json({ status: 200, message: "Registration susscessfully", data: user, });
+        const to = `91${phone}`;
+        const text = `${otp} is your OTP for GIRORGANIC. Please do not share it with anyone.`;
+        const apiUrl = 'http://api.ask4sms.in/sms/1/text/query';
+        await axios.get(apiUrl, { params: { username, password, from, to, text, indiaDltContentTemplateId, indiaDltPrincipalEntityId } });
+        return res.status(201).json({ status: 200, message: "Registration successfully", data: user });
       }
     }
   } catch (error) {
@@ -33,6 +43,25 @@ exports.registerUser = catchAsyncErrors(async (req, res, next) => {
   }
   next();
 });
+
+// exports.registerUser = catchAsyncErrors(async (req, res, next) => {
+//   const { phone, name, email } = req.body;
+//   try {
+//     let findUser = await User.findOne({ phone, role: "User" });
+//     if (findUser) {
+//       return res.status(409).json({ data: {}, message: "Already exit.", status: 409, });
+//     } else {
+//       const otp = OTP.generateOTP();
+//       const user = await User.create({ phone, otp, name, email });
+//       if (user) {
+//         return res.status(201).json({ status: 200, message: "Registration susscessfully", data: user, });
+//       }
+//     }
+//   } catch (error) {
+//     return res.status(500).json({ message: error.message });
+//   }
+//   next();
+// });
 exports.UpdatePhoneUser = catchAsyncErrors(async (req, res, next) => {
   const id = req.params.id;
   const phone = req.body.phone;
@@ -112,17 +141,10 @@ exports.loginUser = catchAsyncErrors(async (req, res, next) => {
       return res.status(404).json({ error: 'User not found' });
     }
     const otp = await OTP.generateOTP();
-    const message = `Your OTP is: ${otp}`;
-
-    // const twilioResponse = await twilioClient.messages.create({
-    //   body: message,
-    //   from: process.env.TWILIO_PHONE_NUMBER,
-    //   to: '+91' + phone,
-
-    // });
-
-    // console.log(`SMS sent with SID: ${twilioResponse.sid}`);
-
+    const to = `91${phone}`;
+    const text = `${otp} is your OTP for GIRORGANIC. Please do not share it with anyone.`;
+    const apiUrl = 'http://api.ask4sms.in/sms/1/text/query';
+    await axios.get(apiUrl, { params: { username, password, from, to, text, indiaDltContentTemplateId, indiaDltPrincipalEntityId } });
     let update = await User.findByIdAndUpdate({ _id: user._id }, { $set: { otp: otp } }, { new: true });
     return res.status(201).json({ success: true, Id: update._id, otp: otp });
   } catch (error) {
@@ -158,9 +180,10 @@ exports.resendOTP = catchAsyncErrors(async (req, res) => {
     const otp = OTP.generateOTP();
     user.otp = otp;
     await user.save();
-    // Send OTP
-    // const message = `Your OTP is ${otp}`;
-    // await sendOTP(user.phone, message);
+    const to = `91${user.phone}`;
+    const text = `${otp} is your OTP for GIRORGANIC. Please do not share it with anyone.`;
+    const apiUrl = 'http://api.ask4sms.in/sms/1/text/query';
+    await axios.get(apiUrl, { params: { username, password, from, to, text, indiaDltContentTemplateId, indiaDltPrincipalEntityId } });
     return res.status(200).send({ message: "OTP resent successfully", data: user.otp });
   } catch (error) {
     res.status(400).send({ error: error.message });

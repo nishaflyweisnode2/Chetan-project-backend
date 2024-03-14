@@ -24,33 +24,34 @@ mongoose.connect(process.env.MONGO_URI).then((data) => {
 });
 
 const axios = require('axios');
-const apiUrl = 'http://api.ask4sms.com/sms/1/text/query';
+
 const username = 'GIRORGANIC';
-const password = 'Gir2024@';
-const from = 'GROGNC';
+const password = 'Girorganic@789';
+const from = 'GIRORG';
 const to = '917983270583';
-const text = '145673 is your verification code for Gir Organic app';
-const indiaDltContentTemplateId = '1207163178705284094';
+const text = '876549 is your OTP for GIRORGANIC. Please do not share it with anyone.';
+const indiaDltContentTemplateId = '1207170970346789539';
 const indiaDltPrincipalEntityId = '1201162297097138491';
 
-const params = {
-        username,
-        password,
-        from,
-        to,
-        text,
-        indiaDltContentTemplateId,
-        indiaDltPrincipalEntityId
-};
+// const apiUrl = 'http://api.ask4sms.in/sms/1/text/query';
 
-// axios.get(apiUrl, { params })
+// axios.get(apiUrl, {
+//         params: {
+//                 username,
+//                 password,
+//                 from,
+//                 to,
+//                 text,
+//                 indiaDltContentTemplateId,
+//                 indiaDltPrincipalEntityId
+//         }
+// })
 //         .then(response => {
 //                 console.log('Response:', response.data);
 //         })
 //         .catch(error => {
-//                 console.error('Error:', error.response);
+//                 console.error('Error:', error);
 //         });
-
 
 
 // const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
