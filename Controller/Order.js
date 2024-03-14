@@ -125,11 +125,24 @@ const checkout = async (req, res, next) => {
 };
 const myOrders = catchAsyncErrors(async (req, res, next) => {
   try {
-    const { fromDate, toDate, page, orderType, limit } = req.query;
+    const { toStartDate, fromStartDate, fromDate, toDate, page, orderType, limit } = req.query;
     let query = { user: req.user.id };
     if (orderType) {
       query.orderType = orderType;
     }
+    if (fromStartDate && !toStartDate) {
+      query.startDate = { $gte: fromStartDate };
+    }
+    if (!fromStartDate && toStartDate) {
+      query.startDate = { $lte: toStartDate };
+    }
+    if (fromStartDate && toStartDate) {
+      query.$and = [
+        { startDate: { $gte: fromStartDate } },
+        { startDate: { $lte: toStartDate } },
+      ]
+    }
+
     if (fromDate && !toDate) {
       query.createdAt = { $gte: fromDate };
     }
