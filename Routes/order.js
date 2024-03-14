@@ -5,7 +5,7 @@ const { placeOrderCOD, getOrders, updateCollectedDate, payBills, mySubscriptionO
         insertNewProduct, deleteproductinOrder, addproductinOrder, mySubscription,
         subscription, getSingleOrder, getAllSubscription, getUnconfirmedOrders,
         GetAllReturnOrderbyUserId, GetReturnByOrderId, orderReturn, updateOrder,
-        getAllOrders, updateOrderDetailsByAdmin, getAllOrdersForInvoice, checkoutForAdmin, checkout, getAllOrdersForAdmin, updateOrderDetails, placeOrder, myOrders, payBillStatusUpdate, returnBottleOrder, returnBottleOrderForAdmin, deleteOrder } = require("../Controller/Order");
+        getAllOrders, updateOrderDetailsByAdmin, getSubscriptionById, getAllOrdersForInvoice, checkoutForAdmin, checkout, getAllOrdersForAdmin, updateOrderDetails, placeOrder, myOrders, payBillStatusUpdate, returnBottleOrder, returnBottleOrderForAdmin, deleteOrder } = require("../Controller/Order");
 
 router.post("/api/v1/order/checkout", isAuthenticatedUser, checkout);
 router.post("/api/v1/order/checkoutForAdmin", checkoutForAdmin);
@@ -23,6 +23,7 @@ router.post("/api/v1/order/payBillStatusUpdate", isAuthenticatedUser, payBillSta
 router.get('/api/v1/order/returnBottleOrder/:userId', returnBottleOrder)
 router.get('/api/v1/order/return/BottleOrderForAdmin', returnBottleOrderForAdmin)
 router.post("/api/v1/order/createSubscription", isAuthenticatedUser, createSubscription);
+router.get("/api/v1/order/getSubscription/:subscriptionId", getSubscriptionById);
 router.put("/api/v1/order/pauseSubscription/:subscriptionId", isAuthenticatedUser, pauseSubscription);
 router.put("/api/v1/order/updateSubscription/:subscriptionId", isAuthenticatedUser, updateSubscription);
 router.delete("/api/v1/order/deleteSubscription/:subscriptionId", isAuthenticatedUser, deleteSubscription);

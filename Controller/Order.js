@@ -515,6 +515,13 @@ const updateSubscription = async (req, res, next) => {
     return res.status(500).json({ error: 'Failed to place order' });
   }
 };
+const getSubscriptionById = async (req, res, next) => {
+  const order = await Subscription.findById(req.params.id).populate('userId product');
+  if (!order) {
+    return next(new ErrorHander("Order not found with this Id", 404));
+  }
+  return res.status(200).json({ success: true, order, });
+};
 const mySubscription = async (req, res, next) => {
   try {
     console.log(req.user)
@@ -1500,4 +1507,4 @@ const deleteproductinOrder = async (req, res, next) => {
     return res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
-module.exports = { deleteOrder, getAllOrdersForInvoice, checkoutForAdmin, updateOrderDetailsByAdmin, getAllOrdersForAdmin, returnBottleOrderForAdmin, updateOrderDetails, subscription, payBillStatusUpdate, returnBottleOrder, updateCollectedDate, createSubscription, pauseSubscription, updateSubscription, deleteSubscription, deleteproductinOrder, mySubscriptionOrders, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }
+module.exports = { deleteOrder, getAllOrdersForInvoice, getSubscriptionById, checkoutForAdmin, updateOrderDetailsByAdmin, getAllOrdersForAdmin, returnBottleOrderForAdmin, updateOrderDetails, subscription, payBillStatusUpdate, returnBottleOrder, updateCollectedDate, createSubscription, pauseSubscription, updateSubscription, deleteSubscription, deleteproductinOrder, mySubscriptionOrders, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }
