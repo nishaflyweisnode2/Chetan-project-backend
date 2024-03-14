@@ -516,9 +516,9 @@ const updateSubscription = async (req, res, next) => {
   }
 };
 const getSubscriptionById = async (req, res, next) => {
-  const order = await Subscription.findById(req.params.id).populate('userId product');
+  const order = await Subscription.findById(req.params.subscriptionId).populate('userId product');
   if (!order) {
-    return next(new ErrorHander("Order not found with this Id", 404));
+    return res.status(404).json({ error: 'Subscription not found' });
   }
   return res.status(200).json({ success: true, order, });
 };

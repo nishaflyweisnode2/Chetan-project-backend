@@ -470,7 +470,7 @@ exports.getRechargeTransactionById = async (req, res, next) => {
   try {
     const users = await rechargeTransaction.findById({ _id: req.params.id });
     if (!users) {
-      return next(new ErrorHander(`Recharge transaction does not exist `, 400));
+      return res.status(404).json({ status: 404, message: "Recharge transaction does not exist", data: {}, });
     }
     return res.status(200).json({ status: 200, message: "Recharge transaction successfully", data: users, });
   } catch (error) {
@@ -525,7 +525,7 @@ exports.getWalletTransactionById = async (req, res, next) => {
   try {
     const users = await walletTransaction.findById({ _id: req.params.id });
     if (!users) {
-      return next(new ErrorHander(`Wallet transaction does not exist `, 400));
+      return res.status(404).json({ status: 404, message: "Wallet transaction not found successfully", data: {}, });
     }
     return res.status(200).json({ status: 200, message: "Wallet transaction successfully", data: users, });
   } catch (error) {
