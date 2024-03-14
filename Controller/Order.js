@@ -771,7 +771,7 @@ const updateOrderDetailsByAdmin = catchAsyncErrors(async (req, res, next) => {
   try {
     const order = await Order.findByIdAndUpdate(req.params.id);
     if (!order) {
-      return next(new ErrorHandler("Order not found with this Id", 404));
+      return res.status(404).json({ error: 'Order not found with this Id' });
     }
     const user = await User.findOne({ _id: req.user._id });
     if (!user) {
