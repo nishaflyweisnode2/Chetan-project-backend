@@ -91,10 +91,10 @@ const checkout = async (req, res, next) => {
             let TotalAmount = (cart.products[i].quantity * cart.products[i].product.price) + 10
             let wallet = await Wallet.findOne({ userId: cart.user });
             if (!wallet) {
-              return res.status(200).json({ message: "InSufficent balance." })
+              return res.status(403).json({ message: "InSufficent balance." })
             } else {
               if (wallet.balance < parseFloat(TotalAmount)) {
-                return res.status(200).json({ message: "InSufficent balance." })
+                return res.status(403).json({ message: "InSufficent balance." })
               } else {
                 const address = await Order.create(obj);
                 await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
@@ -864,10 +864,10 @@ const updateOrderDetailsByAdmin = catchAsyncErrors(async (req, res, next) => {
     if (user.paymentMode == "PrePaid") {
       let wallet = await Wallet.findOne({ userId: Data.user });
       if (!wallet) {
-        return res.status(200).json({ message: "InSufficent balance." })
+        return res.status(403).json({ message: "InSufficent balance." })
       } else {
         if (wallet.balance < parseFloat(amountToBePaid)) {
-          return res.status(200).json({ message: "InSufficent balance." })
+          return res.status(403).json({ message: "InSufficent balance." })
         } else {
           let obj = {
             user: req.user._id,
@@ -970,10 +970,10 @@ const checkoutForAdmin = async (req, res, next) => {
           let TotalAmount = req.body.amountToBePaid
           let wallet = await Wallet.findOne({ userId: Data.user });
           if (!wallet) {
-            return res.status(200).json({ message: "InSufficent balance." })
+            return res.status(403).json({ message: "InSufficent balance." })
           } else {
             if (wallet.balance < parseFloat(TotalAmount)) {
-              return res.status(200).json({ message: "InSufficent balance." })
+              return res.status(403).json({ message: "InSufficent balance." })
             } else {
               const address = await Order.create(obj);
               await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
@@ -1190,10 +1190,10 @@ const getAllSubscription = async (req, res, next) => {
 //         let TotalAmount = (cart.products[i].quantity * cart.products[i].product.price) + 10
 //         let wallet = await Wallet.findOne({ userId: Data.user });
 //         if (!wallet) {
-//           return res.status(200).json({ message: "InSufficent balance." })
+//           return res.status(403).json({ message: "InSufficent balance." })
 //         } else {
 //           if (wallet.balance < parseFloat(TotalAmount)) {
-//             return res.status(200).json({ message: "InSufficent balance." })
+//             return res.status(403).json({ message: "InSufficent balance." })
 //           } else {
 //             const address = await Order.create(obj);
 //             await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
