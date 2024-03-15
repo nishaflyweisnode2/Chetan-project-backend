@@ -896,7 +896,7 @@ exports.getAllDriverForAdmin = async (req, res, next) => {
         const drivers = await driver.find({ role: "driver", cutOffTimeId: cutOffTimeId });
         const driversWithTotalQuantity = [];
         for (const driver of drivers) {
-            const orders = await order.find({ driverId: driver._id, cutOffOrderType: cutOffOrderType, createdAt: { $gte: new Date().setHours(0, 0, 0, 0), $lt: new Date().setHours(23, 59, 59, 999) } });
+            const orders = await order.find({ driverId: driver._id, cutOffOrderType: cutOffOrderType, startDate: { $gte: new Date().setHours(0, 0, 0, 0), $lt: new Date().setHours(23, 59, 59, 999) } });
             let totalQuantity = 0;
             orders.forEach(order => {
                 totalQuantity += order.quantity;
@@ -933,7 +933,7 @@ exports.DriverAllOrderProductWithQuantity = async (req, res) => {
         const orders = await order.find({
             driverId: req.params.id,
             cutOffOrderType: cutOffOrderType,
-            createdAt: { $gte: new Date().setHours(0, 0, 0, 0), $lt: new Date().setHours(23, 59, 59, 999) }
+            startDate: { $gte: new Date().setHours(0, 0, 0, 0), $lt: new Date().setHours(23, 59, 59, 999) }
         }).populate('product');
         const productQuantities = [];
         orders.forEach(order => {
