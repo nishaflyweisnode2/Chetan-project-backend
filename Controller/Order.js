@@ -946,7 +946,7 @@ const checkoutForAdmin = async (req, res, next) => {
           isPickUpBottle = true;
         }
         let obj = {
-          user: req.user._id,
+          user: user._id,
           driverId: user.driverId,
           collectionBoyId: user.collectionBoyId,
           address2: allAddress.address2,
@@ -967,7 +967,7 @@ const checkoutForAdmin = async (req, res, next) => {
           isPickUpBottle: isPickUpBottle,
           discount: 0,
           shippingPrice: 0,
-          startDate: new Date.now(),
+          startDate: req.body.deliveryDate,
           cutOffOrderType: cutOffOrderType,
           amountToBePaid: req.body.amountToBePaid + 0,
           collectedAmount: req.body.amountToBePaid + 0,
@@ -976,7 +976,7 @@ const checkoutForAdmin = async (req, res, next) => {
         }
         if (user.paymentMode == "PrePaid") {
           let TotalAmount = req.body.amountToBePaid
-          let wallet = await Wallet.findOne({ userId: Data.user });
+          let wallet = await Wallet.findOne({ userId: user.user });
           if (!wallet) {
             return res.status(403).json({ message: "InSufficent balance." })
           } else {
