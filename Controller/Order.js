@@ -713,7 +713,7 @@ new cronJob('* * * * * *', async function () {
   }).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
   if (findState.length > 0) {
     for (let i = 0; i < findState.length; i++) {
-      const startDate = moment(findState[i].startDate).startOf('month');
+      const startDate = moment(findState[i].startDate);
       const endDate = moment(findState[i].startDate).endOf('month');
       for (let date = startDate.clone(); date.isSameOrBefore(endDate); date.add(1, 'day')) {
         if (date.isBefore(endDate)) {
