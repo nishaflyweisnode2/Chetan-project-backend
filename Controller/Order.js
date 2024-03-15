@@ -841,7 +841,7 @@ const updateOrderDetailsByAdmin = catchAsyncErrors(async (req, res, next) => {
     if (!order) {
       return res.status(404).json({ error: 'Order not found with this Id' });
     }
-    const user = await User.findOne({ _id: req.user._id });
+    const user = await User.findOne({ _id: order.user });
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -880,7 +880,7 @@ const updateOrderDetailsByAdmin = catchAsyncErrors(async (req, res, next) => {
           return res.status(403).json({ message: "InSufficent balance." })
         } else {
           let obj = {
-            user: req.user._id,
+            user: order.user,
             unitPrice: unitPrice,
             product: order.product,
             quantity: quantity,
@@ -889,13 +889,13 @@ const updateOrderDetailsByAdmin = catchAsyncErrors(async (req, res, next) => {
             collectedAmount: collectedAmount,
             mode: order.paymentMode
           }
-          let update = await Order.findByIdAndUpdate({ _id: driverData._id }, { $set: obj }, { new: true })
+          let update = await Order.findByIdAndUpdate({ _id: order._id }, { $set: obj }, { new: true })
           return res.status(200).json({ success: true, message: "Order successfully updated", data: update });
         }
       }
     } else {
       let obj = {
-        user: req.user._id,
+        user: order.user,
         unitPrice: unitPrice,
         product: order.product,
         quantity: quantity,
@@ -904,7 +904,7 @@ const updateOrderDetailsByAdmin = catchAsyncErrors(async (req, res, next) => {
         collectedAmount: collectedAmount,
         mode: order.paymentMode
       }
-      let update = await Order.findByIdAndUpdate({ _id: driverData._id }, { $set: obj }, { new: true })
+      let update = await Order.findByIdAndUpdate({ _id: order._id }, { $set: obj }, { new: true })
       return res.status(200).json({ success: true, message: "Order successfully updated", data: update });
     }
   } catch (error) {
