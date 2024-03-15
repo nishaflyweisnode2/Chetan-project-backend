@@ -976,7 +976,7 @@ exports.getAllOrderByProductId = async (req, res, next) => {
         if (!findProduct) {
             return res.status(404).json({ status: 404, message: "Product not found", });
         }
-        const orders = await order.find({ product: findProduct._id, cutOffOrderType: cutOffOrderType, createdAt: { $gte: new Date().setHours(0, 0, 0, 0), $lt: new Date().setHours(23, 59, 59, 999) } }).populate("user");
+        const orders = await order.find({ product: findProduct._id, cutOffOrderType: cutOffOrderType, startDate: { $gte: new Date().setHours(0, 0, 0, 0), $lt: new Date().setHours(23, 59, 59, 999) } }).populate("user");
         if (orders.length > 0) {
             return res.status(200).json({ success: true, orders });
         } else {
