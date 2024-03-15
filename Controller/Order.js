@@ -539,12 +539,25 @@ const deleteSubscription = async (req, res, next) => {
     if (!order) {
       return res.status(404).json({ error: 'Subscription not found' });
     }
+    deleteOrderSubscription(subscriptionId)
     const del = await Subscription.findByIdAndDelete(subscriptionId);
-
     return res.status(201).json({ message: 'Subscription delete successfully', del });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: 'Failed to place order' });
+  }
+};
+async function deleteOrderSubscription(subscriptionId) {
+  try {
+    const currentDate = moment().utc();
+    let findUserOrder = await Order.find({ subscription: subscriptionId, orderType: "Subscription", startDate: { $gte: currentDate.startOf('day').toDate() } });
+    if (findUserOrder) {
+      for (let i = 0; i < findUserOrder.length; i++) {
+        await Order.findByIdAndDelete({ _id: findUserOrder[i]._id });
+      }
+    }
+  } catch (error) {
+    console.log("562----------------------------", error);
   }
 };
 /////////////////////////////////////////////////////////// collection boy //////////////////////////

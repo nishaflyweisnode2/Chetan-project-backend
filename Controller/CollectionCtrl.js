@@ -18,15 +18,29 @@ const collectionDeliveryPunchIn = require("../Model/cdPunchIn");
 const Address = require("../Model/addressModel");
 const collectedAmount = require("../Model/collectedAmount");
 const moment = require('moment')
+const axios = require('axios');
+const username = 'GIRORGANIC';
+const password = 'Girorganic@789';
+const from = 'GIRORG';
+const indiaDltContentTemplateId = '1207170970346789539';
+const indiaDltPrincipalEntityId = '1201162297097138491';
 exports.sendOtp = async (req, res) => {
         try {
                 const Data = await driver.findOne({ phone: req.body.phone, role: "collectionBoy" })
                 if (!Data) {
                         const otp = await otpHelper.generateOTP(4);
+                        const to = `91${req.body.phone}`;
+                        const text = `${otp} is your OTP for GIRORGANIC. Please do not share it with anyone.`;
+                        const apiUrl = 'http://api.ask4sms.in/sms/1/text/query';
+                        await axios.get(apiUrl, { params: { username, password, from, to, text, indiaDltContentTemplateId, indiaDltPrincipalEntityId } });
                         const data = await driver.create({ phone: req.body.phone, otp: otp, });
                         return res.status(200).json({ otp: data.otp, })
                 } else {
                         const otp = await otpHelper.generateOTP(4);
+                        const to = `91${req.body.phone}`;
+                        const text = `${otp} is your OTP for GIRORGANIC. Please do not share it with anyone.`;
+                        const apiUrl = 'http://api.ask4sms.in/sms/1/text/query';
+                        await axios.get(apiUrl, { params: { username, password, from, to, text, indiaDltContentTemplateId, indiaDltPrincipalEntityId } });
                         const data = await driver.updateOne({ _id: Data._id }, { otp: otp }, { new: true });
                         return res.status(200).json({ otp: otp, })
                 }
@@ -57,6 +71,10 @@ exports.createCollectionBoy = async (req, res, next) => {
                         return res.status(409).json({ data: {}, message: "Already exist.", status: 409 });
                 } else {
                         const otp = OTP.generateOTP();
+                        const to = `91${req.body.phone}`;
+                        const text = `${otp} is your OTP for GIRORGANIC. Please do not share it with anyone.`;
+                        const apiUrl = 'http://api.ask4sms.in/sms/1/text/query';
+                        await axios.get(apiUrl, { params: { username, password, from, to, text, indiaDltContentTemplateId, indiaDltPrincipalEntityId } });
                         const Driver = await driver.create({ phone, otp, role: "collectionBoy" });
                         if (Driver) {
                                 return res.status(201).json({ data: Driver, message: "Registration successfully", status: 200 });
