@@ -85,6 +85,9 @@ const orderSchema = new mongoose.Schema({
   instruction: {
     type: String,
   },
+  companyName: {
+    type: String,
+  },
   days: {
     type: String,
     enum: ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'],

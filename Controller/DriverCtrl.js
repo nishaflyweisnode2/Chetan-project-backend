@@ -189,6 +189,33 @@ exports.AddDeriverDetails = async (req, res) => {
         return res.status(400).json({ message: err.message })
     }
 }
+exports.updateDriverDetailsFromAdmin = async (req, res) => {
+    try {
+        const Data = await driver.findOne({ _id: { $ne: req.params.id }, phone: req.body.phone, role: req.body.role })
+        if (Data) {
+            return res.status(201).json({ message: "Phone is Already registered." })
+        } else {
+            if (req.body.cutOffTimeId != (null || undefined)) {
+                const CutOffTimes = await cutOffTime.findById({ _id: req.body.cutOffTimeId });
+                if (!CutOffTimes) {
+                    return res.status(404).json({ data: {}, message: "cutOffTime not found.", status: 404 });
+                }
+                req.body.cutOffTimeId = CutOffTimes._id;
+            } else {
+                req.body.cutOffTimeId = Data.cutOffTimeId;
+            }
+            let obj = {
+                name: req.body.name || Data.name,
+                phone: req.body.phone || Data.phone,
+                cutOffTimeId: req.body.cutOffTimeId
+            }
+            const data = await driver.findOneAndUpdate({ _id: req.params.id }, { $set: obj }, { new: true });
+            return res.status(200).json({ success: true, details: data })
+        }
+    } catch (err) {
+        return res.status(400).json({ message: err.message })
+    }
+}
 exports.addEnquiry = async (req, res) => {
     try {
         const Data = await driver.findOne({ _id: req.params.id, role: "driver" })

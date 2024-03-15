@@ -15,6 +15,7 @@ router.get('/api/v1/driver/get/:id', driver_Controllers.getProfile);
 router.get('/api/v1/driver/getUser/:id', driver_Controllers.getUserbyId);
 router.put('/api/v1/driver/assignTimeSlotToDriver', driver_Controllers.assignTimeSlotToDriver);
 router.put('/api/v1/driver/update/:id', upload.single('profile'), driver_Controllers.AddDeriverDetails);
+router.put('/api/v1/driver/updateDriverDetails/:id', driver_Controllers.updateDriverDetailsFromAdmin);
 // router.post('/api/v1/driver/addOrder', driver_Controllers.AssignOrdertoDriver);
 // router.put('/api/v1/driver/accept/:id', driver_Controllers.DriverAccept);
 // router.put('/api/v1/driver/reject/:id', driver_Controllers.DriverReject);
@@ -48,10 +49,10 @@ router.get('/api/v1/driver/getAllTodayEnquiry/:id', driver_Controllers.getAllTod
 router.post('/api/v1/driver/assignUserToDriver', driver_Controllers.assignUserToDriver);
 router.post('/api/v1/driver/unAssignUserToDriver', driver_Controllers.unAssignUserToDriver);
 router.get('/api/v1/driver/allAssignUserToDriver/:driverId', driver_Controllers.allAssignUserToDriver)
-router.post("/api/v1/address/", driver_Controllers.createAddress);
-router.get("/api/v1/address/:driverId", driver_Controllers.getAddress);
-router.put("/api/v1/address/:id", driver_Controllers.updateAddress);
-router.delete("/api/v1/address/:id", driver_Controllers.deleteAddress);
+router.post("/api/v1/driver/address/", driver_Controllers.createAddress);
+router.get("/api/v1/driver/address/:driverId", driver_Controllers.getAddress);
+router.put("/api/v1/driver/address/:id", driver_Controllers.updateAddress);
+router.delete("/api/v1/driver/address/:id", driver_Controllers.deleteAddress);
 router.post("/api/v1/driver/updateBankDetails/:id", driver_Controllers.updateBankDetails);
 router.get("/api/v1/driver/get/BankDetails/:userId", driver_Controllers.getBankDetails);
 router.put("/api/v1/driver/updateDocument/:id", upload.single('drivingLicense'), driver_Controllers.updateDocument);

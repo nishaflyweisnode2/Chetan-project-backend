@@ -71,6 +71,7 @@ const checkout = async (req, res, next) => {
             landMark: allAddress.landMark,
             unitPrice: cart.products[i].product.price,
             product: cart.products[i].product._id,
+            companyName: cart.products[i].product.companyName,
             quantity: cart.products[i].quantity,
             total: cart.products[i].quantity * cart.products[i].product.price,
             ringTheBell: cart.products[i].ringTheBell,
@@ -597,9 +598,17 @@ const getAllOrdersForAdmin = catchAsyncErrors(async (req, res, next) => {
 });
 const getAllOneTimeOrdersForAdmin = catchAsyncErrors(async (req, res, next) => {
   try {
-    const { toStartDate, fromStartDate, fromDate, toDate, page, limit } = req.query;
-    let query = { orderType: "once" };
-
+    const { toStartDate, fromStartDate, fromDate, toDate, page, limit, orderType, userId, companyName } = req.query;
+    let query = {};
+    if (orderType) {
+      query.orderType = orderType;
+    }
+    if (userId) {
+      query.user = userId
+    }
+    if (companyName) {
+      query.companyName = companyName
+    }
     if (fromStartDate && !toStartDate) {
       query.startDate = { $gte: fromStartDate };
     }
@@ -612,7 +621,6 @@ const getAllOneTimeOrdersForAdmin = catchAsyncErrors(async (req, res, next) => {
         { startDate: { $lte: toStartDate } },
       ]
     }
-
     if (fromDate && !toDate) {
       query.createdAt = { $gte: fromDate };
     }
@@ -629,7 +637,7 @@ const getAllOneTimeOrdersForAdmin = catchAsyncErrors(async (req, res, next) => {
       page: Number(page) || 1,
       limit: Number(limit) || 100,
       sort: { createdAt: -1 },
-      populate: 'user product'
+      populate: [{ path: 'user', populate: { path: "addressId" } }, { path: 'product' }]
     };
     let data = await Order.paginate(query, options);
     return res.status(200).json({ status: 200, message: "User data found.", data: data });
@@ -662,11 +670,11 @@ const getAllOrdersForInvoice = catchAsyncErrors(async (req, res, next) => {
       page: Number(page) || 1,
       limit: Number(limit) || 100,
       sort: { createdAt: -1 },
-      populate: 'user product'
+      // populate: 'user product'
+      populate: [{ path: 'user', populate: { path: "addressId" } }, { path: 'product' }]
     };
     let data = await Order.paginate(query, options);
     return res.status(200).json({ status: 200, message: "User data found.", data: data });
-
   } catch (err) {
     console.log(err);
     return res.status(500).send({ msg: "internal server error ", error: err.message, });
@@ -708,7 +716,6 @@ new cronJob('* * * * * *', async function () {
       const startDate = moment(findState[i].startDate).startOf('month');
       const endDate = moment(findState[i].startDate).endOf('month');
       for (let date = startDate.clone(); date.isSameOrBefore(endDate); date.add(1, 'day')) {
-        let findState1 = await Subscription.findByIdAndUpdate({ _id: findState[i]._id }, { $set: { orderCreateTill: endDate } }, { new: true });
         if (date.isBefore(endDate)) {
           if (findState[i].product.type == "Bottle") {
             pickUpBottleQuantity = findState[i].quantity;
@@ -731,6 +738,7 @@ new cronJob('* * * * * *', async function () {
             landMark: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.landMark,
             unitPrice: findState[i].price,
             product: findState[i].product._id,
+            companyName: findState[i].product.companyName,
             quantity: findState[i].quantity,
             total: findState[i].quantity * findState[i].price,
             ringTheBell: findState[i].ringTheBell,
@@ -756,6 +764,7 @@ new cronJob('* * * * * *', async function () {
           }
         }
       }
+      let findState1 = await Subscription.findByIdAndUpdate({ _id: findState[i]._id }, { $set: { orderCreateTill: endDate } }, { new: true });
     }
   }
 }).start();
@@ -774,7 +783,6 @@ new cronJob('* * * * * *', async function () {
       const startDate = moment(findState[i].startDate).startOf('month');
       const endDate = moment(findState[i].startDate).endOf('month');
       for (let date = startDate.clone(); date.isSameOrBefore(endDate); date.add(1, 'day')) {
-        let findState1 = await Subscription.findByIdAndUpdate({ _id: findState[i]._id }, { $set: { orderCreateTill: endDate } }, { new: true });
         if (date.isBefore(endDate)) {
           if (findState[i].product.type == "Bottle") {
             pickUpBottleQuantity = findState[i].quantity;
@@ -796,6 +804,7 @@ new cronJob('* * * * * *', async function () {
             landMark: findState[i].userId.addressId ? undefined : findState[i].userId.addressId.landMark,
             unitPrice: findState[i].price,
             product: findState[i].product._id,
+            companyName: findState[i].product.companyName,
             quantity: findState[i].quantity,
             total: findState[i].quantity * findState[i].price,
             ringTheBell: findState[i].ringTheBell,
@@ -821,6 +830,7 @@ new cronJob('* * * * * *', async function () {
           }
         }
       }
+      let findState1 = await Subscription.findByIdAndUpdate({ _id: findState[i]._id }, { $set: { orderCreateTill: endDate } }, { new: true });
     }
   }
 }).start();
