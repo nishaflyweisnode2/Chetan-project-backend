@@ -969,13 +969,13 @@ const checkoutForAdmin = async (req, res, next) => {
           shippingPrice: 0,
           startDate: req.body.deliveryDate,
           cutOffOrderType: cutOffOrderType,
-          amountToBePaid: req.body.amountToBePaid + 0,
-          collectedAmount: req.body.amountToBePaid + 0,
+          amountToBePaid: (req.body.quantity * product.price) + 0,
+          collectedAmount: (req.body.quantity * product.price) + 0,
           orderType: "once",
           mode: user.paymentMode,
         }
         if (user.paymentMode == "PrePaid") {
-          let TotalAmount = req.body.amountToBePaid
+          let TotalAmount = (req.body.quantity * product.price)
           let wallet = await Wallet.findOne({ userId: user.user });
           if (!wallet) {
             return res.status(403).json({ message: "InSufficent balance." })
