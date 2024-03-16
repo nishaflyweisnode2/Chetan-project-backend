@@ -24,7 +24,7 @@ const Category = require("../Model/categoryModel");
 const SubCategory = require("../Model/SubCategoryModel");
 exports.dashboard = async (req, res) => {
   try {
-    let totalUser = await User.find({ userType: "User" }).count();
+    let totalUser = await User.find({ role: "User" }).count();
     let totalCategory = await Category.find({}).count();
     const totalSubCategory = await SubCategory.find().count();
     const totalProduct = await Product.find().count();
