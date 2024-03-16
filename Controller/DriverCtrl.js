@@ -531,6 +531,7 @@ exports.reasonOfReduceQuantity = async (req, res) => {
             product: driverData.product,
             orderId: driverData._id,
             quantity: driverData.quantity - req.body.quantity,
+            reasonOfReduce: req.body.reasonOfReduce
         }
         driverData.reasonOfReduce = req.body.reasonOfReduce;
         driverData.quantity = req.body.quantity;
