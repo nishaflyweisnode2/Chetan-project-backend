@@ -4,6 +4,7 @@ router.post("/api/v1/admin/registerAdmin", admin.RegisterAdmin);
 
 router.post("/api/v1/admin/addStaff", admin.addStaff);
 router.get("/api/v1/admin/getAllStaff", admin.getAllStaff);
+router.get("/api/v1/admin/dashboard", admin.dashboard);
 
 
 router.post("/api/v1/admin/signin", admin.signin);

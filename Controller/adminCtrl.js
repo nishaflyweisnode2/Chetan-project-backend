@@ -20,6 +20,32 @@ const Razorpay = require("razorpay");
 const OrderReturn = require('../Model/OrderReturnModel')
 const Address = require("../Model/addressModel");
 const notDelivered = require('../Model/notDelivered');
+const Category = require("../Model/categoryModel");
+const SubCategory = require("../Model/SubCategoryModel");
+exports.dashboard = async (req, res) => {
+  try {
+    let totalUser = await User.find({ userType: "User" }).count();
+    let totalCategory = await Category.find({}).count();
+    const totalSubCategory = await SubCategory.find().count();
+    const totalProduct = await Product.find().count();
+    const totalLogs = await logs.find({}).count();
+    const notDelivered = await notDelivered.find({}).count();
+    let obj = {
+      totalProduct: totalProduct,
+      totalCategory: totalCategory,
+      totalSubCategory: totalSubCategory,
+      totalUser: totalUser,
+      totalLogs: totalLogs,
+      notDelivered: notDelivered,
+    };
+    return res.status(200).send({ message: "Data found successfully", data: obj });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({
+      message: "internal server error " + err.message,
+    });
+  }
+};
 exports.userOrders = async (req, res, next) => {
   console.log("hi");
   const orders = await Order.find({ user: req.params.userId, orderType: "once" }).populate("user product")
