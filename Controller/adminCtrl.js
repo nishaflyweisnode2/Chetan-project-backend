@@ -30,6 +30,7 @@ exports.dashboard = async (req, res) => {
     const totalProduct = await Product.find().count();
     const totalLogs = await logs.find({}).count();
     const notDelivered1 = await notDelivered.find({}).count();
+    const totalOrders = await Order.find({ orderType: "once" }).count();
     let obj = {
       totalProduct: totalProduct,
       totalCategory: totalCategory,
@@ -37,6 +38,7 @@ exports.dashboard = async (req, res) => {
       totalUser: totalUser,
       totalLogs: totalLogs,
       notDelivered: notDelivered1,
+      totalOrders: totalOrders
     };
     return res.status(200).send({ message: "Data found successfully", data: obj });
   } catch (err) {
