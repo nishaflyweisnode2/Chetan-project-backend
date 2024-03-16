@@ -303,6 +303,7 @@ exports.getAllUser = async (req, res) => {
       page: Number(page) || 1,
       limit: Number(limit) || 15,
       sort: { createdAt: -1 },
+      populate: 'addressId changeAddressId'
     };
     let data = await User.paginate(query, options);
     return res.status(200).json({ status: 200, message: "User data found.", data: data });
@@ -316,7 +317,7 @@ exports.getUserbyId = async (req, res, next) => {
   console.log("hi");
   const id = req.params.id;
   try {
-    const users = await User.findById(id);
+    const users = await User.findById(id).populate('addressId changeAddressId');
     if (!users) {
       return next(new ErrorHander(`User does not exist with Id: ${req.params.id}`, 400));
     }
