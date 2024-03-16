@@ -12,9 +12,9 @@ const addMoney = async (req, res) => {
     }
     wallet.balance = wallet.balance + parseFloat(balance);
     await wallet.save();
-    res.status(200).json({ data: wallet, success: true, message: `${balance} added to wallet`, status: 200, });
+    return res.status(200).json({ data: wallet, success: true, message: `${balance} added to wallet`, status: 200, });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -26,16 +26,16 @@ const getWallet = async (req, res) => {
     const { userId } = req.params;
 
     // Check if the user has a wallet
-    const wallet = await Wallet.find({ userId });
+    const wallet = await User.find({ _id: userId });
 
     if (!wallet) {
       return res.status(404).json({ message: 'Wallet not found for the user' });
     }
 
-    res.status(200).json({ data: wallet, success: true, message: 'Wallet details retrieved successfully' });
+    return res.status(200).json({ data: wallet, success: true, message: 'Wallet details retrieved successfully' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -57,7 +57,7 @@ const deleteWallet = async (req, res) => {
     return res.status(200).json({ data: wallet, success: true, message: `${amount} deducted from the wallet successfully`, });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: 'Internal server error' });
   }
 };
 

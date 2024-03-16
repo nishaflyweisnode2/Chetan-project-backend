@@ -652,7 +652,7 @@ exports.getAllLogs = async (req, res) => {
 };
 exports.getAllNotDelivered = async (req, res) => {
   try {
-    const Driver = await notDelivered.find().populate('product driverId user');
+    const Driver = await notDelivered.find().populate('product driverId user orderId');
     if (Driver.length > 0) {
       return res.status(200).json({ status: 200, message: "Logs found successfully", data: Driver });
     } else {
