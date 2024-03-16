@@ -1,19 +1,16 @@
 const User = require("../Model/userModel");
 const mongoose = require('mongoose');
-
-
 //////////////////////////////// ADD MONEY ////////////////////////////////
 const Wallet = require('../Model/myWalletModel');
 const addMoney = async (req, res) => {
   try {
     const { userId } = req.params;
     const { balance } = req.body;
-    let wallet = await Wallet.findOne({ userId });
+    let wallet = await User.findOne({ _id: userId });
     if (!wallet) {
-      wallet = new Wallet({ userId, balance: 0, transactions: [], });
+      return res.status(404).json({ message: 'Wallet not found for the user' });
     }
     wallet.balance = wallet.balance + parseFloat(balance);
-    wallet.transactions.push({ transactionId: new mongoose.Types.ObjectId(), amount: balance, type: 'credit', });
     await wallet.save();
     res.status(200).json({ data: wallet, success: true, message: `${balance} added to wallet`, status: 200, });
   } catch (error) {
@@ -48,7 +45,7 @@ const deleteWallet = async (req, res) => {
   try {
     const { userId } = req.params;
     const { amount } = req.body;
-    const wallet = await Wallet.findOne({ userId });
+    let wallet = await User.findOne({ _id: userId });
     if (!wallet) {
       return res.status(404).json({ message: 'Wallet not found for the user' });
     }

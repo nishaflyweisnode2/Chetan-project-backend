@@ -12,6 +12,9 @@ const transactionSchema = mongoose.Schema({
                 type: mongoose.Schema.Types.ObjectId,
                 ref: "Subscription"
         },
+        id: {
+                type: String
+        },
         date: {
                 type: Date,
                 default: Date.now,

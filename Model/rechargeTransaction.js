@@ -4,6 +4,9 @@ const transactionSchema = mongoose.Schema({
                 type: mongoose.Schema.ObjectId,
                 ref: "User",
         },
+        id: {
+                type: String
+        },
         date: {
                 type: Date,
                 default: Date.now,

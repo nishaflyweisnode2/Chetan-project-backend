@@ -435,9 +435,11 @@ exports.createRechargeTransaction = async (req, res) => {
     if (!user) {
       return res.status(404).send({ status: 404, message: "user not found" });
     } else {
+      let id = await reffralCode()
       let month = new Date(Date.now()).getMonth() + 1;
       let obj = {
         user: user._id,
+        id: id,
         amount: req.body.amount,
         month: month,
         Status: "pending"
@@ -456,7 +458,7 @@ exports.getAllRechargeTransaction = async (req, res, next) => {
     if (!users) {
       return next(new ErrorHander(`User does not exist with Id`, 400));
     }
-    const user = await rechargeTransaction.find({ user: users._id });
+    const user = await rechargeTransaction.find({ user: users._id }).populate('user');
     if (user.length > 0) {
       return res.status(200).json({ status: 200, message: "Recharge transaction successfully", data: user, });
     } else {
@@ -468,7 +470,7 @@ exports.getAllRechargeTransaction = async (req, res, next) => {
 };
 exports.getRechargeTransactionById = async (req, res, next) => {
   try {
-    const users = await rechargeTransaction.findById({ _id: req.params.id });
+    const users = await rechargeTransaction.findById({ _id: req.params.id }).populate('user');
     if (!users) {
       return res.status(404).json({ status: 404, message: "Recharge transaction does not exist", data: {}, });
     }
@@ -479,7 +481,7 @@ exports.getRechargeTransactionById = async (req, res, next) => {
 };
 exports.getAllRechargeTransactionByuserId = async (req, res, next) => {
   try {
-    const user = await rechargeTransaction.find({ user: req.params.userId });
+    const user = await rechargeTransaction.find({ user: req.params.userId }).populate('user');
     if (user.length > 0) {
       return res.status(200).json({ status: 200, message: "Recharge transaction successfully", data: user, });
     } else {
@@ -511,7 +513,7 @@ exports.getAllWalletTransaction = async (req, res, next) => {
     if (!users) {
       return next(new ErrorHander(`User does not exist with Id`, 400));
     }
-    const user = await walletTransaction.find({ user: users._id });
+    const user = await walletTransaction.find({ user: users._id }).populate('user');
     if (user.length > 0) {
       return res.status(200).json({ status: 200, message: "Wallet transaction successfully", data: user, });
     } else {
@@ -523,7 +525,7 @@ exports.getAllWalletTransaction = async (req, res, next) => {
 };
 exports.getWalletTransactionById = async (req, res, next) => {
   try {
-    const users = await walletTransaction.findById({ _id: req.params.id });
+    const users = await walletTransaction.findById({ _id: req.params.id }).populate('user');
     if (!users) {
       return res.status(404).json({ status: 404, message: "Wallet transaction not found successfully", data: {}, });
     }
@@ -534,7 +536,7 @@ exports.getWalletTransactionById = async (req, res, next) => {
 };
 exports.getAllWalletTransactionByUserId = async (req, res, next) => {
   try {
-    const user = await walletTransaction.find({ user: req.params.userId });
+    const user = await walletTransaction.find({ user: req.params.userId }).populate('user');
     if (user.length > 0) {
       return res.status(200).json({ status: 200, message: "Wallet transaction successfully", data: user, });
     } else {
@@ -544,6 +546,14 @@ exports.getAllWalletTransactionByUserId = async (req, res, next) => {
     return res.status(200).json({ error: "Something went wrong" });
   }
 };
+const reffralCode = async () => {
+  var digits = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let OTP = '';
+  for (let i = 0; i < 9; i++) {
+    OTP += digits[Math.floor(Math.random() * 36)];
+  }
+  return OTP;
+}
 // exports.loginUser = catchAsyncErrors(async (req, res, next) => {
 //   const { phone } = req.body;
 //   if (!phone) {

@@ -485,6 +485,7 @@ exports.DeliveredOrder = async (req, res) => {
                         } else {
                             wallet.balance = wallet.balance - parseFloat(update.collectedAmount);
                             await wallet.save();
+                            let id = await reffralCode();
                             let month = new Date(Date.now()).getMonth() + 1;
                             let obj = {
                                 user: Data.user,
@@ -492,6 +493,7 @@ exports.DeliveredOrder = async (req, res) => {
                                 amount: parseFloat(update.collectedAmount),
                                 month: month,
                                 paymentMode: "Online",
+                                id: id,
                                 type: "Wallet",
                                 Status: "Paid",
                             }
@@ -1014,6 +1016,15 @@ exports.getAllOrderByProductId = async (req, res, next) => {
         return res.status(500).json({ success: false, error: "Internal server error" });
     }
 };
+const reffralCode = async () => {
+    var digits = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let OTP = '';
+    for (let i = 0; i < 9; i++) {
+        OTP += digits[Math.floor(Math.random() * 36)];
+    }
+    return OTP;
+}
+
 // exports.DeleteAssignOrder = async (req, res) => {
 //     try {
 //         await order.findByIdAndDelete({ _id: req.params.id });
