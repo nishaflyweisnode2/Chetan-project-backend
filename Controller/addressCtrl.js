@@ -12,13 +12,15 @@ exports.createAddress = catchAsyncErrors(async (req, res, next) => {
   if (findAddress) {
     const findAddress1 = await Address.findOne({ user: users._id, addressType: "Change" });
     if (findAddress1) {
-      await Address.findByIdAndUpdate({ _id: findAddress1._id }, { $set: req.body }, { new: true, });
+      const address = await Address.findByIdAndUpdate({ _id: findAddress1._id }, { $set: req.body }, { new: true, });
       await User.findByIdAndUpdate({ _id: users._id }, { $set: { changeAddressId: findAddress1._id, addressStatus: "Upload" } }, { new: true, });
+      return res.status(201).json({ success: true, address, });
     } else {
       req.body.user = users._id;
       req.body.addressType = "Change";
       const address = await Address.create(req.body);
       await User.findByIdAndUpdate({ _id: users._id }, { $set: { changeAddressId: address._id, addressStatus: "Upload" } }, { new: true, });
+      return res.status(201).json({ success: true, address, });
     }
   }
   req.body.user = users._id;
