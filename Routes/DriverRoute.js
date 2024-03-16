@@ -26,6 +26,7 @@ router.get('/api/v1/driver/getAllOrderByProductId/:id', driver_Controllers.getAl
 
 router.get('/api/v1/driver/allorders', driver_Controllers.DriverAllOrder);
 router.get('/api/v1/driver/allorders/:id', driver_Controllers.DriverSingleOrder);
+router.get('/api/v1/driver/AllSubmitPickUpBottle', driver_Controllers.AllSubmitPickUpBottle);
 
 router.get('/api/v1/driver/allUserOrder/:id', driver_Controllers.allUserOrder);
 

@@ -620,6 +620,19 @@ exports.submitPickUpBottle = async (req, res) => {
         return res.status(400).json({ error: err.message })
     }
 }
+exports.AllSubmitPickUpBottle = async (req, res) => {
+    try {
+        const driverData = await order.find({ isPickUpBottle: true }).populate('user product');
+        if (driverData.length > 0) {
+            return res.status(200).json({ message: "ok", result: driverData })
+        } else {
+            return res.status(404).json({ message: "not found", result: {} })
+        }
+    } catch (err) {
+        console.log(err);
+        return res.status(400).json({ error: err.message })
+    }
+}
 exports.PendingOrder = async (req, res) => {
     try {
         const data = await order.find({ driverId: req.params.id, orderStatus: "pending" }).populate('user product');
