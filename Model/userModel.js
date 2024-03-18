@@ -85,7 +85,7 @@ const userSchema = new mongoose.Schema({
   },
   userStatus: {
     type: String,
-    enum: ["Approved", "UnApproved", "ServiceNotAvailable", "Pending"],
+    enum: ["Approved", "UnApproved", "Pending"],
     default: "Pending"
   },
   paymentMode: {

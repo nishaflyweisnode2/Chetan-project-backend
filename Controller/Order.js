@@ -114,10 +114,10 @@ const checkout = async (req, res, next) => {
           }
         }
         return res.status(200).json({ success: true, msg: "Order created", orders, });
-      } else if (user.status == "Block") {
-        return res.status(401).json({ message: "User block by admin. You can't place order, contact to admin." });
+      } else if (user.userStatus == "UnApproved") {
+        return res.status(401).json({ message: "You cannot place order, as we are not serviceable at provided address." });
       } else {
-        return res.status(401).json({ message: 'User status pending.' });
+        return res.status(401).json({ message: 'You cannot place order, Waiting for Amin approval.' });
       }
     }
   } catch (error) {
@@ -432,10 +432,10 @@ const createSubscription = async (req, res, next) => {
         let obj1 = { description: `Subscription has been create by ${req.user.name}.`, title: 'Create subscription', user: req.user._id, }
         await logs.create(obj1);
         return res.status(201).json({ message: 'Create subscription successfully', orders });
-      } else if (user.status == "Block") {
-        return res.status(401).json({ message: "User block by admin. You can't place order, contact to admin." });
+      } else if (user.userStatus == "UnApproved") {
+        return res.status(401).json({ message: "You cannot place order, as we are not serviceable at provided address." });
       } else {
-        return res.status(401).json({ message: 'User status pending.' });
+        return res.status(401).json({ message: 'You cannot place order, Waiting for Amin approval.' });
       }
     }
   } catch (error) {
@@ -999,10 +999,10 @@ const checkoutForAdmin = async (req, res, next) => {
           await logs.create(obj1);
         }
         return res.status(200).json({ success: true, msg: "Order created", orders, });
-      } else if (user.status == "Block") {
-        return res.status(401).json({ message: "User block by admin. You can't place order, contact to admin." });
+      } else if (user.userStatus == "UnApproved") {
+        return res.status(401).json({ message: "You cannot place order, as we are not serviceable at provided address." });
       } else {
-        return res.status(401).json({ message: 'User status pending.' });
+        return res.status(401).json({ message: 'You cannot place order, Waiting for Amin approval.' });
       }
     }
   } catch (error) {
