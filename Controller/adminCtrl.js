@@ -57,7 +57,7 @@ exports.userOrders = async (req, res, next) => {
   return res.status(200).json({ success: true, orders, });
 };
 exports.userSubscriptionOrders = async (req, res, next) => {
-  const orders = await Subscription.find({ user: req.params.userId, }).populate("userId product")
+  const orders = await Subscription.find({ userId: req.params.userId, }).populate("userId product")
   if (orders.length == 0) {
     return res.status(404).json({ success: false, });
   }
