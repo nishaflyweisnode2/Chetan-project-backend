@@ -32,22 +32,17 @@ exports.updateQuantity = async (req, res, next) => {
   try {
     const productId = req.params.id; // Corrected variable name to match schema
     const { quantity } = req.body;
-
     let cart = await Cart.findOne({ user: req.user.id });
-
     if (!cart) {
       cart = await createCart(req.user.id); // Assuming createCart is defined and working correctly
     }
-
     const productIndex = cart.products.findIndex(cartProduct => cartProduct.product.toString() === productId);
     if (productIndex === -1 && quantity > 0) {
       cart.products.push({ product: productId, quantity });
     } else if (productIndex >= 0 && quantity > 0) {
       cart.products[productIndex].quantity = quantity;
     }
-
     await cart.save();
-
     return res.status(200).json({ success: true, msg: "Cart updated" });
   } catch (error) {
     next(error);
@@ -156,7 +151,7 @@ exports.createSubscriptionCart = async (req, res, next) => {
         return cartProduct.product.toString() == req.body.productId;
       });
       if (productIndex < 0) {
-        cart.products.push({ product: findProduct._id, price: req.body.price, size: req.body.size, quantity: req.body.quantity, startDate: req.body.startDate, ringTheBell: req.body.ringTheBell, instruction: req.body.instruction, days: req.body.days, type: req.body.type, alternateDay: req.body.alternateDay, });
+        cart.products.push({ product: findProduct._id, price: req.body.price, size: req.body.size, quantity: req.body.quantity, startDate: req.body.startDate, ringTheBell: req.body.ringTheBell, instruction: req.body.instruction, days: req.body.days, daysWiseQuantity: req.body.daysWiseQuantity, type: req.body.type, alternateDay: req.body.alternateDay, });
       } else {
         cart.products[productIndex].quantity = req.body.quantity;
         cart.products[productIndex].price = req.body.price;
@@ -165,6 +160,7 @@ exports.createSubscriptionCart = async (req, res, next) => {
         cart.products[productIndex].ringTheBell = req.body.ringTheBell;
         cart.products[productIndex].instruction = req.body.instruction;
         cart.products[productIndex].days = req.body.days;
+        cart.products[productIndex].daysWiseQuantity = req.body.daysWiseQuantity;
         cart.products[productIndex].type = req.body.type;
         cart.products[productIndex].alternateDay = req.body.alternateDay;
       }
@@ -262,10 +258,10 @@ const getSubscriptionCartResponse = async (cart, req, res) => {
     if (cartResponse.coupon) {
       discount = 0.01 * cart.coupon.discount * total;
     }
-    const shipping = 10;
+    const shipping = 0;
     cartResponse.subTotal = total;
     cartResponse.discount = discount;
-    cartResponse.shipping = 10;
+    cartResponse.shipping = 0;
     cartResponse.total = total - discount;
     cartResponse.total = total + shipping;
     return cartResponse;
@@ -341,10 +337,10 @@ const getCartResponse = async (cart, req, res) => {
     if (cartResponse.coupon) {
       discount = 0.01 * cart.coupon.discount * total;
     }
-    const shipping = 10;
+    const shipping = 0;
     cartResponse.subTotal = total;
     cartResponse.discount = discount;
-    cartResponse.shipping = 10;
+    cartResponse.shipping = 0;
     cartResponse.total = total - discount;
     cartResponse.total = total + shipping;
     return cartResponse;

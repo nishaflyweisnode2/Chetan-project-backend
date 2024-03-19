@@ -9,8 +9,6 @@ cloudinary.config({
   api_key: '364881266278834',
   api_secret: '5_okbyciVx-7qFz7oP31uOpuv7Q'
 });
-
-
 // Create Product -- Admin
 exports.createProduct = catchAsyncErrors(async (req, res, next) => {
   let images = [];
@@ -54,7 +52,6 @@ exports.createProduct = catchAsyncErrors(async (req, res, next) => {
     product,
   });
 });
-
 exports.searchAllProducts = catchAsyncErrors(async (req, res, next) => {
   const productsCount = await Product.length;
   let apiFeature = await Product.aggregate([
@@ -80,11 +77,7 @@ exports.searchAllProducts = catchAsyncErrors(async (req, res, next) => {
       {
         $match: {
           $or: [
-            { "category.name": { $regex: req.query.search, $options: "i" }, },
-            { "subCategory.subCategory": { $regex: req.query.search, $options: "i" }, },
             { "name": { $regex: req.query.search, $options: "i" }, },
-            { "description": { $regex: req.query.search, $options: "i" }, },
-            { "colors": { $regex: req.query.search, $options: "i" }, }
           ]
         }
       }
@@ -93,7 +86,6 @@ exports.searchAllProducts = catchAsyncErrors(async (req, res, next) => {
   }
   res.status(200).json({ success: true, productsCount, apiFeature, });
 });
-
 // Get All Product (Admin)
 exports.getAdminProducts = catchAsyncErrors(async (req, res, next) => {
   console.log("hi")
@@ -104,14 +96,41 @@ exports.getAdminProducts = catchAsyncErrors(async (req, res, next) => {
     products,
   });
 });
-
 exports.getPopularProducts = catchAsyncErrors(async (req, res, next) => {
-  console.log("hi")
-  const products = await Product.find().populate("category").populate("subCategory").sort({ ratings: -1 });
-
-  return res.status(200).json({ success: true, products, });
+  const productsCount = await Product.length;
+  let apiFeature = await Product.aggregate([
+    {
+      $lookup: { from: "categories", localField: "category", foreignField: "_id", as: "Category" },
+    },
+    { $unwind: "$category" },
+    {
+      $lookup: { from: "subcategories", localField: "subCategory", foreignField: "_id", as: "SubCategory", },
+    },
+    { $unwind: "$subCategory" },
+  ]);
+  if (req.query.search != (null || undefined)) {
+    let data1 = [
+      {
+        $lookup: { from: "categories", localField: "category", foreignField: "_id", as: "Category" },
+      },
+      { $unwind: "$category" },
+      {
+        $lookup: { from: "subcategories", localField: "subCategory", foreignField: "_id", as: "SubCategory", },
+      },
+      { $unwind: "$subCategory" },
+      {
+        $match: {
+          $or: [
+            { "name": { $regex: req.query.search, $options: "i" }, },
+          ]
+        }
+      }
+    ]
+    apiFeature = await Product.aggregate(data1);
+  }
+  apiFeature.sort({ ratings: -1 });
+  return res.status(200).json({ success: true, productsCount, apiFeature, });
 });
-// Get Product Details
 exports.getProductDetails = catchAsyncErrors(async (req, res, next) => {
   const product = await Product.findById(req.params.id).populate('reviews.user', 'profilePicture name').populate("category").populate("subCategory")
     .exec();;
@@ -125,9 +144,7 @@ exports.getProductDetails = catchAsyncErrors(async (req, res, next) => {
     product,
   });
 });
-
 // Update Product -- Admin
-
 exports.updateProduct = catchAsyncErrors(async (req, res, next) => {
   try {
     let product = await Product.findById(req.params.id);
@@ -187,9 +204,7 @@ exports.updateProduct = catchAsyncErrors(async (req, res, next) => {
     });
   }
 });
-
 // Delete Product
-
 exports.deleteProduct = catchAsyncErrors(async (req, res, next) => {
 
   const product = await Product.findById({ _id: req.params.id });
@@ -206,7 +221,6 @@ exports.deleteProduct = catchAsyncErrors(async (req, res, next) => {
     message: "Product Delete Successfully",
   });
 });
-
 // Create New Review or Update the review
 exports.createProductReview = catchAsyncErrors(async (req, res, next) => {
   try {
@@ -257,7 +271,6 @@ exports.createProductReview = catchAsyncErrors(async (req, res, next) => {
   }
 
 });
-
 // Get All Reviews of a product
 exports.getProductReviews = catchAsyncErrors(async (req, res, next) => {
   const product = await Product.findById(req.query.id);
@@ -271,7 +284,6 @@ exports.getProductReviews = catchAsyncErrors(async (req, res, next) => {
     reviews: product.reviews,
   });
 });
-
 // Delete Review
 exports.deleteReview = catchAsyncErrors(async (req, res, next) => {
   const product = await Product.findById(req.query.productId);

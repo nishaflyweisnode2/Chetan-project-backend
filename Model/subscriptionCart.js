@@ -38,6 +38,15 @@ const subscriptionSchema = new mongoose.Schema({
     instruction: {
       type: String,
     },
+    daysWiseQuantity: [{
+      days: {
+        type: String,
+        enum: ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'],
+      },
+      quantity: {
+        type: Number
+      },
+    }],
     days: [{
       type: String,
       enum: ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'],

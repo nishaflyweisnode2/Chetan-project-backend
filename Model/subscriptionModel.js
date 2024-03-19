@@ -52,6 +52,15 @@ const subscriptionSchema = new mongoose.Schema({
     type: String,
     enum: ['pause', 'start'],
   },
+  daysWiseQuantity: [{
+    days: {
+      type: String,
+      enum: ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'],
+    },
+    quantity: {
+      type: Number
+    },
+  }],
   days: [{
     type: String,
     enum: ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'],
@@ -66,7 +75,11 @@ const subscriptionSchema = new mongoose.Schema({
   cutOffOrderType: {
     type: String,
     enum: ["eveningOrder", "morningOrder"]
-  }
+  },
+  firstTimeOrder: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const Subscription = mongoose.model('Subscription', subscriptionSchema);

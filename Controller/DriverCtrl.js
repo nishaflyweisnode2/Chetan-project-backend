@@ -259,7 +259,7 @@ exports.assignUserToDriver = async (req, res) => {
             if (!Data) {
                 return res.status(201).json({ message: "Driver not found", status: 404, data: {}, })
             }
-            let update = await User.findByIdAndUpdate({ _id: userData._id }, { $set: { driverId: req.body.driverId, collectionBoyId: Data.collectionBoyId }, }, { new: true });
+            let update = await User.findByIdAndUpdate({ _id: userData._id }, { $set: { driverId: req.body.driverId, collectionBoyId: Data.collectionBoyId, cutOffTimeId: Data.cutOffTimeId, driverAssign: true }, }, { new: true });
             return res.status(200).json({ sucess: true, message: update })
         }
     } catch (err) {
@@ -277,7 +277,7 @@ exports.unAssignUserToDriver = async (req, res) => {
             if (!Data) {
                 return res.status(201).json({ message: "Driver not found", status: 404, data: {}, })
             }
-            let update = await User.findByIdAndUpdate({ _id: userData._id }, { $set: { driverId: null, collectionBoyId: null }, }, { new: true });
+            let update = await User.findByIdAndUpdate({ _id: userData._id }, { $set: { driverId: null, collectionBoyId: null, cutOffTimeId: null, driverAssign: false }, }, { new: true });
             return res.status(200).json({ sucess: true, message: update })
         }
     } catch (err) {

@@ -10,6 +10,10 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "driver",
   },
+  cutOffTimeId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "cutOffTime",
+  },
   addressId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Address",
@@ -82,6 +86,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ["Active", "Block"],
     default: "Active"
+  },
+  driverAssign: {
+    type: Boolean,
+    default: false
   },
   userStatus: {
     type: String,

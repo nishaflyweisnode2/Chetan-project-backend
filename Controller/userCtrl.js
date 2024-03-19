@@ -11,6 +11,8 @@ const twilio = require('twilio');
 const vacation = require("../Model/vacation");
 const rechargeTransaction = require("../Model/rechargeTransaction");
 const walletTransaction = require("../Model/walletTransaction");
+const Order = require("../Model/ShoppingCartOrderModel");
+const Subscription = require("../Model/subscriptionModel");
 const axios = require('axios');
 const username = 'GIRORGANIC';
 const password = 'Girorganic@789';
@@ -43,25 +45,6 @@ exports.registerUser = catchAsyncErrors(async (req, res, next) => {
   }
   next();
 });
-
-// exports.registerUser = catchAsyncErrors(async (req, res, next) => {
-//   const { phone, name, email } = req.body;
-//   try {
-//     let findUser = await User.findOne({ phone, role: "User" });
-//     if (findUser) {
-//       return res.status(409).json({ data: {}, message: "Already exit.", status: 409, });
-//     } else {
-//       const otp = OTP.generateOTP();
-//       const user = await User.create({ phone, otp, name, email });
-//       if (user) {
-//         return res.status(201).json({ status: 200, message: "Registration susscessfully", data: user, });
-//       }
-//     }
-//   } catch (error) {
-//     return res.status(500).json({ message: error.message });
-//   }
-//   next();
-// });
 exports.UpdatePhoneUser = catchAsyncErrors(async (req, res, next) => {
   const id = req.params.id;
   const phone = req.body.phone;
@@ -69,9 +52,7 @@ exports.UpdatePhoneUser = catchAsyncErrors(async (req, res, next) => {
   try {
     const user = await User.findById(id);
     if (!user) {
-      return res.status(404).json({
-        error: "User not found",
-      });
+      return res.status(404).json({ error: "User not found", });
     }
 
     user.phone = phone;
@@ -102,32 +83,18 @@ exports.registerEmailUser = catchAsyncErrors(async (req, res, next) => {
 
   const user = await User.findById(id);
   if (!user) {
-    return res.status(404).json({
-      error: "User not found",
-    });
+    return res.status(404).json({ error: "User not found", });
   }
-
-  // Check if email already exists
   const existingUser = await User.findOne({ email });
   if (existingUser && existingUser.id !== id) {
-    return res.status(409).json({
-      error: "Email already exists",
-    });
+    return res.status(409).json({ error: "Email already exists", });
   }
-
   user.email = email;
   user.name = name;
   user.gender = gender;
-
-  // Update user's last updated date
   user.updatedAt = new Date();
-
   await user.save();
-
-  res.status(200).json({
-    data: user,
-    success: true,
-  });
+  return res.status(200).json({ data: user, success: true, });
 });
 exports.loginUser = catchAsyncErrors(async (req, res, next) => {
   try {
@@ -209,14 +176,13 @@ exports.userPhoto = async (req, res, next) => {
     } else {
       location = users.location
     }
-    const updatedTeacher = await User.findByIdAndUpdate(teacherId, {
-      $set: {
-        name: req.body.name || users.name,
-        phone: req.body.phone || users.phone,
-        profilePicture: image,
-        location: location
-      }
-    }, { new: true });
+    let obj = {
+      name: req.body.name || users.name,
+      phone: req.body.phone || users.phone,
+      profilePicture: image,
+      location: location
+    }
+    const updatedTeacher = await User.findByIdAndUpdate(teacherId, { $set: obj }, { new: true });
     return res.json(updatedTeacher);
   } catch (error) {
     return res.status(500).json({ error: "Internal server error" });
@@ -358,12 +324,58 @@ exports.createVacation = async (req, res, next) => {
       existingVacation.endDate = req.body.endDate;
       existingVacation.totalDay = Math.ceil(timeDifference / (1000 * 3600 * 24)) + 1;
       await existingVacation.save();
+      const order = await Subscription.find({ userId: users._id });
+      if (order) {
+        for (let i = 0; i < order.length; i++) {
+          const currentDate = new Date().toISOString().split('T')[0];
+          if (currentDate >= order[i].pauseDate && currentDate <= order[i].resumeDate) {
+            order[i].status = 'pause';
+            order[i].endDate = new Date();
+            let findUserOrder = await Order.find({ subscription: order[i]._id, orderType: "Subscription", startDate: { $gte: req.body.startDate, $lt: req.body.endDate, } });
+            if (findUserOrder) {
+              for (let i = 0; i < findUserOrder.length; i++) {
+                await Order.findByIdAndUpdate({ _id: findUserOrder[i]._id }, { $set: { subscriptionStatus: "pause" } }, { new: true });
+              }
+            }
+          } else {
+            order[i].status = 'start';
+          }
+          order[i].pauseDate = req.body.startDate;
+          order[i].resumeDate = req.body.endDate;
+          await order[i].save();
+        }
+      }
       return res.status(200).json({ status: 200, message: "Vacation updated successfully", data: existingVacation });
     } else {
       const timeDifference = endDate.getTime() - startDate.getTime();
       const totalDays = Math.ceil(timeDifference / (1000 * 3600 * 24)) + 1;
       const newVacation = await vacation.create({ userId: users._id, totalDay: totalDays, startDate: req.body.startDate, endDate: req.body.endDate });
-      return res.status(201).json({ status: 200, message: "Vacation successfully created", data: newVacation });
+      if (newVacation) {
+        const order = await Subscription.find({ userId: users._id });
+        if (order) {
+          for (let i = 0; i < order.length; i++) {
+            const currentDate = new Date().toISOString().split('T')[0];
+            if (currentDate >= order[i].pauseDate && currentDate <= order[i].resumeDate) {
+              order[i].status = 'pause';
+              order[i].endDate = new Date();
+              let findUserOrder = await Order.find({ subscription: order[i]._id, orderType: "Subscription", startDate: { $gte: req.body.startDate, $lt: req.body.endDate, } });
+              if (findUserOrder) {
+                for (let i = 0; i < findUserOrder.length; i++) {
+                  await Order.findByIdAndUpdate({ _id: findUserOrder[i]._id }, { $set: { subscriptionStatus: "pause" } }, { new: true });
+                }
+              }
+            } else {
+              order[i].status = 'start';
+            }
+            order[i].pauseDate = req.body.startDate;
+            order[i].resumeDate = req.body.endDate;
+            await order[i].save();
+          }
+        }
+        return res.status(201).json({ status: 200, message: "Vacation successfully created", data: newVacation });
+      } else {
+        return res.status(201).json({ status: 200, message: "Vacation successfully created", data: newVacation });
+      }
     }
   } catch (error) {
     return res.status(500).json({ error: `Something went wrong with Id: ${req.params}` });

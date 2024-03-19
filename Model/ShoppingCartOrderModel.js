@@ -6,6 +6,10 @@ const orderSchema = new mongoose.Schema({
     type: mongoose.Schema.ObjectId,
     ref: "Subscription",
   },
+  subscriptionStatus: {
+    type: String,
+    enum: ['pause', 'start'],
+  },
   user: {
     type: mongoose.Schema.ObjectId,
     ref: "User",
