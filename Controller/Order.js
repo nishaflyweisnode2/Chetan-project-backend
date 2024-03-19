@@ -1059,87 +1059,91 @@ const checkoutForAdmin = async (req, res, next) => {
       return res.status(404).json({ error: 'User not found' });
     } else {
       if (user.userStatus == "Approved") {
-        const allAddress = await Address.findById({ _id: user.addressId });
-        if (!allAddress) {
-          return res.status(404).json({ error: 'Address not found' });
-        }
-        const currentTime = new Date();
-        const currentHour = currentTime.getHours();
-        const currentMinute = currentTime.getMinutes();
-        const currentSecond = currentTime.getSeconds();
-        let currentSecond1, currentMinute1;
-        if (currentSecond < 10) { currentSecond1 = '' + 0 + currentSecond; } else { currentSecond1 = currentSecond };
-        if (currentMinute < 10) { currentMinute1 = '' + 0 + currentMinute; } else { currentMinute1 = currentMinute };
-        let cutOffOrderType;
-        const currentTimeString = `${currentHour}:${currentMinute1}:${currentSecond1}`;
-        const CutOffTimes1 = await cutOffTime.findOne({ type: "morningOrder" });
-        const CutOffTimes2 = await cutOffTime.findOne({ type: "eveningOrder" });
-        if ((CutOffTimes2.time < CutOffTimes1.time) && (currentTimeString < CutOffTimes2.time)) { cutOffOrderType = CutOffTimes2.type; } else {
-          cutOffOrderType = CutOffTimes1.type;
-        }
-        const product = await Product.findById({ _id: req.body.productId })
-        let orders = [], pickUpBottleQuantity = 0, isPickUpBottle;
-        if (product.type == "Bottle") {
-          pickUpBottleQuantity = req.body.quantity;
-          isPickUpBottle = false;
-        } else {
-          pickUpBottleQuantity = 0;
-          isPickUpBottle = true;
-        }
-        let obj = {
-          user: user._id,
-          driverId: user.driverId,
-          collectionBoyId: user.collectionBoyId,
-          address2: allAddress.address2,
-          country: allAddress.state,
-          state: allAddress.state,
-          houseNumber: allAddress.houseNumber,
-          street: allAddress.street,
-          city: allAddress.city,
-          pinCode: allAddress.pinCode,
-          landMark: allAddress.landMark,
-          unitPrice: product.price,
-          product: req.body.productId,
-          quantity: req.body.quantity,
-          total: req.body.quantity * product.price,
-          instruction: req.body.instruction,
-          pickUpBottleQuantity: pickUpBottleQuantity,
-          productType: product.type,
-          isPickUpBottle: isPickUpBottle,
-          discount: 0,
-          shippingPrice: 0,
-          startDate: req.body.deliveryDate,
-          cutOffOrderType: cutOffOrderType,
-          amountToBePaid: (req.body.quantity * product.price) + 0,
-          collectedAmount: (req.body.quantity * product.price) + 0,
-          orderType: "once",
-          mode: user.paymentMode,
-        }
-        if (user.paymentMode == "PrePaid") {
-          let TotalAmount = (req.body.quantity * product.price)
-          let wallet = await Wallet.findOne({ userId: user.user });
-          if (!wallet) {
-            return res.status(403).json({ message: "InSufficent balance." })
+        if (user.driverAssign == true) {
+          const allAddress = await Address.findById({ _id: user.addressId });
+          if (!allAddress) {
+            return res.status(404).json({ error: 'Address not found' });
+          }
+          const currentTime = new Date();
+          const currentHour = currentTime.getHours();
+          const currentMinute = currentTime.getMinutes();
+          const currentSecond = currentTime.getSeconds();
+          let currentSecond1, currentMinute1;
+          if (currentSecond < 10) { currentSecond1 = '' + 0 + currentSecond; } else { currentSecond1 = currentSecond };
+          if (currentMinute < 10) { currentMinute1 = '' + 0 + currentMinute; } else { currentMinute1 = currentMinute };
+          let cutOffOrderType;
+          const currentTimeString = `${currentHour}:${currentMinute1}:${currentSecond1}`;
+          const CutOffTimes1 = await cutOffTime.findOne({ type: "morningOrder" });
+          const CutOffTimes2 = await cutOffTime.findOne({ type: "eveningOrder" });
+          if ((CutOffTimes2.time < CutOffTimes1.time) && (currentTimeString < CutOffTimes2.time)) { cutOffOrderType = CutOffTimes2.type; } else {
+            cutOffOrderType = CutOffTimes1.type;
+          }
+          const product = await Product.findById({ _id: req.body.productId })
+          let orders = [], pickUpBottleQuantity = 0, isPickUpBottle;
+          if (product.type == "Bottle") {
+            pickUpBottleQuantity = req.body.quantity;
+            isPickUpBottle = false;
           } else {
-            if (wallet.balance < parseFloat(TotalAmount)) {
+            pickUpBottleQuantity = 0;
+            isPickUpBottle = true;
+          }
+          let obj = {
+            user: user._id,
+            driverId: user.driverId,
+            collectionBoyId: user.collectionBoyId,
+            address2: allAddress.address2,
+            country: allAddress.state,
+            state: allAddress.state,
+            houseNumber: allAddress.houseNumber,
+            street: allAddress.street,
+            city: allAddress.city,
+            pinCode: allAddress.pinCode,
+            landMark: allAddress.landMark,
+            unitPrice: product.price,
+            product: req.body.productId,
+            quantity: req.body.quantity,
+            total: req.body.quantity * product.price,
+            instruction: req.body.instruction,
+            pickUpBottleQuantity: pickUpBottleQuantity,
+            productType: product.type,
+            isPickUpBottle: isPickUpBottle,
+            discount: 0,
+            shippingPrice: 0,
+            startDate: req.body.deliveryDate,
+            cutOffOrderType: cutOffOrderType,
+            amountToBePaid: (req.body.quantity * product.price) + 0,
+            collectedAmount: (req.body.quantity * product.price) + 0,
+            orderType: "once",
+            mode: user.paymentMode,
+          }
+          if (user.paymentMode == "PrePaid") {
+            let TotalAmount = (req.body.quantity * product.price)
+            let wallet = await Wallet.findOne({ userId: user.user });
+            if (!wallet) {
               return res.status(403).json({ message: "InSufficent balance." })
             } else {
-              const address = await Order.create(obj);
-              await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
-              orders.push(address)
-              let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, }
-              await logs.create(obj1);
+              if (wallet.balance < parseFloat(TotalAmount)) {
+                return res.status(403).json({ message: "InSufficent balance." })
+              } else {
+                const address = await Order.create(obj);
+                await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                orders.push(address)
+                let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, }
+                await logs.create(obj1);
+              }
             }
           }
+          if (user.paymentMode == "PostPaid") {
+            const address = await Order.create(obj);
+            await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+            orders.push(address)
+            let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, }
+            await logs.create(obj1);
+          }
+          return res.status(200).json({ success: true, msg: "Order created", orders, });
+        } else {
+          return res.status(401).json({ message: "You cannot place an order,  delivery boy not assigned." });
         }
-        if (user.paymentMode == "PostPaid") {
-          const address = await Order.create(obj);
-          await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
-          orders.push(address)
-          let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, }
-          await logs.create(obj1);
-        }
-        return res.status(200).json({ success: true, msg: "Order created", orders, });
       } else if (user.userStatus == "UnApproved") {
         return res.status(401).json({ message: "You cannot place order, as we are not serviceable at provided address." });
       } else {
