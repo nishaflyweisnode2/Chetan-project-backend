@@ -560,7 +560,7 @@ exports.getWalletTransactionById = async (req, res, next) => {
 };
 exports.getAllWalletTransactionByUserId = async (req, res, next) => {
   try {
-    const user = await walletTransaction.find({ user: req.params.userId }).populate('user');
+    const user = await walletTransaction.find({ user: req.params.userId }).populate([{ path: 'user' }, { path: 'order', populate: { path: 'product' } }]);
     if (user.length > 0) {
       return res.status(200).json({ status: 200, message: "Wallet transaction successfully", data: user, });
     } else {
