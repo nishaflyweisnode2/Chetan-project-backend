@@ -408,6 +408,14 @@ exports.getAllVacation = async (req, res, next) => {
     return res.status(200).json({ error: "Something went wrong" });
   }
 };
+exports.deleteVacation = catchAsyncErrors(async (req, res, next) => {
+  const findVacation = await vacation.findById({ _id: req.params.id });
+  if (!findVacation) {
+    res.status(404).json({ success: false, message: "vacation not found", });
+  }
+  await findVacation.deleteOne();
+  return res.status(200).json({ success: true, message: "Product Delete Successfully", });
+});
 exports.getVacationById = async (req, res, next) => {
   try {
     const users = await vacation.findById({ _id: req.params.id });
