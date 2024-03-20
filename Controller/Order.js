@@ -915,7 +915,7 @@ new cronJob('* * * * * *', async function () {
             mode: findState[i].userId.paymentMode,
             subscriptionStatus: "start"
           };
-          let findData = await Order.findOne(obj);
+          let findData = await Order.findOne({ subscription: findState[i]._id, product: findState[i].product._id, user: findState[i].userId._id, startDate: date });
           if (!findData) {
             const address = await Order.create(obj);
             console.log(address);
@@ -927,8 +927,8 @@ new cronJob('* * * * * *', async function () {
       let findState1 = await Subscription.findByIdAndUpdate({ _id: findState[i]._id }, { $set: { orderCreateTill: endDate } }, { new: true });
     }
   }
-}).start();
-// }).stop()
+  // }).start();
+}).stop()
 new cronJob('* * * * * *', async function () {
   const currentDate = moment().utc();
   let findState = await Subscription.find({ cutOffOrderType: "eveningOrder", firstTimeOrder: true }).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
@@ -977,7 +977,7 @@ new cronJob('* * * * * *', async function () {
             mode: findState[i].userId.paymentMode,
             subscriptionStatus: "start"
           };
-          let findData = await Order.findOne(obj);
+          let findData = await Order.findOne({ subscription: findState[i]._id, product: findState[i].product._id, user: findState[i].userId._id, startDate: date });
           if (!findData) {
             const address = await Order.create(obj);
             console.log(address);

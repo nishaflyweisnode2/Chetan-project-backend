@@ -476,21 +476,23 @@ exports.DeliveredOrder = async (req, res) => {
             if (Data.mode == "PrePaid") {
                 let update = await order.updateOne({ _id: req.params.id }, { delivered: true, orderStatus: "Deliverd" }, { new: true })
                 if (update) {
-                    let wallet = await Wallet.findOne({ userId: Data.user });
+                    const wallet = await User.findOne({ _id: Data.user, });
                     if (!wallet) {
-                        return res.status(200).json({ message: "Delivered " })
+                        return res.status(404).json({ error: 'User not found' });
                     } else {
                         if (wallet.balance < update.collectedAmount) {
                             return res.status(200).json({ message: "Delivered " })
                         } else {
-                            wallet.balance = wallet.balance - parseFloat(update.collectedAmount);
+                            let balance = parseInt(wallet.balance - Data.collectedAmount);
+                            wallet.balance = balance;
                             await wallet.save();
+                            console.log(wallet)
                             let id = await reffralCode();
                             let month = new Date(Date.now()).getMonth() + 1;
                             let obj = {
                                 user: Data.user,
                                 order: Data._id,
-                                amount: parseFloat(update.collectedAmount),
+                                amount: parseFloat(Data.collectedAmount),
                                 month: month,
                                 paymentMode: "Online",
                                 id: id,
@@ -500,7 +502,7 @@ exports.DeliveredOrder = async (req, res) => {
                             const faq = await walletTransaction.create(obj);
                             if (faq) {
                                 let obj = {
-                                    collectedAmount: Data.collectedAmount - Number(req.query.collectedAmount),
+                                    collectedAmount: Data.collectedAmount - Number(Data.collectedAmount),
                                     paymentMode: "Online",
                                     collectedStatus: "Collected"
                                 }
