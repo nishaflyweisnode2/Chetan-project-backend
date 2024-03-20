@@ -243,12 +243,22 @@ exports.getAllUser = async (req, res) => {
   try {
     const { search, fromDate, toDate, status, page, limit } = req.query;
     let query = { role: "User" };
-    if (search) {
+    const phoneNumber = Number(search);
+    if (!isNaN(phoneNumber)) {
       query.$or = [
-        { "name": { $regex: req.query.search, $options: "i" }, },
-        { "lastName": { $regex: req.query.search, $options: "i" }, },
-        { "firstName": { $regex: req.query.search, $options: "i" }, },
-      ]
+        { "name": { $regex: search, $options: "i" } },
+        { "lastName": { $regex: search, $options: "i" } },
+        { "firstName": { $regex: search, $options: "i" } },
+        { "email": { $regex: search, $options: "i" } },
+        { "phone": phoneNumber }
+      ];
+    } else {
+      query.$or = [
+        { "name": { $regex: search, $options: "i" } },
+        { "lastName": { $regex: search, $options: "i" } },
+        { "firstName": { $regex: search, $options: "i" } },
+        { "email": { $regex: search, $options: "i" } },
+      ];
     }
     if (status) {
       query.userStatus = status
@@ -269,7 +279,7 @@ exports.getAllUser = async (req, res) => {
       page: Number(page) || 1,
       limit: Number(limit) || 15,
       sort: { createdAt: -1 },
-      populate: 'addressId changeAddressId'
+      populate: 'changeAddressId addressId cutOffTimeId collectionBoyId driverId'
     };
     let data = await User.paginate(query, options);
     return res.status(200).json({ status: 200, message: "User data found.", data: data });
@@ -283,7 +293,7 @@ exports.getUserbyId = async (req, res, next) => {
   console.log("hi");
   const id = req.params.id;
   try {
-    const users = await User.findById(id).populate('addressId changeAddressId');
+    const users = await User.findById(id).populate('changeAddressId addressId cutOffTimeId collectionBoyId driverId');
     if (!users) {
       return next(new ErrorHander(`User does not exist with Id: ${req.params.id}`, 400));
     }

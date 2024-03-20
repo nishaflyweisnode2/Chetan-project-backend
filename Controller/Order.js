@@ -550,7 +550,7 @@ const updateSubscription = async (req, res, next) => {
       instruction: req.body.instruction || order.instruction,
       days: req.body.days || order.days,
       type: order.type,
-      daysWiseQuantity: cart.products[i].daysWiseQuantity,
+      daysWiseQuantity: req.body.daysWiseQuantity || order.daysWiseQuantity,
     }
     const banner = await Subscription.findByIdAndUpdate({ _id: order._id }, { $set: obj }, { new: true });
     let obj1 = {
@@ -638,7 +638,8 @@ const getAllOrdersForAdmin = catchAsyncErrors(async (req, res, next) => {
   if ((CutOffTimes2.time < CutOffTimes1.time) && (currentTimeString < CutOffTimes2.time)) { cutOffOrderType = CutOffTimes2.type; } else {
     cutOffOrderType = CutOffTimes1.type;
   }
-  const orders = await Order.find({ cutOffOrderType: cutOffOrderType, orderType: "Subscription" }).populate('user product');
+  const today = new Date().toISOString().split('T')[0];
+  const orders = await Order.find({ cutOffOrderType: cutOffOrderType, orderType: "Subscription", startDate: { $gte: new Date(`${today}T00:00:00.000Z`), $lte: new Date(`${today}T23:59:59.999Z`) } }).populate('user product');
   if (orders.length > 0) {
     return res.status(200).json({ success: true, orders });
   } else {
