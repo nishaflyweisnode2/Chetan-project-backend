@@ -95,20 +95,16 @@ const checkout = async (req, res, next) => {
             }
             if (user.paymentMode == "PrePaid") {
               let TotalAmount = (cart.products[i].quantity * cart.products[i].product.price)
-              let wallet = await Wallet.findOne({ userId: cart.user });
-              if (!wallet) {
+              if (user.balance < parseFloat(TotalAmount)) {
                 return res.status(403).json({ message: "InSufficent balance." })
               } else {
-                if (wallet.balance < parseFloat(TotalAmount)) {
-                  return res.status(403).json({ message: "InSufficent balance." })
-                } else {
-                  const address = await Order.create(obj);
-                  await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
-                  orders.push(address)
-                  let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, }
-                  await logs.create(obj1);
-                }
+                const address = await Order.create(obj);
+                await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                orders.push(address)
+                let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, }
+                await logs.create(obj1);
               }
+
             }
             if (user.paymentMode == "PostPaid") {
               const address = await Order.create(obj);
@@ -1014,27 +1010,23 @@ const updateOrderDetailsByAdmin = catchAsyncErrors(async (req, res, next) => {
       collectedAmount = (order.collectedAmount);
     }
     if (user.paymentMode == "PrePaid") {
-      let wallet = await Wallet.findOne({ userId: Data.user });
-      if (!wallet) {
+      if (user.balance < parseFloat(amountToBePaid)) {
         return res.status(403).json({ message: "InSufficent balance." })
       } else {
-        if (wallet.balance < parseFloat(amountToBePaid)) {
-          return res.status(403).json({ message: "InSufficent balance." })
-        } else {
-          let obj = {
-            user: order.user,
-            unitPrice: unitPrice,
-            product: order.product,
-            quantity: quantity,
-            total: total,
-            amountToBePaid: amountToBePaid,
-            collectedAmount: collectedAmount,
-            mode: order.paymentMode
-          }
-          let update = await Order.findByIdAndUpdate({ _id: order._id }, { $set: obj }, { new: true })
-          return res.status(200).json({ success: true, message: "Order successfully updated", data: update });
+        let obj = {
+          user: order.user,
+          unitPrice: unitPrice,
+          product: order.product,
+          quantity: quantity,
+          total: total,
+          amountToBePaid: amountToBePaid,
+          collectedAmount: collectedAmount,
+          mode: order.paymentMode
         }
+        let update = await Order.findByIdAndUpdate({ _id: order._id }, { $set: obj }, { new: true })
+        return res.status(200).json({ success: true, message: "Order successfully updated", data: update });
       }
+
     } else {
       let obj = {
         user: order.user,
@@ -1119,20 +1111,16 @@ const checkoutForAdmin = async (req, res, next) => {
           }
           if (user.paymentMode == "PrePaid") {
             let TotalAmount = (req.body.quantity * product.price)
-            let wallet = await Wallet.findOne({ userId: user.user });
-            if (!wallet) {
+            if (user.balance < parseFloat(TotalAmount)) {
               return res.status(403).json({ message: "InSufficent balance." })
             } else {
-              if (wallet.balance < parseFloat(TotalAmount)) {
-                return res.status(403).json({ message: "InSufficent balance." })
-              } else {
-                const address = await Order.create(obj);
-                await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
-                orders.push(address)
-                let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, }
-                await logs.create(obj1);
-              }
+              const address = await Order.create(obj);
+              await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+              orders.push(address)
+              let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, }
+              await logs.create(obj1);
             }
+
           }
           if (user.paymentMode == "PostPaid") {
             const address = await Order.create(obj);
@@ -1658,8 +1646,7 @@ const subscription = async (req, res, next) => {
         if (todaySubscription) {
           const user = await User.findById(req.user._id);
           const dailyAmount = calculateDailyAmount(todaySubscription);
-          const wallet = await Wallet.find({ user });
-          if (wallet.balance >= dailyAmount) {
+          if (user.balance >= dailyAmount) {
             user.walletBalance -= dailyAmount;
             await user.save();
           } else {
