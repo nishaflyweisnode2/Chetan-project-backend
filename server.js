@@ -6,6 +6,7 @@ require("dotenv").config();
 const compression = require("compression");
 const serverless = require("serverless-http");
 const path = require("path");
+require("./Cronjob/Order");
 const nodemailer = require("nodemailer");
 const app = express();
 app.use(compression({ threshold: 500 }));
