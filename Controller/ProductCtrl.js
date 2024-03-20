@@ -97,7 +97,7 @@ exports.getAdminProducts = catchAsyncErrors(async (req, res, next) => {
   });
 });
 exports.getPopularProducts = catchAsyncErrors(async (req, res, next) => {
-  const productsCount = await Product.length;
+  const productsCount = await Product.countDocuments(); // Corrected to countDocuments
   let apiFeature = await Product.aggregate([
     {
       $lookup: { from: "categories", localField: "category", foreignField: "_id", as: "Category" },
@@ -107,8 +107,10 @@ exports.getPopularProducts = catchAsyncErrors(async (req, res, next) => {
       $lookup: { from: "subcategories", localField: "subCategory", foreignField: "_id", as: "SubCategory", },
     },
     { $unwind: "$subCategory" },
+    { $sort: { ratings: -1 } }
   ]);
-  if (req.query.search != (null || undefined)) {
+
+  if (req.query.search) { // Simplified condition
     let data1 = [
       {
         $lookup: { from: "categories", localField: "category", foreignField: "_id", as: "Category" },
@@ -124,13 +126,15 @@ exports.getPopularProducts = catchAsyncErrors(async (req, res, next) => {
             { "name": { $regex: req.query.search, $options: "i" }, },
           ]
         }
-      }
+      },
+      { $sort: { ratings: -1 } }
     ]
     apiFeature = await Product.aggregate(data1);
   }
-  apiFeature.sort({ ratings: -1 });
-  return res.status(200).json({ success: true, productsCount, apiFeature, });
+
+  return res.status(200).json({ success: true, productsCount, apiFeature });
 });
+
 exports.getProductDetails = catchAsyncErrors(async (req, res, next) => {
   const product = await Product.findById(req.params.id).populate('reviews.user', 'profilePicture name').populate("category").populate("subCategory")
     .exec();;
