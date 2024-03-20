@@ -50,7 +50,7 @@ exports.dashboard = async (req, res) => {
 };
 exports.userOrders = async (req, res, next) => {
   console.log("hi");
-  const orders = await Order.find({ user: req.params.userId, orderType: "once" }).populate("user product")
+  const orders = await Order.find({ user: req.params.userId, }).populate("user product")
   if (orders.length == 0) {
     return res.status(404).json({ success: false, });
   }

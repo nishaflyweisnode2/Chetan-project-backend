@@ -180,7 +180,8 @@ exports.userPhoto = async (req, res, next) => {
       name: req.body.name || users.name,
       phone: req.body.phone || users.phone,
       profilePicture: image,
-      location: location
+      location: location,
+      email: req.body.email || users.email,
     }
     const updatedTeacher = await User.findByIdAndUpdate(teacherId, { $set: obj }, { new: true });
     return res.json(updatedTeacher);
