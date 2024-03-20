@@ -804,8 +804,8 @@ new cronJob('* * * * * *', async function () {
       let findState1 = await Subscription.findByIdAndUpdate({ _id: findState[i]._id }, { $set: { orderCreateTill: endDate, firstTimeOrder: true, } }, { new: true });
     }
   }
-}).start();
-// }).stop()
+// }).start();
+}).stop()
 new cronJob('* * * * * *', async function () {
   const currentDate = moment().utc();
   let findState = await Subscription.find({ cutOffOrderType: "eveningOrder", firstTimeOrder: false, orderCreateTill: { $gte: currentDate.startOf('day').toDate(), $lte: currentDate.endOf('day').toDate() } }).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
@@ -865,8 +865,8 @@ new cronJob('* * * * * *', async function () {
       let findState1 = await Subscription.findByIdAndUpdate({ _id: findState[i]._id }, { $set: { orderCreateTill: endDate, firstTimeOrder: true } }, { new: true });
     }
   }
-}).start();
-// }).stop()
+// }).start();
+}).stop()
 new cronJob('* * * * * *', async function () {
   const currentDate = moment().utc();
   let findState = await Subscription.find({ cutOffOrderType: "morningOrder", firstTimeOrder: true }).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
@@ -989,8 +989,8 @@ new cronJob('* * * * * *', async function () {
       let findState1 = await Subscription.findByIdAndUpdate({ _id: findState[i]._id }, { $set: { orderCreateTill: endDate } }, { new: true });
     }
   }
-}).start();
-// }).stop()
+// }).start();
+}).stop()
 const updateOrderDetailsByAdmin = catchAsyncErrors(async (req, res, next) => {
   try {
     const order = await Order.findByIdAndUpdate(req.params.id);
@@ -1173,7 +1173,8 @@ new cronJob('* * * * * *', async function () {
       }
     }
   }
-}).start();
+// }).start
+}).stop()
 new cronJob('* * * * * *', async function () {
   let findState = await Subscription.find({}).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
   if (findState.length > 0) {
@@ -1186,7 +1187,8 @@ new cronJob('* * * * * *', async function () {
       }
     }
   }
-}).start();
+// }).start();
+}).stop()
 
 
 
