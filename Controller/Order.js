@@ -637,7 +637,25 @@ const getAllOrdersForAdmin = catchAsyncErrors(async (req, res, next) => {
   const today = new Date().toISOString().split('T')[0];
   const orders = await Order.find({ cutOffOrderType: cutOffOrderType, orderType: "Subscription", startDate: { $gte: new Date(`${today}T00:00:00.000Z`), $lte: new Date(`${today}T23:59:59.999Z`) } }).populate('user product');
   if (orders.length > 0) {
-    return res.status(200).json({ success: true, orders });
+    const productQuantities = [];
+    orders.forEach(order => {
+      if (order.product) {
+        let existingProduct = productQuantities.find(item => item.productId === order.product._id);
+        if (existingProduct) {
+          existingProduct.quantity += order.quantity;
+        } else {
+          productQuantities.push({
+            productId: order.product._id,
+            productName: order.product.name,
+            product: order.product,
+            quantity: order.quantity,
+            date: order.startDate,
+            cutOffOrderType: cutOffOrderType
+          });
+        }
+      }
+    });
+    return res.status(200).json({ success: true, productQuantities });
   } else {
     return res.status(200).json({ success: false, });
   }
