@@ -1444,4 +1444,39 @@ const deleteproductinOrder = async (req, res, next) => {
     return res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
-module.exports = { deleteOrder, getAllOneTimeOrdersForAdmin, getAllOrdersForInvoice, getSubscriptionById, checkoutForAdmin, updateOrderDetailsByAdmin, getAllOrdersForAdmin, returnBottleOrderForAdmin, updateOrderDetails, subscription, payBillStatusUpdate, returnBottleOrder, updateCollectedDate, createSubscription, pauseSubscription, updateSubscription, deleteSubscription, deleteproductinOrder, mySubscriptionOrders, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }
+
+
+
+
+
+
+
+const getAllOrdersForUser = catchAsyncErrors(async (req, res, next) => {
+  const orders = await Order.find({ user: req.user.id, startDate: { $gte: req.query.fromStartDate, $lte: req.query.toStartDate } }).populate('user product');
+  if (orders.length > 0) {
+    const productQuantities = []; let grandTotal = 0;
+    orders.forEach(order => {
+      if (order.product) {
+        let existingProduct = productQuantities.find(item => item.productId === order.product._id);
+        if (existingProduct) {
+          existingProduct.quantity += order.quantity;
+          existingProduct.total += order.total;
+          grandTotal += order.total;
+        } else {
+          productQuantities.push({
+            productId: order.product._id,
+            productName: order.product.name,
+            product: order.product,
+            quantity: order.quantity,
+            total: order.total
+          });
+          grandTotal += order.total;
+        }
+      }
+    });
+    return res.status(200).json({ success: true, productQuantities, grandTotal: grandTotal, ordersLength: orders.length, orders, });
+  } else {
+    return res.status(200).json({ success: false, });
+  }
+});
+module.exports = { deleteOrder, getAllOrdersForUser, getAllOneTimeOrdersForAdmin, getAllOrdersForInvoice, getSubscriptionById, checkoutForAdmin, updateOrderDetailsByAdmin, getAllOrdersForAdmin, returnBottleOrderForAdmin, updateOrderDetails, subscription, payBillStatusUpdate, returnBottleOrder, updateCollectedDate, createSubscription, pauseSubscription, updateSubscription, deleteSubscription, deleteproductinOrder, mySubscriptionOrders, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }
