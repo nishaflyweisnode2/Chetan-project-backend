@@ -360,7 +360,7 @@ exports.ChangeToFeaturedOrder = async (req, res) => {
 }
 exports.allPendingCollectedOrder = async (req, res) => {
         try {
-                const data = await Order.find({ collectionBoyId: req.params.collectionBoyId, collectedStatus: "pending" }).populate('product user');
+                const data = await Order.find({ collectionBoyId: req.params.collectionBoyId, driverId: req.params.driverId, collectedStatus: "pending" }).populate('product user');
                 if (!data || data.length == 0) {
                         return res.status(404).json({ message: "Pending Order not found" })
                 }
@@ -370,6 +370,28 @@ exports.allPendingCollectedOrder = async (req, res) => {
                 return res.status(400).json({ message: err.message })
         }
 }
+
+exports.allDriverOfCollectionBoy = async (req, res) => {
+        try {
+                const collectionBoyId = req.params.collectionBoyId;
+                const collectionBoy = await driver.findOne({ _id: collectionBoyId, role: "collectionBoy" }).populate('driverId');
+                if (!collectionBoy) {
+                        return res.status(404).json({ message: "Driver not found", data: {} });
+                }
+                if (collectionBoy.driverId.length > 0) {
+                        return res.status(200).json({ success: true, message: collectionBoy.driverId });
+                } else {
+                        return res.status(200).json({ success: false, message: "No users found matching the search criteria." });
+                }
+        } catch (err) {
+                console.log(err);
+                return res.status(500).json({ message: "Server error.", error: err.message });
+        }
+};
+
+
+
+
 exports.ChangeStatus = async (req, res) => {
         try {
                 const driverData = await order.findOne({ _id: req.params.id })

@@ -17,7 +17,7 @@ router.post('/api/v1/CollectionBoy/unAssignDriverToCollectionBoy', CollectionBoy
 router.get('/api/v1/CollectionBoy/allAssignUserToCollectionBoy/:collectionBoyId', CollectionBoy.allAssignUserToCollectionBoy)
 router.get('/api/v1/CollectionBoy/allCollectedOrder/:collectionBoyId', CollectionBoy.allCollectedOrder)
 router.get('/api/v1/CollectionBoy/allFeaturedOrder/:collectionBoyId', CollectionBoy.allFeaturedOrder)
-router.get('/api/v1/CollectionBoy/allPendingCollectedOrder/:collectionBoyId', CollectionBoy.allPendingCollectedOrder);
+router.get('/api/v1/CollectionBoy/allPendingCollectedOrder/:collectionBoyId/:driverId', CollectionBoy.allPendingCollectedOrder);
 router.post("/api/v1/CollectionBoy/attendanceMark/:id", CollectionBoy.attendanceMark);
 router.get("/api/v1/CollectionBoy/driverAttendanceList/:id", CollectionBoy.driverAttendanceList);
 router.post("/api/v1/CollectionBoy/startCollection/:id", CollectionBoy.startCollection);
@@ -26,4 +26,5 @@ router.put("/api/v1/CollectionBoy/ChangeStatus/:id", CollectionBoy.ChangeStatus)
 router.put("/api/v1/CollectionBoy/ChangeToFeaturedOrder/:id", CollectionBoy.ChangeToFeaturedOrder);
 
 router.get("/api/v1/CollectionBoy/CollectionBoysWithCollectedAmount", CollectionBoy.CollectionBoysWithCollectedAmount);
+router.get('/api/v1/CollectionBoy/allDriverOfCollectionBoy/:collectionBoyId', CollectionBoy.allDriverOfCollectionBoy)
 module.exports = router;
