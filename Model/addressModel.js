@@ -28,6 +28,16 @@ const addressSchema = new mongoose.Schema({
   landMark: {
     type: String,
   },
+  location: {
+    type: {
+      type: String,
+      default: "Point"
+    },
+    coordinates: {
+      type: [Number],
+      default: [0, 0]
+    },
+  },
   addressType: {
     type: String,
     enum: ["Change", "My"],

@@ -64,7 +64,7 @@ exports.accountVerificationOTP = async (req, res, next) => {
             if (!user) {
                 return next(new ErrorHander("Invalid OTP!", 400))
             }
-            const token = jwt.sign({ user_id: user._id }, JWTkey,);
+            const token = jwt.sign({ user_id: user._id }, JWTkey, { expiresIn: "365d" });
             return res.status(200).json({ token: token, user: user })
         }
     } catch (err) {
@@ -338,8 +338,16 @@ exports.createAddress = async (req, res, next) => {
     }
     const findAddress = await Address.findOne({ driver: req.body.driver });
     if (findAddress) {
+        if (req.body.currentLat && req.body.currentLong) {
+            let coordinates = [req.body.currentLat, req.body.currentLong];
+            req.body.location = { type: "Point", coordinates };
+        }
         await Address.findByIdAndUpdate({ _id: findAddress._id }, { $set: req.body }, { new: true });
         await driver.findByIdAndUpdate({ _id: users._id }, { $set: { addressId: findAddress._id } }, { new: true, });
+    }
+    if (req.body.currentLat && req.body.currentLong) {
+        let coordinates = [req.body.currentLat, req.body.currentLong];
+        req.body.location = { type: "Point", coordinates };
     }
     const address = await Address.create(req.body);
     await driver.findByIdAndUpdate({ _id: users._id }, { $set: { addressId: address._id } }, { new: true, });
@@ -350,6 +358,10 @@ exports.getAddress = async (req, res, next) => {
     res.status(201).json({ success: true, allAddress, });
 };
 exports.updateAddress = async (req, res, next) => {
+    if (req.body.currentLat && req.body.currentLong) {
+        let coordinates = [req.body.currentLat, req.body.currentLong];
+        req.body.location = { type: "Point", coordinates };
+    }
     const newAddressData = req.body;
     const address = await Address.findByIdAndUpdate({ _id: req.params.id }, { $set: newAddressData }, { new: true, });
     res.status(201).json({ success: true, address, });

@@ -56,7 +56,7 @@ exports.accountVerificationOTP = async (req, res, next) => {
                 if (!user) {
                         return next(new ErrorHander("Invalid OTP!", 400))
                 }
-                const token = jwt.sign({ user_id: user._id }, JWTkey,);
+                const token = jwt.sign({ user_id: user._id }, JWTkey, { expiresIn: "365d" });
                 return res.status(200).json({ token: token, Id: user._id })
         } catch (err) {
                 console.log(error)

@@ -113,6 +113,9 @@ const checkout = async (req, res, next) => {
               await logs.create(obj1);
             }
           }
+          if (orders.length > 0) {
+            await Cart.findOneAndDelete({ user: req.user._id });
+          }
           return res.status(200).json({ success: true, msg: "Order created", orders, });
         } else {
           return res.status(401).json({ message: "You cannot place an order,  delivery boy not assigned." });
@@ -463,9 +466,16 @@ const createSubscription = async (req, res, next) => {
               orders.push(banner);
             }
           }
-          let obj1 = { description: `Subscription has been create by ${req.user.name}.`, title: 'Create subscription', user: req.user._id, }
-          await logs.create(obj1);
-          return res.status(201).json({ message: 'Create subscription successfully', orders });
+          if (orders.length > 0) {
+            await subscriptionCart.findOneAndDelete({ userId: req.user._id });
+            let obj1 = { description: `Subscription has been create by ${req.user.name}.`, title: 'Create subscription', user: req.user._id, }
+            await logs.create(obj1);
+            return res.status(201).json({ message: 'Create subscription successfully', orders });
+          } else {
+            let obj1 = { description: `Subscription has been create by ${req.user.name}.`, title: 'Create subscription', user: req.user._id, }
+            await logs.create(obj1);
+            return res.status(201).json({ message: 'Create subscription successfully', orders });
+          }
         } else {
           return res.status(401).json({ message: "You cannot place an order,  delivery boy not assigned." });
         }

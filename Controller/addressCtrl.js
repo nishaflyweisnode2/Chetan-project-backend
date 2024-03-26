@@ -12,12 +12,20 @@ exports.createAddress = catchAsyncErrors(async (req, res, next) => {
   if (findAddress) {
     const findAddress1 = await Address.findOne({ user: users._id, addressType: "Change" });
     if (findAddress1) {
+      if (req.body.currentLat && req.body.currentLong) {
+        let coordinates = [req.body.currentLat, req.body.currentLong];
+        req.body.location = { type: "Point", coordinates };
+      }
       const address = await Address.findByIdAndUpdate({ _id: findAddress1._id }, { $set: req.body }, { new: true, });
       await User.findByIdAndUpdate({ _id: users._id }, { $set: { changeAddressId: findAddress1._id, addressStatus: "Upload" } }, { new: true, });
       return res.status(201).json({ success: true, address, });
     } else {
       req.body.user = users._id;
       req.body.addressType = "Change";
+      if (req.body.currentLat && req.body.currentLong) {
+        let coordinates = [req.body.currentLat, req.body.currentLong];
+        req.body.location = { type: "Point", coordinates };
+      }
       const address = await Address.create(req.body);
       await User.findByIdAndUpdate({ _id: users._id }, { $set: { changeAddressId: address._id, addressStatus: "Upload" } }, { new: true, });
       return res.status(201).json({ success: true, address, });
@@ -33,6 +41,10 @@ exports.getAddressById = catchAsyncErrors(async (req, res, next) => {
   return res.status(201).json({ success: true, allAddress, });
 });
 exports.updateAddress = catchAsyncErrors(async (req, res, next) => {
+  if (req.body.currentLat && req.body.currentLong) {
+    let coordinates = [req.body.currentLat, req.body.currentLong];
+    req.body.location = { type: "Point", coordinates };
+  }
   const newAddressData = req.body;
   await Address.findByIdAndUpdate(req.params.id, newAddressData, { new: true });
   return res.status(200).json({ success: true, });

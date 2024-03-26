@@ -9,19 +9,22 @@ const create = async (req, res) => {
             let obj = {
                 title: req.body.title || data.title,
                 content: req.body.content || data.content,
-                email: req.body.email || data.email,
+                phone: req.body.phone || data.phone,
+                whatAppTitle: req.body.whatAppTitle || data.whatAppTitle,
+                whatAppContent: req.body.whatAppContent || data.whatAppContent,
                 whatApp: req.body.whatApp || data.whatApp,
-                imageUrl: req.body.imageUrl || data.imageUrl,
+                emailTitle: req.body.emailTitle || data.emailTitle,
+                emailContent: req.body.emailContent || data.emailContent,
+                email: req.body.email || data.email,
+                addressTitle: req.body.addressTitle || data.addressTitle,
+                addressContent: req.body.addressContent || data.addressContent,
+                address: req.body.address || data.address,
             }
             let update = await ContactUs.findOneAndUpdate({ _id: data._id }, { $set: obj }, { new: true });
-            res.status(200).json({
-                details: update,
-            });
+            res.status(200).json({ details: update, });
         } else {
             const contactUs = await ContactUs.create(req.body);
-            res.status(200).json({
-                details: contactUs,
-            });
+            res.status(200).json({ details: contactUs, });
         }
     } catch (err) {
         console.error(err);
@@ -32,9 +35,7 @@ const getContactUs = async (req, res) => {
     try {
         const data = await ContactUs.findOne();
         // console.log(data);
-        res.status(200).json({
-            contactus: data
-        })
+        res.status(200).json({ contactus: data })
 
     } catch (err) {
         res.status(400).send({ mesage: err.mesage });
