@@ -167,7 +167,11 @@ exports.createSubscriptionCart = async (req, res, next) => {
       let banner = await cart.save();
       return res.status(201).json({ message: 'Create subscription successfully', banner });
     } else {
-      let products = [{ product: findProduct._id, price: req.body.price, size: req.body.size, quantity: req.body.quantity, startDate: req.body.startDate, ringTheBell: req.body.ringTheBell, instruction: req.body.instruction, days: req.body.days, type: req.body.type, alternateDay: req.body.alternateDay, }]
+      let products = [{
+        product: findProduct._id, price: req.body.price, size: req.body.size,
+        quantity: req.body.quantity, startDate: req.body.startDate,
+        ringTheBell: req.body.ringTheBell, instruction: req.body.instruction, days: req.body.days, type: req.body.type, alternateDay: req.body.alternateDay, daysWiseQuantity: req.body.daysWiseQuantity
+      }]
       let banner = await subscriptionCart.create({ userId: req.user._id, products: products });
       return res.status(201).json({ message: 'Create subscription successfully', banner });
     }
