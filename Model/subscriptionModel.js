@@ -55,7 +55,7 @@ const subscriptionSchema = new mongoose.Schema({
   daysWiseQuantity: [{
     days: {
       type: String,
-      enum: ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'],
+      enum: ['Sun', 'Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat'],
     },
     quantity: {
       type: Number
@@ -63,7 +63,7 @@ const subscriptionSchema = new mongoose.Schema({
   }],
   days: [{
     type: String,
-    enum: ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'],
+    enum: ['Sun', 'Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat'],
   }],
   alternateDay: {
     type: Number,

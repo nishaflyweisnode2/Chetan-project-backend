@@ -10,20 +10,21 @@ const cutOffTime = require('../Model/cutOffTime');
 const cronJob = require('cron').CronJob;
 ///////////////////// create order morningOrder///////////////////////////
 new cronJob('*/30 * * * * *', async function () {
-  console.log('morningOrder Cron job executed at:', new Date());
-  let findState = await Subscription.find({ cutOffOrderType: "morningOrder", firstTimeOrder: false, orderCreateTill: { $gte: moment().startOf('day').toDate(), $lte: moment().endOf('day').toDate() } }).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
+  console.log('Alternate morningOrder Cron job executed at:', new Date());
+  let findState = await Subscription.find({ cutOffOrderType: "morningOrder", type: "Alternate", orderCreateTill: { $gte: moment().startOf('day').toDate(), $lte: moment().endOf('day').toDate() }, firstTimeOrder: false, }).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
   if (findState.length > 0) {
     for (let i = 0; i < findState.length; i++) {
       const startDate = new Date(findState[i].startDate);
       const endDate = new Date(startDate);
       endDate.setMonth(endDate.getMonth() + 1);
       let push = [];
-      for (; startDate <= endDate; startDate.setDate(startDate.getDate() + 1)) {
+      for (; startDate <= endDate; startDate.setDate(startDate.getDate() + findState[i].alternateDay)) {
         let findData = await Order.findOne({ subscription: findState[i]._id, user: findState[i].userId._id, product: findState[i].product._id, startDate: startDate, orderType: "Subscription" });
         if (!findData) {
           push.push(new Date(startDate));
         }
       }
+      console.log(push)
       if (push.length == 0) {
         let findState1 = await Subscription.findByIdAndUpdate({ _id: findState[i]._id }, { $set: { orderCreateTill: endDate, firstTimeOrder: true, } }, { new: true });
       } else {
@@ -35,15 +36,15 @@ new cronJob('*/30 * * * * *', async function () {
 // }).stop()
 ///////////////////// create order eveningOrder///////////////////////////
 new cronJob('*/30 * * * * *', async function () {
-  console.log('eveningOrder Cron job executed at:', new Date());
-  let findState = await Subscription.find({ cutOffOrderType: "eveningOrder", firstTimeOrder: false, orderCreateTill: { $gte: moment().startOf('day').toDate(), $lte: moment().endOf('day').toDate() } }).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
+  console.log('Alternate eveningOrder Cron job executed at:', new Date());
+  let findState = await Subscription.find({ cutOffOrderType: "eveningOrder", type: "Alternate", firstTimeOrder: false, orderCreateTill: { $gte: moment().startOf('day').toDate(), $lte: moment().endOf('day').toDate() } }).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
   if (findState.length > 0) {
     for (let i = 0; i < findState.length; i++) {
       const startDate = new Date(findState[i].startDate);
       const endDate = new Date(startDate);
       endDate.setMonth(endDate.getMonth() + 1);
       let push = [];
-      for (; startDate <= endDate; startDate.setDate(startDate.getDate() + 1)) {
+      for (; startDate <= endDate; startDate.setDate(startDate.getDate() + findState[i].alternateDay)) {
         let findData = await Order.findOne({ subscription: findState[i]._id, user: findState[i].userId._id, product: findState[i].product._id, startDate: startDate, orderType: "Subscription" });
         if (!findData) {
           push.push(new Date(startDate));
@@ -119,8 +120,9 @@ async function createOrder(push, subscriptionId) {
 }
 ////////////////////////////////// after 1 month daily one /////// morningOrder////////////////
 new cronJob('* * * * * *', async function () {
+  console.log('Alternate morningOrder after 1 month Cron job executed at:', new Date());
   const currentDate = moment().utc();
-  let findState = await Subscription.find({ cutOffOrderType: "morningOrder", firstTimeOrder: true }).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
+  let findState = await Subscription.find({ cutOffOrderType: "morningOrder", type: "Alternate", firstTimeOrder: true }).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
   if (findState.length > 0) {
     for (let i = 0; i < findState.length; i++) {
       const startDate = new Date(findState[i].orderCreateTill);
@@ -129,7 +131,7 @@ new cronJob('* * * * * *', async function () {
       endDate.setDate(endDate.getDate());
       let push = [];
       console.log("======================================================", startDate)
-      for (; startDate <= endDate; startDate.setDate(startDate.getDate() + 1)) {
+      for (; startDate <= endDate; startDate.setDate(startDate.getDate() + findState[i].alternateDay)) {
         const date = new Date(startDate);
         if (date < currentDate) {
           push.push(new Date(startDate));
@@ -206,8 +208,9 @@ async function createOrder1(push, subscriptionId) {
 }
 ////////////////////////////////// after 1 month daily one /////// eveningOrder ///////////////
 new cronJob('* * * * * *', async function () {
+  console.log('Alternate eveningOrder after 1 month Cron job executed at:', new Date());
   const currentDate = moment().utc();
-  let findState = await Subscription.find({ cutOffOrderType: "eveningOrder", firstTimeOrder: true }).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
+  let findState = await Subscription.find({ cutOffOrderType: "eveningOrder", type: "Alternate", firstTimeOrder: true }).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
   if (findState.length > 0) {
     for (let i = 0; i < findState.length; i++) {
       const startDate = new Date(findState[i].orderCreateTill);
@@ -216,7 +219,7 @@ new cronJob('* * * * * *', async function () {
       endDate.setDate(endDate.getDate());
       let push = [];
       console.log("======================================================", startDate)
-      for (; startDate <= endDate; startDate.setDate(startDate.getDate() + 1)) {
+      for (; startDate <= endDate; startDate.setDate(startDate.getDate() + findState[i].alternateDay)) {
         const date = new Date(startDate);
         if (date < currentDate) {
           push.push(new Date(startDate));
@@ -229,34 +232,4 @@ new cronJob('* * * * * *', async function () {
     }
   }
 }).start();
-// }).stop()
-////////////////////////////  pause order to resume //////////////////////
-new cronJob('* * * * * *', async function () {
-  let findState = await Subscription.find({}).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
-  if (findState.length > 0) {
-    for (let i = 0; i < findState.length; i++) {
-      let findUserOrder = await Order.find({ subscription: findState[i]._id, startDate: { $gte: findState[i].resumeDate }, });
-      if (findUserOrder) {
-        for (let j = 0; j < findUserOrder.length; j++) {
-          await Order.findByIdAndUpdate({ _id: findUserOrder[j]._id }, { $set: { subscriptionStatus: "start" } }, { new: true });
-        }
-      }
-    }
-  }
-}).start();
-// }).stop()
-//////////////////////////// resume order to pause //////////////////////
-new cronJob('* * * * * *', async function () {
-  let findState = await Subscription.find({}).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
-  if (findState.length > 0) {
-    for (let i = 0; i < findState.length; i++) {
-      let findUserOrder = await Order.find({ subscription: findState[i]._id, startDate: { $gte: findState[i].pauseDate }, startDate: { $gte: findState[i].resumeDate }, });
-      if (findUserOrder) {
-        for (let j = 0; j < findUserOrder.length; j++) {
-          await Order.findByIdAndUpdate({ _id: findUserOrder[j]._id }, { $set: { subscriptionStatus: "pause" } }, { new: true });
-        }
-      }
-    }
-  }
-}).start()
 // }).stop()
