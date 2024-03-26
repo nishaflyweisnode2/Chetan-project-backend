@@ -7,6 +7,7 @@ const compression = require("compression");
 const serverless = require("serverless-http");
 const path = require("path");
 require("./Cronjob/everyDayOrder");
+require("./Cronjob/customizedOrder");
 require("./Cronjob/alternateDayOrder");
 const nodemailer = require("nodemailer");
 const app = express();

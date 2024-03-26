@@ -10,7 +10,7 @@ const cutOffTime = require('../Model/cutOffTime');
 const cronJob = require('cron').CronJob;
 ///////////////////// create order morningOrder///////////////////////////
 new cronJob('*/30 * * * * *', async function () {
-  console.log('morningOrder Cron job executed at:', new Date());
+  console.log('customized morningOrder Cron job executed at:', new Date());
   let findState = await Subscription.find({ cutOffOrderType: "morningOrder", type: "customized", firstTimeOrder: false, orderCreateTill: { $gte: moment().startOf('day').toDate(), $lte: moment().endOf('day').toDate() } }).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
   if (findState.length > 0) {
     for (let i = 0; i < findState.length; i++) {
@@ -26,10 +26,24 @@ new cronJob('*/30 * * * * *', async function () {
           let dayOfWeek = dateTimeObject1.getDay();
           let days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat'];
           let dayName = days[dayOfWeek];
-
-          push.push(new Date(startDate));
+          if (findState[i].days.includes(dayName)) {
+            for (let j = 0; j < findState[i].daysWiseQuantity.length; j++) {
+              if (findState[i].daysWiseQuantity[j].days == dayName) {
+                let findData = await Order.findOne({ subscription: findState[i]._id, user: findState[i].userId._id, product: findState[i].product._id, startDate: startDate, orderType: "Subscription" });
+                if (!findData) {
+                  let obj = {
+                    date: new Date(startDate),
+                    day: dayName,
+                    quantity: findState[i].daysWiseQuantity[j].quantity,
+                  }
+                  push.push(obj);
+                }
+              }
+            }
+          }
         }
       }
+      console.log(push)
       if (push.length == 0) {
         let findState1 = await Subscription.findByIdAndUpdate({ _id: findState[i]._id }, { $set: { orderCreateTill: endDate, firstTimeOrder: true, } }, { new: true });
       } else {
@@ -41,7 +55,7 @@ new cronJob('*/30 * * * * *', async function () {
 // }).stop()
 ///////////////////// create order eveningOrder///////////////////////////
 new cronJob('*/30 * * * * *', async function () {
-  console.log('eveningOrder Cron job executed at:', new Date());
+  console.log('customized eveningOrder Cron job executed at:', new Date());
   let findState = await Subscription.find({ cutOffOrderType: "eveningOrder", type: "customized", firstTimeOrder: false, orderCreateTill: { $gte: moment().startOf('day').toDate(), $lte: moment().endOf('day').toDate() } }).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
   if (findState.length > 0) {
     for (let i = 0; i < findState.length; i++) {
@@ -52,9 +66,29 @@ new cronJob('*/30 * * * * *', async function () {
       for (; startDate <= endDate; startDate.setDate(startDate.getDate() + 1)) {
         let findData = await Order.findOne({ subscription: findState[i]._id, user: findState[i].userId._id, product: findState[i].product._id, startDate: startDate, orderType: "Subscription" });
         if (!findData) {
-          push.push(new Date(startDate));
+          let currentDate = new Date(startDate);
+          let dateTimeObject1 = new Date(currentDate);
+          let dayOfWeek = dateTimeObject1.getDay();
+          let days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat'];
+          let dayName = days[dayOfWeek];
+          if (findState[i].days.includes(dayName)) {
+            for (let j = 0; j < findState[i].daysWiseQuantity.length; j++) {
+              if (findState[i].daysWiseQuantity[j].days == dayName) {
+                let findData = await Order.findOne({ subscription: findState[i]._id, user: findState[i].userId._id, product: findState[i].product._id, startDate: startDate, orderType: "Subscription" });
+                if (!findData) {
+                  let obj = {
+                    date: new Date(startDate),
+                    day: dayName,
+                    quantity: findState[i].daysWiseQuantity[j].quantity,
+                  }
+                  push.push(obj);
+                }
+              }
+            }
+          }
         }
       }
+      console.log(push)
       if (push.length == 0) {
         let findState1 = await Subscription.findByIdAndUpdate({ _id: findState[i]._id }, { $set: { orderCreateTill: endDate, firstTimeOrder: true, } }, { new: true });
       } else {
@@ -91,8 +125,8 @@ async function createOrder(push, subscriptionId) {
           unitPrice: findState.price,
           product: findState.product._id,
           companyName: findState.product.companyName,
-          quantity: findState.quantity,
-          total: findState.quantity * findState.price,
+          quantity: push[i].quantity,
+          total: push[i].quantity * findState.price,
           ringTheBell: findState.ringTheBell,
           instruction: findState.instruction,
           pickUpBottleQuantity: pickUpBottleQuantity,
@@ -100,15 +134,16 @@ async function createOrder(push, subscriptionId) {
           isPickUpBottle: isPickUpBottle,
           discount: 0,
           shippingPrice: 0,
-          startDate: push[i],
+          startDate: push[i].date,
           cutOffOrderType: findState.cutOffOrderType,
-          amountToBePaid: (findState.quantity * findState.price),
-          collectedAmount: (findState.quantity * findState.price),
+          amountToBePaid: (push[i].quantity * findState.price),
+          collectedAmount: (push[i].quantity * findState.price),
           orderType: "Subscription",
           mode: findState.userId.paymentMode,
           subscriptionStatus: "start"
         };
         console.log(obj)
+        return
         let findData = await Order.findOne({ subscription: findState._id, user: findState.userId._id, product: findState.product._id, startDate: push[i] });
         if (findData) {
           console.log("666")
@@ -123,6 +158,48 @@ async function createOrder(push, subscriptionId) {
     console.log("Slots error.", error);
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ////////////////////////////////// after 1 month daily one /////// morningOrder////////////////
 new cronJob('* * * * * *', async function () {
   const currentDate = moment().utc();
@@ -147,8 +224,8 @@ new cronJob('* * * * * *', async function () {
       }
     }
   }
-}).start();
-// }).stop()
+  // }).start()
+}).stop()
 async function createOrder1(push, subscriptionId) {
   try {
     let findState = await Subscription.findById({ _id: subscriptionId }).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
@@ -234,8 +311,8 @@ new cronJob('* * * * * *', async function () {
       }
     }
   }
-}).start();
-// }).stop()
+  // }).start()
+}).stop()
 ////////////////////////////  pause order to resume //////////////////////
 new cronJob('* * * * * *', async function () {
   let findState = await Subscription.find({}).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
@@ -249,8 +326,8 @@ new cronJob('* * * * * *', async function () {
       }
     }
   }
-}).start();
-// }).stop()
+  // }).start()
+}).stop()
 //////////////////////////// resume order to pause //////////////////////
 new cronJob('* * * * * *', async function () {
   let findState = await Subscription.find({}).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
@@ -264,5 +341,5 @@ new cronJob('* * * * * *', async function () {
       }
     }
   }
-}).start()
-// }).stop()
+  // }).start()
+}).stop()

@@ -10,7 +10,7 @@ const cutOffTime = require('../Model/cutOffTime');
 const cronJob = require('cron').CronJob;
 ///////////////////// create order morningOrder///////////////////////////
 new cronJob('*/30 * * * * *', async function () {
-  console.log('morningOrder Cron job executed at:', new Date());
+  console.log('EveryDay morningOrder Cron job executed at:', new Date());
   let findState = await Subscription.find({ cutOffOrderType: "morningOrder", type: "EveryDay", firstTimeOrder: false, orderCreateTill: { $gte: moment().startOf('day').toDate(), $lte: moment().endOf('day').toDate() } }).populate([{ path: 'userId', populate: { path: "addressId" } }, { path: 'product' }]);
   if (findState.length > 0) {
     for (let i = 0; i < findState.length; i++) {
