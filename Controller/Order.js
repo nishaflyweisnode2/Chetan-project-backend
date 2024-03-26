@@ -115,20 +115,22 @@ const checkout = async (req, res, next) => {
           }
           if (orders.length > 0) {
             await Cart.findOneAndDelete({ user: req.user._id });
-          }
-          return res.status(200).json({ success: true, msg: "Order created", orders, });
-        } else {
-          return res.status(401).json({ message: "You cannot place an order,  delivery boy not assigned." });
+            return res.status(200).json({ success: true, msg: "Order created", orders, });
+          } else {
+            return res.status(200).json({ success: true, msg: "Order created", {}, });
         }
-      } else if (user.userStatus == "UnApproved") {
-        return res.status(401).json({ message: "You cannot place order, as we are not serviceable at provided address." });
       } else {
-        return res.status(401).json({ message: 'You cannot place order, Waiting for Amin approval.' });
+        return res.status(401).json({ message: "You cannot place an order,  delivery boy not assigned." });
       }
+    } else if (user.userStatus == "UnApproved") {
+      return res.status(401).json({ message: "You cannot place order, as we are not serviceable at provided address." });
+    } else {
+      return res.status(401).json({ message: 'You cannot place order, Waiting for Amin approval.' });
     }
-  } catch (error) {
-    next(error);
   }
+  } catch (error) {
+  next(error);
+}
 };
 const myOrders = catchAsyncErrors(async (req, res, next) => {
   try {
