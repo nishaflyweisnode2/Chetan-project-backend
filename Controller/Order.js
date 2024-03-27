@@ -493,23 +493,38 @@ const pauseSubscription = async (req, res, next) => {
     if (!order) {
       return res.status(404).json({ error: 'Subscription not found' });
     }
-    const currentDate = new Date().toISOString().split('T')[0];
-    if (currentDate >= order.pauseDate && currentDate <= order.resumeDate) {
-      order.status = 'pause';
-      order.endDate = new Date();
-      let findUserOrder = await Order.find({ subscription: subscriptionId, orderType: "Subscription", startDate: { $gte: req.body.pauseDate, $lt: req.body.resumeDate, } });
-      if (findUserOrder) {
-        for (let i = 0; i < findUserOrder.length; i++) {
-          await Order.findByIdAndUpdate({ _id: findUserOrder[i]._id }, { $set: { subscriptionStatus: "pause" } }, { new: true });
-        }
+    order.status = 'pause';
+    let findUserOrder = await Order.find({ subscription: subscriptionId, orderType: "Subscription", startDate: { $gte: req.body.pauseDate, $lt: req.body.resumeDate, } });
+    if (findUserOrder) {
+      for (let i = 0; i < findUserOrder.length; i++) {
+        await Order.findByIdAndUpdate({ _id: findUserOrder[i]._id }, { $set: { subscriptionStatus: "pause" } }, { new: true });
       }
-    } else {
-      order.status = 'start';
     }
     order.pauseDate = req.body.pauseDate;
     order.resumeDate = req.body.resumeDate;
     await order.save();
-
+    return res.status(201).json({ message: 'Subscription status updated successfully', order });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to update subscription status' });
+  }
+};
+const resumeSubscription = async (req, res, next) => {
+  try {
+    const { subscriptionId } = req.params;
+    const order = await Subscription.findById(subscriptionId);
+    if (!order) {
+      return res.status(404).json({ error: 'Subscription not found' });
+    }
+    order.status = 'start';
+    let findUserOrder = await Order.find({ subscription: subscriptionId, orderType: "Subscription", startDate: { $gte: req.body.resumeDate, } });
+    if (findUserOrder) {
+      for (let i = 0; i < findUserOrder.length; i++) {
+        await Order.findByIdAndUpdate({ _id: findUserOrder[i]._id }, { $set: { subscriptionStatus: "start" } }, { new: true });
+      }
+    }
+    order.resumeDate = req.body.resumeDate;
+    await order.save();
     return res.status(201).json({ message: 'Subscription status updated successfully', order });
   } catch (error) {
     console.error(error);
@@ -1485,4 +1500,4 @@ const getAllOrdersForUser = catchAsyncErrors(async (req, res, next) => {
     return res.status(200).json({ success: false, });
   }
 });
-module.exports = { deleteOrder, getAllOrdersForUser, getAllOneTimeOrdersForAdmin, getAllOrdersForInvoice, getSubscriptionById, checkoutForAdmin, updateOrderDetailsByAdmin, getAllOrdersForAdmin, returnBottleOrderForAdmin, updateOrderDetails, subscription, payBillStatusUpdate, returnBottleOrder, updateCollectedDate, createSubscription, pauseSubscription, updateSubscription, deleteSubscription, deleteproductinOrder, mySubscriptionOrders, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }
+module.exports = { deleteOrder, resumeSubscription, getAllOrdersForUser, getAllOneTimeOrdersForAdmin, getAllOrdersForInvoice, getSubscriptionById, checkoutForAdmin, updateOrderDetailsByAdmin, getAllOrdersForAdmin, returnBottleOrderForAdmin, updateOrderDetails, subscription, payBillStatusUpdate, returnBottleOrder, updateCollectedDate, createSubscription, pauseSubscription, updateSubscription, deleteSubscription, deleteproductinOrder, mySubscriptionOrders, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }

@@ -1,11 +1,14 @@
 const router = require("express").Router();
 const { isAuthenticatedUser, authorizeRoles } = require("../Middleware/auth");
 const { placeOrderCOD, getOrders, updateCollectedDate, payBills, mySubscriptionOrders,
-        createSubscription, updateSubscription, pauseSubscription, deleteSubscription,
+        createSubscription, updateSubscription, pauseSubscription, resumeSubscription, deleteSubscription,
         insertNewProduct, deleteproductinOrder, addproductinOrder, mySubscription,
         subscription, getSingleOrder, getAllSubscription, getUnconfirmedOrders,
         GetAllReturnOrderbyUserId, GetReturnByOrderId, orderReturn, updateOrder,
-        getAllOrders, getAllOrdersForUser, updateOrderDetailsByAdmin, getAllOneTimeOrdersForAdmin, getSubscriptionById, getAllOrdersForInvoice, checkoutForAdmin, checkout, getAllOrdersForAdmin, updateOrderDetails, placeOrder, myOrders, payBillStatusUpdate, returnBottleOrder, returnBottleOrderForAdmin, deleteOrder } = require("../Controller/Order");
+        getAllOrders, getAllOrdersForUser, updateOrderDetailsByAdmin, getAllOneTimeOrdersForAdmin,
+        getSubscriptionById, getAllOrdersForInvoice, checkoutForAdmin, checkout, getAllOrdersForAdmin,
+        updateOrderDetails, placeOrder, myOrders, payBillStatusUpdate, returnBottleOrder,
+        returnBottleOrderForAdmin, deleteOrder } = require("../Controller/Order");
 
 router.post("/api/v1/order/checkout", isAuthenticatedUser, checkout);
 router.post("/api/v1/order/checkoutForAdmin", checkoutForAdmin);
@@ -25,6 +28,7 @@ router.get('/api/v1/order/return/BottleOrderForAdmin', returnBottleOrderForAdmin
 router.post("/api/v1/order/createSubscription", isAuthenticatedUser, createSubscription);
 router.get("/api/v1/order/getSubscription/:subscriptionId", getSubscriptionById);
 router.put("/api/v1/order/pauseSubscription/:subscriptionId", isAuthenticatedUser, pauseSubscription);
+router.put("/api/v1/order/resumeSubscription/:subscriptionId", isAuthenticatedUser, resumeSubscription);
 router.put("/api/v1/order/updateSubscription/:subscriptionId", isAuthenticatedUser, updateSubscription);
 router.delete("/api/v1/order/deleteSubscription/:subscriptionId", isAuthenticatedUser, deleteSubscription);
 router.get("/api/v1/order/my/subscribe", isAuthenticatedUser, mySubscription);
