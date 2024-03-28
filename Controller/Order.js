@@ -259,7 +259,7 @@ const updateOrderDetails = catchAsyncErrors(async (req, res, next) => {
       orderType: order.orderType,
       mode: order.paymentMode
     }
-    let update = await Order.findByIdAndUpdate({ _id: driverData._id }, { $set: obj }, { new: true })
+    let update = await Order.findByIdAndUpdate({ _id: order._id }, { $set: obj }, { new: true })
     return res.status(200).json({ success: true, message: "Order successfully updated", data: update });
   } catch (error) {
     return res.status(500).json({ message: error.message });
