@@ -8,11 +8,12 @@ const { placeOrderCOD, getOrders, updateCollectedDate, payBills, mySubscriptionO
         getAllOrders, getAllOrdersForUser, updateOrderDetailsByAdmin, getAllOneTimeOrdersForAdmin,
         getSubscriptionById, getAllOrdersForInvoice, checkoutForAdmin, checkout, getAllOrdersForAdmin,
         updateOrderDetails, placeOrder, myOrders, payBillStatusUpdate, returnBottleOrder,
-        returnBottleOrderForAdmin, deleteOrder } = require("../Controller/Order");
+        returnBottleOrderForAdmin, deleteOrder, getAllProductOrdersForInvoice } = require("../Controller/Order");
 
 router.post("/api/v1/order/checkout", isAuthenticatedUser, checkout);
 router.post("/api/v1/order/checkoutForAdmin", checkoutForAdmin);
 router.get("/api/v1/order/", isAuthenticatedUser, myOrders);
+router.get("/api/v1/order/getAllProductOrders/ForInvoice", getAllProductOrdersForInvoice);
 router.get("/api/v1/order/getAllOrders/ForInvoice", getAllOrdersForInvoice);
 router.get("/api/v1/order/:id", getSingleOrder);
 router.put("/api/v1/order/updateOrderDetailsByAdmin/:id", updateOrderDetailsByAdmin)

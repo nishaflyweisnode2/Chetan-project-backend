@@ -935,7 +935,41 @@ const checkoutForAdmin = async (req, res, next) => {
   }
 };
 
-
+const getAllProductOrdersForInvoice = catchAsyncErrors(async (req, res, next) => {
+  try {
+    const { userId, product, fromDate, toDate, page, orderType, limit } = req.query;
+    let query = { user: userId };
+    if (orderType) {
+      query.orderType = orderType;
+    }
+    if (product) {
+      query.product = product;
+    }
+    if (fromDate && !toDate) {
+      query.createdAt = { $gte: fromDate };
+    }
+    if (!fromDate && toDate) {
+      query.createdAt = { $lte: toDate };
+    }
+    if (fromDate && toDate) {
+      query.$and = [
+        { createdAt: { $gte: fromDate } },
+        { createdAt: { $lte: toDate } },
+      ]
+    }
+    let options = {
+      page: Number(page) || 1,
+      limit: Number(limit) || 100,
+      sort: { createdAt: -1 },
+      populate: [{ path: 'user', populate: { path: "addressId" } }, { path: 'product' }]
+    };
+    let data = await Order.paginate(query, options);
+    return res.status(200).json({ status: 200, message: "Order data found.", data: data });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ msg: "internal server error ", error: err.message, });
+  }
+});
 
 
 
@@ -1500,4 +1534,4 @@ const getAllOrdersForUser = catchAsyncErrors(async (req, res, next) => {
     return res.status(200).json({ success: false, });
   }
 });
-module.exports = { deleteOrder, resumeSubscription, getAllOrdersForUser, getAllOneTimeOrdersForAdmin, getAllOrdersForInvoice, getSubscriptionById, checkoutForAdmin, updateOrderDetailsByAdmin, getAllOrdersForAdmin, returnBottleOrderForAdmin, updateOrderDetails, subscription, payBillStatusUpdate, returnBottleOrder, updateCollectedDate, createSubscription, pauseSubscription, updateSubscription, deleteSubscription, deleteproductinOrder, mySubscriptionOrders, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }
+module.exports = { deleteOrder, resumeSubscription, getAllOrdersForUser, getAllOneTimeOrdersForAdmin, getAllOrdersForInvoice, getSubscriptionById, checkoutForAdmin, updateOrderDetailsByAdmin, getAllOrdersForAdmin, returnBottleOrderForAdmin, updateOrderDetails, subscription, payBillStatusUpdate, returnBottleOrder, updateCollectedDate, createSubscription, pauseSubscription, updateSubscription, deleteSubscription, deleteproductinOrder, mySubscriptionOrders, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, getAllProductOrdersForInvoice, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }
