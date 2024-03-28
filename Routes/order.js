@@ -16,7 +16,7 @@ router.get("/api/v1/order/", isAuthenticatedUser, myOrders);
 router.get("/api/v1/order/getAllOrders/ForInvoice", getAllOrdersForInvoice);
 router.get("/api/v1/order/:id", getSingleOrder);
 router.put("/api/v1/order/updateOrderDetailsByAdmin/:id", updateOrderDetailsByAdmin)
-router.put("/api/v1/order/updateOrderDetails/:id", updateOrderDetails)
+router.put("/api/v1/order/updateOrderDetails/:id", isAuthenticatedUser, updateOrderDetails)
 router.delete("/api/v1/order/admin/:id", deleteOrder)
 router.get("/api/v1/order/admin/orders", getAllOrders)
 router.put("/api/v1/order/admin/:id", updateOrder)
