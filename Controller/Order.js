@@ -197,7 +197,7 @@ const updateOrderDetails = catchAsyncErrors(async (req, res, next) => {
     let TotalAmount = 0, total = 0;
     const allOrder = await Order.find({ _id: { $ne: req.params.id }, user: order.user, startDate: { $gte: order.startDate }, startDate: { $lte: order.startDate } });
     if (allOrder.length > 0) {
-      for (let i = 0; i < allOrder.products.length; i++) {
+      for (let i = 0; i < allOrder.length; i++) {
         TotalAmount = allOrder[i].price * allOrder[i].quantity;
       }
     }
