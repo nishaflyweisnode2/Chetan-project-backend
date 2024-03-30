@@ -6,16 +6,13 @@ const User = require("../Model/userModel");
 exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
   try {
     const token = req.get("Authorization")?.split("Bearer ")[1];
-    console.log(token)
-  if (!token) {
-    return next(new ErrorHander("Please Login to access this resource", 401));
-  }
+    if (!token) {
+      return next(new ErrorHander("Please Login to access this resource", 401));
+    }
 
-  const decodedData = jwt.verify(token, process.env.JWT_SECRET);
-  console.log(decodedData);
-  req.user = await User.findById(decodedData.id);
-  console.log(req.user)
-  next();
+    const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = await User.findById(decodedData.id);
+    next();
   } catch (error) {
     res.status(500).json({ message: error.message })
   }
