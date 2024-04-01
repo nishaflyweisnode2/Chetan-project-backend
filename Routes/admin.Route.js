@@ -30,10 +30,8 @@ router.get('/api/v1/RechargeOffer/getRechargeOfferByUserId/:user', admin.getRech
 router.post('/api/v1/assignPermissionUserbyId/:id', admin.assignPermissionUserbyId);
 router.post('/api/v1/acceptRejectAddress/:id', admin.acceptRejectAddress);
 router.get('/api/v1/getAllLogs', admin.getAllLogs);
-
+router.get('/api/v1/getAllCollectedAmount', admin.getAllCollectedAmount);
 router.get('/api/v1/getAllNotDelivered', admin.getAllNotDelivered);
-
-
 router.get('/api/v1/userOrders/get/:userId', admin.userOrders);
 router.get('/api/v1/userSubscriptionOrders/get/:userId', admin.userSubscriptionOrders);
 router.put('/api/v1/updateUserProfile/put/:userId', admin.updateUserProfile);

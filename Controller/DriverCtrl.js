@@ -563,6 +563,50 @@ exports.logout = async (req, res, next) => {
     res.cookie("token", null, { expires: new Date(Date.now()), httpOnly: true, });
     res.status(200).json({ success: true, message: "Logged Out", });
 };
+exports.getAllDrivers = async (req, res) => {
+    try {
+        const { search, fromDate, toDate, page, limit } = req.query;
+        let query = { role: "driver" };
+        if (search) {
+            const phoneNumber = Number(search);
+            if (!isNaN(phoneNumber)) {
+                query.$or = [
+                    { "phone": phoneNumber }
+                ];
+            } else {
+                query.$or = [
+                    { "name": { $regex: search, $options: "i" } },
+                    { "email": { $regex: search, $options: "i" } },
+                ];
+            }
+        }
+        if (fromDate && !toDate) {
+            query.createdAt = { $gte: fromDate };
+        }
+        if (!fromDate && toDate) {
+            query.createdAt = { $lte: toDate };
+        }
+        if (fromDate && toDate) {
+            query.$and = [
+                { createdAt: { $gte: fromDate } },
+                { createdAt: { $lte: toDate } },
+            ]
+        }
+        let options = {
+            page: Number(page) || 1,
+            limit: Number(limit) || 15,
+            sort: { createdAt: -1 },
+            populate: 'addressId'
+        };
+        console.log(query)
+        let data = await driver.paginate(query, options);
+        return res.status(200).json({ status: 200, message: "User data found.", data: data });
+
+    } catch (err) {
+        console.log(err);
+        return res.status(500).send({ msg: "internal server error ", error: err.message, });
+    }
+};
 exports.AllDrivers = async (req, res) => {
     try {
         const Data = await driver.find({ role: "driver" }).populate('addressId')

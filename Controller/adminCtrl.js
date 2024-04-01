@@ -22,6 +22,7 @@ const Address = require("../Model/addressModel");
 const notDelivered = require('../Model/notDelivered');
 const Category = require("../Model/categoryModel");
 const SubCategory = require("../Model/SubCategoryModel");
+const collectedAmount = require("../Model/collectedAmount");
 exports.dashboard = async (req, res) => {
   try {
     let totalUser = await User.find({ role: "User" }).count();
@@ -296,22 +297,20 @@ exports.getAllUser = async (req, res) => {
   try {
     const { search, fromDate, toDate, status, userStatus, addressStatus, page, limit } = req.query;
     let query = { role: "User" };
-    const phoneNumber = Number(search);
-    if (!isNaN(phoneNumber)) {
-      query.$or = [
-        { "name": { $regex: search, $options: "i" } },
-        { "lastName": { $regex: search, $options: "i" } },
-        { "firstName": { $regex: search, $options: "i" } },
-        { "email": { $regex: search, $options: "i" } },
-        { "phone": phoneNumber }
-      ];
-    } else {
-      query.$or = [
-        { "name": { $regex: search, $options: "i" } },
-        { "lastName": { $regex: search, $options: "i" } },
-        { "firstName": { $regex: search, $options: "i" } },
-        { "email": { $regex: search, $options: "i" } },
-      ];
+    if (search) {
+      const phoneNumber = Number(search);
+      if (!isNaN(phoneNumber)) {
+        query.$or = [
+          { "phone": phoneNumber }
+        ];
+      } else {
+        query.$or = [
+          { "name": { $regex: search, $options: "i" } },
+          { "lastName": { $regex: search, $options: "i" } },
+          { "firstName": { $regex: search, $options: "i" } },
+          { "email": { $regex: search, $options: "i" } },
+        ];
+      }
     }
     if (status) {
       query.status = status
@@ -694,6 +693,18 @@ exports.getAllNotDelivered = async (req, res) => {
       return res.status(200).json({ status: 200, message: "Logs found successfully", data: Driver });
     } else {
       return res.status(404).json({ status: 404, message: "Logs Not found", data: {} })
+    }
+  } catch (err) {
+    return res.status(400).json({ message: err.message })
+  }
+};
+exports.getAllCollectedAmount = async (req, res) => {
+  try {
+    const Driver = await collectedAmount.find().populate('driver user');
+    if (Driver.length > 0) {
+      return res.status(200).json({ status: 200, message: "CollectedAmount found successfully", data: Driver });
+    } else {
+      return res.status(404).json({ status: 404, message: "CollectedAmount Not found", data: {} })
     }
   } catch (err) {
     return res.status(400).json({ message: err.message })

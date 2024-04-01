@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const mongoosePaginate = require('mongoose-paginate-v2');
+const mongooseAggregatePaginate = require("mongoose-aggregate-paginate");
 const Driver = mongoose.Schema({
     driverId: [{
         type: mongoose.Schema.Types.ObjectId,
@@ -48,6 +50,9 @@ const Driver = mongoose.Schema({
         type: String,
         default: "pending"
     },
+    area: {
+        type: Array,
+    },
     role: {
         type: String,
         enum: ["driver", "collectionBoy"],
@@ -55,6 +60,6 @@ const Driver = mongoose.Schema({
     }
 })
 
-const driver = mongoose.model('driver', Driver);
-
-module.exports = driver;
+Driver.plugin(mongoosePaginate);
+Driver.plugin(mongooseAggregatePaginate);
+module.exports = mongoose.model('driver', Driver);

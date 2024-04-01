@@ -410,7 +410,8 @@ exports.ChangeStatus = async (req, res) => {
                 }
                 let obj1 = {
                         amount: req.query.collectedAmount,
-                        driverId: driverData.collectionBoyId
+                        driverId: driverData.collectionBoyId,
+                        user: driverData.user
                 }
                 let update = await Order.findByIdAndUpdate({ _id: driverData._id }, { $set: obj }, { new: true })
                 if (update) {

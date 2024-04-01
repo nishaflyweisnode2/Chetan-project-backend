@@ -7,6 +7,14 @@ const addressSchema = new mongoose.Schema({
         title: {
                 type: String,
         },
+        order: {
+                type: ObjectId,
+                ref: "Order",
+        },
+        Subscription: {
+                type: ObjectId,
+                ref: "Subscription",
+        },
         user: {
                 type: ObjectId,
                 ref: "User",
@@ -15,6 +23,6 @@ const addressSchema = new mongoose.Schema({
                 type: ObjectId,
                 ref: "driver",
         },
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model("logs", addressSchema);

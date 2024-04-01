@@ -104,18 +104,19 @@ const checkout = async (req, res, next) => {
                       const address = await Order.create(obj);
                       await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
                       orders.push(address)
-                      let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, }
+                      let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, order: address._id }
                       await logs.create(obj1);
                     }
-      
+
                   }
                   if (user.paymentMode == "PostPaid") {
                     const address = await Order.create(obj);
                     await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
                     orders.push(address)
-                    let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, }
+                    let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, order: address._id }
                     await logs.create(obj1);
-                  }                }
+                  }
+                }
               }
               if (CutOffTimes.type == "eveningOrder") {
                 if (selectedDate.isBefore(currentDate, 'day')) {
@@ -160,7 +161,7 @@ const checkout = async (req, res, next) => {
                       const address = await Order.create(obj);
                       await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
                       orders.push(address)
-                      let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, }
+                      let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, order: address._id }
                       await logs.create(obj1);
                     }
                   }
@@ -168,128 +169,129 @@ const checkout = async (req, res, next) => {
                     const address = await Order.create(obj);
                     await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
                     orders.push(address)
-                    let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, }
+                    let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, order: address._id }
                     await logs.create(obj1);
                   }
                 }
               }
-          } else {
-            if (CutOffTimes.type == "morningOrder") {
-              if (selectedDate.isBefore(currentDate, 'day')) {
-                return res.status(403).json({ success: 403, msg: "Please select a future date." });
-              } else if (selectedDate.isSame(currentDate, 'day')) {
-                return res.status(403).json({ success: 403, msg: "Please select a future date." });
-              }else{
-                let obj = {
-                  user: req.user._id,
-                  driverId: user.driverId,
-                  collectionBoyId: user.collectionBoyId,
-                  address2: allAddress.address2,
-                  country: allAddress.state,
-                  state: allAddress.state,
-                  houseNumber: allAddress.houseNumber,
-                  street: allAddress.street,
-                  city: allAddress.city,
-                  pinCode: allAddress.pinCode,
-                  landMark: allAddress.landMark,
-                  unitPrice: cart.products[i].product.price,
-                  product: cart.products[i].product._id,
-                  companyName: cart.products[i].product.companyName,
-                  quantity: cart.products[i].quantity,
-                  total: cart.products[i].quantity * cart.products[i].product.price,
-                  ringTheBell: cart.products[i].ringTheBell,
-                  instruction: cart.products[i].instruction,
-                  pickUpBottleQuantity: pickUpBottleQuantity,
-                  productType: cart.products[i].product.type,
-                  isPickUpBottle: isPickUpBottle,
-                  discount: 0,
-                  shippingPrice: 0,
-                  startDate: cart.products[i].startDate,
-                  cutOffOrderType: cutOffOrderType,
-                  amountToBePaid: (cart.products[i].quantity * cart.products[i].product.price),
-                  collectedAmount: (cart.products[i].quantity * cart.products[i].product.price),
-                  orderType: "once",
-                  mode: user.paymentMode
-                }
-                if (user.paymentMode == "PrePaid") {
-                  let TotalAmount = (cart.products[i].quantity * cart.products[i].product.price)
-                  if (user.balance < parseFloat(TotalAmount)) {
-                    return res.status(403).json({ message: "InSufficent balance." })
-                  } else {
+            } else {
+              if (CutOffTimes.type == "morningOrder") {
+                if (selectedDate.isBefore(currentDate, 'day')) {
+                  return res.status(403).json({ success: 403, msg: "Please select a future date." });
+                } else if (selectedDate.isSame(currentDate, 'day')) {
+                  return res.status(403).json({ success: 403, msg: "Please select a future date." });
+                } else {
+                  let obj = {
+                    user: req.user._id,
+                    driverId: user.driverId,
+                    collectionBoyId: user.collectionBoyId,
+                    address2: allAddress.address2,
+                    country: allAddress.state,
+                    state: allAddress.state,
+                    houseNumber: allAddress.houseNumber,
+                    street: allAddress.street,
+                    city: allAddress.city,
+                    pinCode: allAddress.pinCode,
+                    landMark: allAddress.landMark,
+                    unitPrice: cart.products[i].product.price,
+                    product: cart.products[i].product._id,
+                    companyName: cart.products[i].product.companyName,
+                    quantity: cart.products[i].quantity,
+                    total: cart.products[i].quantity * cart.products[i].product.price,
+                    ringTheBell: cart.products[i].ringTheBell,
+                    instruction: cart.products[i].instruction,
+                    pickUpBottleQuantity: pickUpBottleQuantity,
+                    productType: cart.products[i].product.type,
+                    isPickUpBottle: isPickUpBottle,
+                    discount: 0,
+                    shippingPrice: 0,
+                    startDate: cart.products[i].startDate,
+                    cutOffOrderType: cutOffOrderType,
+                    amountToBePaid: (cart.products[i].quantity * cart.products[i].product.price),
+                    collectedAmount: (cart.products[i].quantity * cart.products[i].product.price),
+                    orderType: "once",
+                    mode: user.paymentMode
+                  }
+                  if (user.paymentMode == "PrePaid") {
+                    let TotalAmount = (cart.products[i].quantity * cart.products[i].product.price)
+                    if (user.balance < parseFloat(TotalAmount)) {
+                      return res.status(403).json({ message: "InSufficent balance." })
+                    } else {
+                      const address = await Order.create(obj);
+                      await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                      orders.push(address)
+                      let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, order: address._id }
+                      await logs.create(obj1);
+                    }
+
+                  }
+                  if (user.paymentMode == "PostPaid") {
                     const address = await Order.create(obj);
                     await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
                     orders.push(address)
-                    let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, }
+                    let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, order: address._id }
                     await logs.create(obj1);
                   }
-    
-                }
-                if (user.paymentMode == "PostPaid") {
-                  const address = await Order.create(obj);
-                  await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
-                  orders.push(address)
-                  let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, }
-                  await logs.create(obj1);
-                }                }
-            }
-            if (CutOffTimes.type == "eveningOrder") {
-              if (selectedDate.isBefore(currentDate, 'day')) {
-                return res.status(403).json({ success: 403, msg: "Please select a future date." });
-              } else if (selectedDate.isSame(currentDate, 'day')) {
-                return res.status(403).json({ success: 403, msg: "Please select a future date." });
-              } else {
-                let obj = {
-                  user: req.user._id,
-                  driverId: user.driverId,
-                  collectionBoyId: user.collectionBoyId,
-                  address2: allAddress.address2,
-                  country: allAddress.state,
-                  state: allAddress.state,
-                  houseNumber: allAddress.houseNumber,
-                  street: allAddress.street,
-                  city: allAddress.city,
-                  pinCode: allAddress.pinCode,
-                  landMark: allAddress.landMark,
-                  unitPrice: cart.products[i].product.price,
-                  product: cart.products[i].product._id,
-                  companyName: cart.products[i].product.companyName,
-                  quantity: cart.products[i].quantity,
-                  total: cart.products[i].quantity * cart.products[i].product.price,
-                  ringTheBell: cart.products[i].ringTheBell,
-                  instruction: cart.products[i].instruction,
-                  pickUpBottleQuantity: pickUpBottleQuantity,
-                  productType: cart.products[i].product.type,
-                  isPickUpBottle: isPickUpBottle,
-                  discount: 0,
-                  shippingPrice: 0,
-                  startDate: cart.products[i].startDate,
-                  cutOffOrderType: cutOffOrderType,
-                  amountToBePaid: (cart.products[i].quantity * cart.products[i].product.price),
-                  collectedAmount: (cart.products[i].quantity * cart.products[i].product.price),
-                  orderType: "once",
-                  mode: user.paymentMode
-                }
-                if (user.paymentMode == "PrePaid") {
-                  let TotalAmount = (cart.products[i].quantity * cart.products[i].product.price)
-                  if (user.balance < parseFloat(TotalAmount)) {
-                    return res.status(403).json({ message: "InSufficent balance." })
-                  } else {
-                    const address = await Order.create(obj);
-                    await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
-                    orders.push(address)
-                    let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, }
-                    await logs.create(obj1);
-                  }
-                }
-                if (user.paymentMode == "PostPaid") {
-                  const address = await Order.create(obj);
-                  await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
-                  orders.push(address)
-                  let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, }
-                  await logs.create(obj1);
                 }
               }
-            }
+              if (CutOffTimes.type == "eveningOrder") {
+                if (selectedDate.isBefore(currentDate, 'day')) {
+                  return res.status(403).json({ success: 403, msg: "Please select a future date." });
+                } else if (selectedDate.isSame(currentDate, 'day')) {
+                  return res.status(403).json({ success: 403, msg: "Please select a future date." });
+                } else {
+                  let obj = {
+                    user: req.user._id,
+                    driverId: user.driverId,
+                    collectionBoyId: user.collectionBoyId,
+                    address2: allAddress.address2,
+                    country: allAddress.state,
+                    state: allAddress.state,
+                    houseNumber: allAddress.houseNumber,
+                    street: allAddress.street,
+                    city: allAddress.city,
+                    pinCode: allAddress.pinCode,
+                    landMark: allAddress.landMark,
+                    unitPrice: cart.products[i].product.price,
+                    product: cart.products[i].product._id,
+                    companyName: cart.products[i].product.companyName,
+                    quantity: cart.products[i].quantity,
+                    total: cart.products[i].quantity * cart.products[i].product.price,
+                    ringTheBell: cart.products[i].ringTheBell,
+                    instruction: cart.products[i].instruction,
+                    pickUpBottleQuantity: pickUpBottleQuantity,
+                    productType: cart.products[i].product.type,
+                    isPickUpBottle: isPickUpBottle,
+                    discount: 0,
+                    shippingPrice: 0,
+                    startDate: cart.products[i].startDate,
+                    cutOffOrderType: cutOffOrderType,
+                    amountToBePaid: (cart.products[i].quantity * cart.products[i].product.price),
+                    collectedAmount: (cart.products[i].quantity * cart.products[i].product.price),
+                    orderType: "once",
+                    mode: user.paymentMode
+                  }
+                  if (user.paymentMode == "PrePaid") {
+                    let TotalAmount = (cart.products[i].quantity * cart.products[i].product.price)
+                    if (user.balance < parseFloat(TotalAmount)) {
+                      return res.status(403).json({ message: "InSufficent balance." })
+                    } else {
+                      const address = await Order.create(obj);
+                      await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                      orders.push(address)
+                      let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, order: address._id }
+                      await logs.create(obj1);
+                    }
+                  }
+                  if (user.paymentMode == "PostPaid") {
+                    const address = await Order.create(obj);
+                    await address.populate([{ path: "product", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                    orders.push(address)
+                    let obj1 = { description: `Order has been create by ${user.name}.`, title: 'Create order', user: user._id, order: address._id }
+                    await logs.create(obj1);
+                  }
+                }
+              }
             }
           }
           return res.status(200).json({ success: true, msg: "Order created", orders, });
@@ -606,7 +608,7 @@ const createSubscription = async (req, res, next) => {
           if (CutOffTimes) {
             cutOffOrderType = CutOffTimes.type;
           }
-        
+
           console.log(cart)
           let orders = [], TotalAmount = 0;
           for (let i = 0; i < cart.products.length; i++) {
@@ -638,15 +640,13 @@ const createSubscription = async (req, res, next) => {
             const banner = await Subscription.create(obj);
             if (banner) {
               orders.push(banner);
+              let obj1 = { description: `Subscription has been create by ${req.user.name}.`, title: 'Create subscription', user: req.user._id, Subscription: banner._id }
+              await logs.create(obj1);
             }
           }
           if (orders.length > 0) {
-            let obj1 = { description: `Subscription has been create by ${req.user.name}.`, title: 'Create subscription', user: req.user._id, }
-            await logs.create(obj1);
             return res.status(201).json({ message: 'Create subscription successfully', orders });
           } else {
-            let obj1 = { description: `Subscription has been create by ${req.user.name}.`, title: 'Create subscription', user: req.user._id, }
-            await logs.create(obj1);
             return res.status(201).json({ message: 'Create subscription successfully', orders });
           }
         } else {
@@ -680,6 +680,8 @@ const pauseSubscription = async (req, res, next) => {
     order.pauseDate = req.body.pauseDate;
     order.resumeDate = req.body.resumeDate;
     await order.save();
+    let obj1 = { description: `Subscription has been pause by ${req.user.name}.`, title: 'Pause subscription', user: req.user._id, Subscription: order._id }
+    await logs.create(obj1);
     return res.status(201).json({ message: 'Subscription status updated successfully', order });
   } catch (error) {
     console.error(error);
@@ -702,6 +704,8 @@ const resumeSubscription = async (req, res, next) => {
     }
     order.resumeDate = req.body.resumeDate;
     await order.save();
+    let obj1 = { description: `Subscription has been resume by ${req.user.name}.`, title: 'Pause subscription', user: req.user._id, Subscription: order._id }
+    await logs.create(obj1);
     return res.status(201).json({ message: 'Subscription status updated successfully', order });
   } catch (error) {
     console.error(error);
@@ -750,6 +754,7 @@ const updateSubscription = async (req, res, next) => {
       description: `Subscription has been update by ${req.user.name}.`,
       title: 'Update subscription',
       user: req.user._id,
+      Subscription: banner._id
     }
     await logs.create(obj1);
     return res.status(201).json({ message: 'Create subscription successfully', banner });

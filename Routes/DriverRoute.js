@@ -20,6 +20,7 @@ router.put('/api/v1/driver/updateDriverDetails/:id', driver_Controllers.updateDr
 // router.put('/api/v1/driver/accept/:id', driver_Controllers.DriverAccept);
 // router.put('/api/v1/driver/reject/:id', driver_Controllers.DriverReject);
 router.get('/api/v1/driver/alldriver', driver_Controllers.AllDrivers);
+router.get('/api/v1/driver/getAllDrivers', driver_Controllers.getAllDrivers);
 router.get('/api/v1/driver/getAllDriverForAdmin', driver_Controllers.getAllDriverForAdmin);
 router.get('/api/v1/driver/DriverAllOrderProductWithQuantity/:id', driver_Controllers.DriverAllOrderProductWithQuantity);
 router.get('/api/v1/driver/getAllOrderByProductId/:id', driver_Controllers.getAllOrderByProductId);

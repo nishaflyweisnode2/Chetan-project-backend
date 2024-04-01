@@ -6,6 +6,10 @@ const DocumentSchema = schema({
                 type: schema.Types.ObjectId,
                 ref: "driver"
         },
+        user: {
+                type: schema.Types.ObjectId,
+                ref: "User",
+        },
         amount: {
                 type: String
         },
