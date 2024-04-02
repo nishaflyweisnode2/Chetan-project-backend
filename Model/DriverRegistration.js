@@ -48,7 +48,8 @@ const Driver = mongoose.Schema({
     },
     status: {
         type: String,
-        default: "pending"
+        enum: ["Active", "Block"],
+        default: "Active"
     },
     area: {
         type: Array,

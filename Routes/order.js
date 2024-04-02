@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const { isAuthenticatedUser, authorizeRoles } = require("../Middleware/auth");
-const { placeOrderCOD, getOrders, updateCollectedDate, payBills, mySubscriptionOrders,
+const { createSubscriptionFromAdmin, placeOrderCOD, getOrders, updateCollectedDate, payBills, mySubscriptionOrders,
         createSubscription, updateSubscription, pauseSubscription, resumeSubscription, deleteSubscription,
         insertNewProduct, deleteproductinOrder, addproductinOrder, mySubscription,
         subscription, getSingleOrder, getAllSubscription, getUnconfirmedOrders,
@@ -12,6 +12,7 @@ const { placeOrderCOD, getOrders, updateCollectedDate, payBills, mySubscriptionO
 
 router.post("/api/v1/order/checkout", isAuthenticatedUser, checkout);
 router.post("/api/v1/order/checkoutForAdmin", checkoutForAdmin);
+router.post("/api/v1/order/createSubscriptionFromAdmin", createSubscriptionFromAdmin);
 router.get("/api/v1/order/", isAuthenticatedUser, myOrders);
 router.get("/api/v1/order/getAllProductOrders/ForInvoice", getAllProductOrdersForInvoice);
 router.get("/api/v1/order/getAllOrders/ForInvoice", getAllOrdersForInvoice);

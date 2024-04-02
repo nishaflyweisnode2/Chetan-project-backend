@@ -70,9 +70,10 @@ const productSchema = mongoose.Schema({
   },
   Stock: {
     type: Number,
-    required: [true, "Please Enter product Stock"],
-    maxLength: ["Stock cannot exceed 4 characters"],
-    default: 1,
+  },
+  isStockInfinite: {
+    type: Boolean,
+    default: false
   },
   numOfReviews: {
     type: Number,

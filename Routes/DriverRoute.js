@@ -63,5 +63,6 @@ router.get("/api/v1/driver/driverAttendanceList/:id", driver_Controllers.driverA
 router.post("/api/v1/driver/startDelivery/:id", driver_Controllers.startDelivery);
 router.post("/api/v1/driver/endDelivery/:id", driver_Controllers.endDelivery);
 
+router.put('/api/v1/activeBlockDriver/:driverId', driver_Controllers.activeBlockDriver);
 
 module.exports = router;

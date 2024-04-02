@@ -2,6 +2,7 @@ const ErrorHander = require("../utils/errorhander");
 const catchAsyncErrors = require("../Middleware/catchAsyncErrors");
 const Address = require("../Model/addressModel");
 const User = require("../Model/userModel");
+const notify = require('../Model/notificationModel');
 
 exports.createAddress = catchAsyncErrors(async (req, res, next) => {
   const users = await User.findById({ _id: req.params.userId });
@@ -68,6 +69,20 @@ exports.updateAddressStatus = catchAsyncErrors(async (req, res, next) => {
       await Address.findByIdAndUpdate({ _id: findAddress1._id }, { $set: { addressStatus: "My" } }, { new: true, });
       await Address.findByIdAndDelete({ _id: findAddress._id });
       let update = await User.findByIdAndUpdate({ _id: users._id }, { $set: { addressStatus: req.body.addressStatus, changeAddressId: null, addressId: findAddress1._id } }, { new: true, });
+      let data12 = {
+        message: "User address has been changed, so please check first order you delivered.",
+        driverId: users.driverId,
+        for: "Driver",
+        user: users._id
+      };
+      await notify.create(data12);
+      let data13 = {
+        message: "User address has been changed, so please check first then go for collection.",
+        collectionBoyId: users.collectionBoyId,
+        for: "CollectionBoy",
+        user: users._id
+      };
+      await notify.create(data13);
       return res.status(201).json({ success: true, update, });
     } else {
       let update = await User.findByIdAndUpdate({ _id: users._id }, { $set: { addressStatus: req.body.addressStatus } }, { new: true, });

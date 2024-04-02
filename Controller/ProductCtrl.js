@@ -9,6 +9,10 @@ cloudinary.config({
   api_key: '364881266278834',
   api_secret: '5_okbyciVx-7qFz7oP31uOpuv7Q'
 });
+const cutOffTime = require('../Model/cutOffTime');
+const Order = require("../Model/ShoppingCartOrderModel");
+const Subscription = require("../Model/subscriptionModel");
+
 // Create Product -- Admin
 exports.createProduct = catchAsyncErrors(async (req, res, next) => {
   let images = [];
@@ -42,6 +46,7 @@ exports.createProduct = catchAsyncErrors(async (req, res, next) => {
     subCategory: req.body.subCategory,
     includeGst: req.body.includeGst,
     Stock: req.body.Stock,
+    isStockInfinite: req.body.isStockInfinite,
     companyName: req.body.companyName,
     deliveryPinCodes: req.body.deliveryPinCodes
   }
@@ -187,6 +192,7 @@ exports.updateProduct = catchAsyncErrors(async (req, res, next) => {
         subCategory: req.body.subCategory,
         includeGst: req.body.includeGst,
         Stock: req.body.Stock,
+        isStockInfinite: req.body.isStockInfinite,
         companyName: req.body.companyName,
         deliveryPinCodes: req.body.deliveryPinCodes
       },
@@ -210,21 +216,49 @@ exports.updateProduct = catchAsyncErrors(async (req, res, next) => {
 });
 // Delete Product
 exports.deleteProduct = catchAsyncErrors(async (req, res, next) => {
-
   const product = await Product.findById({ _id: req.params.id });
-
   if (!product) {
     return next(new ErrorHander("Product not found", 404));
   }
-
-  // Deleting Images From Cloudinary
+  // await deleteOrderSubscription(req.params.id)
   await product.deleteOne();
-
-  res.status(200).json({
-    success: true,
-    message: "Product Delete Successfully",
-  });
+  return res.status(200).json({ success: true, message: "Product Delete Successfully", });
 });
+
+async function deleteOrder(productId) {
+  try {
+    const currentTime = new Date();
+    const currentHour = currentTime.getHours();
+    const currentMinute = currentTime.getMinutes();
+    const currentSecond = currentTime.getSeconds();
+    let currentSecond1, currentMinute1;
+    if (currentSecond < 10) { currentSecond1 = '' + 0 + currentSecond; } else { currentSecond1 = currentSecond };
+    if (currentMinute < 10) { currentMinute1 = '' + 0 + currentMinute; } else { currentMinute1 = currentMinute };
+    let cutOffOrderType;
+    const currentTimeString = `${currentHour}:${currentMinute1}:${currentSecond1}`;
+    // const CutOffTimes = await cutOffTime.findOne({ _id: user.cutOffTimeId });
+    // if (CutOffTimes) {
+    //   cutOffOrderType = CutOffTimes.type;
+    // }
+
+    let order = await Order.find({ product: productId, startDate: { $gte: currentTime } });
+    if (order.length > 0) {
+      for (let i = 0; i < order.length; i++) {
+        if (order[i].cutOffOrderType == 'morningOrder') {
+          console.log("morningOrder----------------------------", order[i]);
+
+        }
+        if (order[i].cutOffOrderType == 'eveningOrder') {
+          console.log("eveningOrder----------------------------", order[i]);
+
+        }
+      }
+    }
+  } catch (error) {
+    console.log("562----------------------------", error);
+  }
+};
+
 // Create New Review or Update the review
 exports.createProductReview = catchAsyncErrors(async (req, res, next) => {
   try {

@@ -115,7 +115,7 @@ exports.createDriver = async (req, res, next) => {
 }
 exports.createDriverForAdmin = async (req, res, next) => {
     try {
-        const { phone, cutOffTimeId, name } = req.body;
+        const { phone, cutOffTimeId, name, area } = req.body;
         let findDriver = await driver.findOne({ phone, role: 'driver' });
         if (findDriver) {
             return res.status(409).json({ data: {}, message: "Already exist.", status: 409 });
@@ -124,7 +124,7 @@ exports.createDriverForAdmin = async (req, res, next) => {
             if (!CutOffTimes) {
                 return res.status(404).json({ data: {}, message: "cutOffTime not found.", status: 404 });
             }
-            const Driver = await driver.create({ phone, cutOffTimeId, name, role: 'driver' });
+            const Driver = await driver.create({ phone, cutOffTimeId, area, name, role: 'driver' });
             if (Driver) {
                 return res.status(201).json({ data: Driver, message: "Registration successfully", status: 200 });
             }
@@ -207,7 +207,8 @@ exports.updateDriverDetailsFromAdmin = async (req, res) => {
             let obj = {
                 name: req.body.name || Data.name,
                 phone: req.body.phone || Data.phone,
-                cutOffTimeId: req.body.cutOffTimeId
+                cutOffTimeId: req.body.cutOffTimeId,
+                area: req.body.area || Data.area,
             }
             const data = await driver.findOneAndUpdate({ _id: req.params.id }, { $set: obj }, { new: true });
             return res.status(200).json({ success: true, details: data })
@@ -1086,6 +1087,23 @@ exports.getAllOrderByProductId = async (req, res, next) => {
     } catch (error) {
         console.error(error);
         return res.status(500).json({ success: false, error: "Internal server error" });
+    }
+};
+exports.activeBlockDriver = async (req, res, next) => {
+    try {
+        const users = await driver.findById({ _id: req.params.driverId });
+        if (!users) {
+            return next(new ErrorHander(`Driver does not exist with Id: ${req.params.driverId}`, 400));
+        }
+        if (users.status == "Block") {
+            const updatedTeacher = await driver.findByIdAndUpdate({ _id: users._id }, { $set: { status: "Active" } }, { new: true });
+            return res.json({ status: 200, message: "Driver Active successfully.", data: updatedTeacher });
+        } else {
+            const updatedTeacher = await driver.findByIdAndUpdate({ _id: users._id }, { $set: { status: "Block" } }, { new: true });
+            return res.json({ status: 200, message: "Driver Block successfully.", data: updatedTeacher });
+        }
+    } catch (error) {
+        return res.status(500).json({ error: "Internal server error" });
     }
 };
 const reffralCode = async () => {

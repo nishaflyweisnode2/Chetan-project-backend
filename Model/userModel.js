@@ -105,6 +105,14 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  advancedAmount: {
+    type: Number,
+    default: 0,
+  },
+  pendingAmount: {
+    type: Number,
+    default: 0,
+  },
   location: {
     type: {
       type: String,

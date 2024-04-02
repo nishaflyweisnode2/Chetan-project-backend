@@ -30,6 +30,7 @@ exports.AddNotification = async (req, res) => {
           message: req.body.message,
           image: fileUrl,
           driverId: req.body.userId,
+          for: "Driver",
         };
       }
       if (req.body.type == 'collectionBoy') {
@@ -37,6 +38,7 @@ exports.AddNotification = async (req, res) => {
           message: req.body.message,
           image: fileUrl,
           collectionBoyId: req.body.userId,
+          for: "CollectionBoy",
         };
       }
       if (req.body.type == 'user') {
@@ -44,6 +46,7 @@ exports.AddNotification = async (req, res) => {
           message: req.body.message,
           image: fileUrl,
           user: req.body.userId,
+          for: "user",
         };
       }
       const Data = await notify.create(data);
