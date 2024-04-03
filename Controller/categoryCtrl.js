@@ -8,11 +8,11 @@ const imagePattern = "[^\\s]+(.*?)\\.(jpg|jpeg|png|gif|JPG|JPEG|PNG|GIF)$";
 const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("cloudinary").v2;
-cloudinary.config({ 
-    cloud_name: 'dtijhcmaa', 
-    api_key: '624644714628939', 
-    api_secret: 'tU52wM1-XoaFD2NrHbPrkiVKZvY' 
-  });
+cloudinary.config({
+  cloud_name: 'dtijhcmaa',
+  api_key: '624644714628939',
+  api_secret: 'tU52wM1-XoaFD2NrHbPrkiVKZvY'
+});
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
@@ -31,6 +31,9 @@ const createCategory = async (req, res) => {
     } else {
       upload.single("image")(req, res, async (err) => {
         if (err) { return res.status(400).json({ msg: err.message }); }
+        if (req.file.size > 5 * 1024 * 1024) {
+          res.status(403).json({ message: "image size more than  5 mb.", status: 403, data: {} });
+        }
         const fileUrl = req.file ? req.file.path : "";
         const data = { name: req.body.name, image: fileUrl };
         const category = await Category.create(data);
@@ -57,7 +60,9 @@ const updateCategory = catchAsyncErrors(async (req, res, next) => {
       if (err) {
         return res.status(400).json({ msg: err.message });
       }
-
+      if (req.file.size > 5 * 1024 * 1024) {
+        res.status(403).json({ message: "image size more than  5 mb.", status: 403, data: {} });
+      }
       const fileUrl = req.file ? req.file.path : "";
       category.image = fileUrl || category.image;
       category.name = req.body.name;
@@ -78,6 +83,9 @@ const updateSubcategory = async (req, res) => {
   }
   upload.single("image")(req, res, async (err) => {
     if (err) { return res.status(400).json({ msg: err.message }); }
+    if (req.file.size > 5 * 1024 * 1024) {
+      res.status(403).json({ message: "image size more than  5 mb.", status: 403, data: {} });
+    }
     const fileUrl = req.file ? req.file.path : "";
     subcategory.image = fileUrl || subcategory.image;
     subcategory.subCategory = req.body.subCategory;
@@ -88,32 +96,32 @@ const updateSubcategory = async (req, res) => {
 };
 ////////////////////////////////////////// DELETE CATEGORY  //////////////////////////////////
 
-const deleteCategory =async (req, res) => {
+const deleteCategory = async (req, res) => {
   const { id } = req.params;
   try {
     const getaCategory = await Category.findById(id);
-  // const { id } = req.params;
-  // const category = await Category.findById(id);
-  // console.log(category);
-  // if (!category) {
-  //   res.status(404).json({ message: "Category Not Found", status: 404, data: {} });
-  // } else {
+    // const { id } = req.params;
+    // const category = await Category.findById(id);
+    // console.log(category);
+    // if (!category) {
+    //   res.status(404).json({ message: "Category Not Found", status: 404, data: {} });
+    // } else {
     const deletedCategory = await Category.findByIdAndDelete(getaCategory);
     res.json(deletedCategory);
   } catch (error) {
     throw new Error(error);
   }
 };
-const deletesubCategory =async (req, res) => {
+const deletesubCategory = async (req, res) => {
   const { id } = req.params;
   try {
     const getaCategory = await SubCategory.findById(id);
-  // const { id } = req.params;
-  // const category = await Category.findById(id);
-  // console.log(category);
-  // if (!category) {
-  //   res.status(404).json({ message: "Category Not Found", status: 404, data: {} });
-  // } else {
+    // const { id } = req.params;
+    // const category = await Category.findById(id);
+    // console.log(category);
+    // if (!category) {
+    //   res.status(404).json({ message: "Category Not Found", status: 404, data: {} });
+    // } else {
     const deletedCategory = await SubCategory.findByIdAndDelete(getaCategory);
     res.json(deletedCategory);
   } catch (error) {
@@ -160,10 +168,10 @@ const getCategory = catchAsyncErrors(async (req, res) => {
 const getallCategory = catchAsyncErrors(async (req, res) => {
   try {
     const categories = await Category.find();
-  res.status(201).json({
-    success: true,
-    categories,
-  });
+    res.status(201).json({
+      success: true,
+      categories,
+    });
   } catch (error) {
     throw new Error(error);
   }
@@ -172,52 +180,52 @@ const getallCategory = catchAsyncErrors(async (req, res) => {
 ////////////////////////////////////////// CREATE SUB-CATEGORY  //////////////////////////////////
 
 const createSubCategory = catchAsyncErrors(async (req, res, next) => {
-    try {
-        let findSubCategorys = await SubCategory.findOne({ subCategory: req.body.subCategory });
-        console.log(req.body.subCategory)
-        if (findSubCategorys) {
-          res.status(409).json({ message: "SubCategory already exit.", status: 404, data: {} });
-        } else {
-          upload.single("image")(req, res, async (err) => {
-            if (err) { return res.status(400).json({ msg: err.message }); }
-            const fileUrl = req.file ? req.file.path : "";
-            const data = { parentCategory: req.body.parentCategory,subCategory: req.body.subCategory, image: fileUrl };
-            const SubCategorys = await SubCategory.create(data);
-            res.status(200).json({ message: "SubCategory add successfully.", status: 200, data: SubCategorys });
-          })
-        }
-    
-      } catch (error) {
-        res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
-      }
-    });
-  
-  //   try {
-  //   const { parentCategory, subCategory, image } = req.body;
+  try {
+    let findSubCategorys = await SubCategory.findOne({ subCategory: req.body.subCategory });
+    console.log(req.body.subCategory)
+    if (findSubCategorys) {
+      res.status(409).json({ message: "SubCategory already exit.", status: 404, data: {} });
+    } else {
+      upload.single("image")(req, res, async (err) => {
+        if (err) { return res.status(400).json({ msg: err.message }); }
+        const fileUrl = req.file ? req.file.path : "";
+        const data = { parentCategory: req.body.parentCategory, subCategory: req.body.subCategory, image: fileUrl };
+        const SubCategorys = await SubCategory.create(data);
+        res.status(200).json({ message: "SubCategory add successfully.", status: 200, data: SubCategorys });
+      })
+    }
 
-  //   // Check if the subcategory already exists
-  //   const existingSubCategory = await SubCategory.findOne({ subCategory });
-  //   if (existingSubCategory) {
-  //     return res.status(400).json({ message: "Subcategory already exists" });
-  //   }
+  } catch (error) {
+    res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
+  }
+});
 
-  //   const newSubCategory = new SubCategory({
-  //     parentCategory,
-  //     subCategory,
-  //     image,
-  //   });
+//   try {
+//   const { parentCategory, subCategory, image } = req.body;
 
-  //   // Save the new subcategory to the database
-  //   const createdSubCategory = await newSubCategory.save();
+//   // Check if the subcategory already exists
+//   const existingSubCategory = await SubCategory.findOne({ subCategory });
+//   if (existingSubCategory) {
+//     return res.status(400).json({ message: "Subcategory already exists" });
+//   }
 
-  //   res.status(201).json({
-  //     success: true,
-  //     subCategory: createdSubCategory,
-  //   });
-  // } catch (error) {
-  //   console.error(error);
-  //   res.status(500).json({ message: "Internal Server Error" });
-  // }
+//   const newSubCategory = new SubCategory({
+//     parentCategory,
+//     subCategory,
+//     image,
+//   });
+
+//   // Save the new subcategory to the database
+//   const createdSubCategory = await newSubCategory.save();
+
+//   res.status(201).json({
+//     success: true,
+//     subCategory: createdSubCategory,
+//   });
+// } catch (error) {
+//   console.error(error);
+//   res.status(500).json({ message: "Internal Server Error" });
+// }
 // });
 
 ////////////////////////////////////////// TOTAL CATEGORY  //////////////////////////////////
@@ -238,13 +246,13 @@ const lengthCategory = catchAsyncErrors(async (req, res, next) => {
 });
 
 const getSubcategory = catchAsyncErrors(async (req, res, next) => {
-try {
-  const subcategories = await SubCategory.find().populate("parentCategory");
-  res.status(200).json(subcategories);
-} catch (error) {
-  console.error(error);
-  res.status(500).json({ message: 'Error fetching subcategories' });
-}
+  try {
+    const subcategories = await SubCategory.find().populate("parentCategory");
+    res.status(200).json(subcategories);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching subcategories' });
+  }
 });
 
 
