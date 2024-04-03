@@ -99,12 +99,12 @@ exports.updateSubscription = async (req, res, next) => {
     } else {
       productId = order.product;
     }
-    const user = await User.findOne({ _id: req.params.userId });
+    const user = await User.findOne({ _id: order.userId });
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
     let obj = {
-      userId: req.params.userId,
+      userId: order.userId,
       driverId: user.driverId,
       collectionBoyId: user.collectionBoyId,
       product: productId,
