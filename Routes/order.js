@@ -12,7 +12,7 @@ const { createSubscriptionFromAdmin, placeOrderCOD, getOrders, updateCollectedDa
 
 router.post("/api/v1/order/checkout", isAuthenticatedUser, checkout);
 router.post("/api/v1/order/checkoutForAdmin", checkoutForAdmin);
-router.post("/api/v1/order/createSubscriptionFromAdmin", createSubscriptionFromAdmin);
+router.post("/api/v1/order/createSubscriptionFromAdmin", isAuthenticatedUser, createSubscriptionFromAdmin);
 router.get("/api/v1/order/", isAuthenticatedUser, myOrders);
 router.get("/api/v1/order/getAllProductOrders/ForInvoice", getAllProductOrdersForInvoice);
 router.get("/api/v1/order/getAllOrders/ForInvoice", getAllOrdersForInvoice);

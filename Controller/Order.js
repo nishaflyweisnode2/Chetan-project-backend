@@ -1374,7 +1374,7 @@ const createSubscriptionFromAdmin = async (req, res, next) => {
             }
             const banner = await Subscription.create(obj1);
             if (banner) {
-              let obj1 = { description: `Subscription has been create by ${req.user.name}.`, title: 'Create subscription', user: req.user._id, Subscription: banner._id }
+              let obj1 = { description: `Subscription has been create by ${user.name}.`, title: 'Create subscription', user: req.user._id, Subscription: banner._id }
               await logs.create(obj1);
               return res.status(201).json({ message: 'Create subscription successfully', banner });
             }
@@ -1404,7 +1404,7 @@ const createSubscriptionFromAdmin = async (req, res, next) => {
             }
             const banner = await Subscription.create(obj1);
             if (banner) {
-              let obj1 = { description: `Subscription has been create by ${req.user.name}.`, title: 'Create subscription', user: req.user._id, Subscription: banner._id }
+              let obj1 = { description: `Subscription has been create by ${user.name}.`, title: 'Create subscription', user: req.user._id, Subscription: banner._id }
               await logs.create(obj1);
               return res.status(201).json({ message: 'Create subscription successfully', banner });
             }
@@ -1437,7 +1437,7 @@ const createSubscriptionFromAdmin = async (req, res, next) => {
             }
             const banner = await Subscription.create(obj1);
             if (banner) {
-              let obj1 = { description: `Subscription has been create by ${req.user.name}.`, title: 'Create subscription', user: req.user._id, Subscription: banner._id }
+              let obj1 = { description: `Subscription has been create by ${user.name}.`, title: 'Create subscription', user: req.user._id, Subscription: banner._id }
               await logs.create(obj1);
               return res.status(201).json({ message: 'Create subscription successfully', banner });
             }
@@ -1469,7 +1469,7 @@ const createSubscriptionFromAdmin = async (req, res, next) => {
             }
             const banner = await Subscription.create(obj1);
             if (banner) {
-              let obj1 = { description: `Subscription has been create by ${req.user.name}.`, title: 'Create subscription', user: req.user._id, Subscription: banner._id }
+              let obj1 = { description: `Subscription has been create by ${user.name}.`, title: 'Create subscription', user: req.user._id, Subscription: banner._id }
               await logs.create(obj1);
               return res.status(201).json({ message: 'Create subscription successfully', banner });
             }
