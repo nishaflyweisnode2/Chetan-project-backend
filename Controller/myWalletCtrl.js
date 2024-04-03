@@ -1,7 +1,4 @@
 const User = require("../Model/userModel");
-const mongoose = require('mongoose');
-//////////////////////////////// ADD MONEY ////////////////////////////////
-const Wallet = require('../Model/myWalletModel');
 const addMoney = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -17,9 +14,7 @@ const addMoney = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
-
-//////////////////////////////// GET MONEY ////////////////////////////////
-
+//////////////////////////////// GET MONEY ///////////////////////////////
 const getWallet = async (req, res) => {
 
   try {
@@ -38,9 +33,7 @@ const getWallet = async (req, res) => {
     return res.status(500).json({ message: 'Internal server error' });
   }
 };
-
 //////////////////////////////// DELETE MONEY ////////////////////////////////
-
 const deleteWallet = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -60,8 +53,6 @@ const deleteWallet = async (req, res) => {
     return res.status(500).json({ message: 'Internal server error' });
   }
 };
-
-
 module.exports = {
   addMoney,
   getWallet,

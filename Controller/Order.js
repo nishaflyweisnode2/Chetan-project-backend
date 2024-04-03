@@ -5,16 +5,14 @@ const Cart = require("../Model/cartModel");
 const subscriptionCart = require("../Model/subscriptionCart");
 const Subscription = require("../Model/subscriptionModel");
 const User = require("../Model/userModel");
-const Wallet = require('../Model/myWalletModel');
 const moment = require('moment');
 const ErrorHander = require("../utils/errorhander");
 const catchAsyncErrors = require("../Middleware/catchAsyncErrors");
-const Razorpay = require("razorpay");
 const OrderReturn = require('../Model/OrderReturnModel')
 const Address = require("../Model/addressModel");
 const cutOffTime = require('../Model/cutOffTime');
 const cron = require('node-cron');
-const razorpayInstance = new Razorpay({ key_id: "rzp_test_8VsYUQmn8hHm69", key_secret: "Xcg3HItXaBuQ9OIpeOAFUgLI", });
+const orderTransaction = require("../Model/orderTransaction");
 
 //////////////////////////////////////////// user order section ////////////////////////////////////
 const checkout = async (req, res, next) => {
@@ -504,6 +502,11 @@ const payBills = async (req, res) => {
       body.createdAt = { $gte: new Date(fromDate), $lte: new Date(toDate) };
     }
     let total = 0, orderIds = [];
+    let wallet = await User.findOne({ _id: req.user._id });
+    if (!wallet) {
+      return res.status(404).json({ message: 'Wallet not found for the user' });
+    }
+    // balance,advancedAmount,pendingAmount,
     const data = await Order.find(body).populate('product');
     if (data.length > 0) {
       for (let i = 0; i < data.length; i++) {
@@ -511,7 +514,18 @@ const payBills = async (req, res) => {
         orderIds.push(data[i]._id);
         console.log(orderIds);
       }
-      return res.status(200).json({ data: data, total, fromDate, toDate, orderIds });
+      if (wallet.advancedAmount > 0) {
+        let pendingAmount = 0;
+        let advancedAmount = wallet.advancedAmount;
+        let paidAmount = total - advancedAmount;
+        return res.status(200).json({ data: data, total, advancedAmount, paidAmount, pendingAmount, fromDate, toDate, orderIds });
+      }
+      if (wallet.pendingAmount > 0) {
+        let pendingAmount = wallet.pendingAmount;
+        let advancedAmount = 0;
+        let paidAmount = total + pendingAmount;
+        return res.status(200).json({ data: data, total, advancedAmount, paidAmount, pendingAmount, fromDate, toDate, orderIds });
+      }
     } else {
       return res.status(404).json({ success: false, data: {} });
     }
@@ -523,17 +537,91 @@ const payBills = async (req, res) => {
 const payBillStatusUpdate = async (req, res) => {
   try {
     let orders = [];
-    for (let i = 0; i < req.body.orderIds.length; i++) {
-      const driverData = await Order.findOne({ _id: req.body.orderIds[i] })
-      let update = await Order.findByIdAndUpdate({ _id: driverData._id }, { $set: { paymentMode: 'Online', paymentStatus: 'paid', collectedStatus: "Collected" } }, { new: true })
-      orders.push(update)
+    let wallet = await User.findOne({ _id: req.body.userId });
+    if (!wallet) {
+      return res.status(404).json({ message: 'Wallet not found for the user' });
     }
-    return res.status(200).json({ message: "ok", result: orders })
+    if (req.body.paidAmount > req.body.ordersAmount) {
+      let advancedAmount = req.body.paidAmount - req.body.ordersAmount;
+      for (let i = 0; i < req.body.orderIds.length; i++) {
+        const driverData = await Order.findOne({ _id: req.body.orderIds[i] })
+        let update = await Order.findByIdAndUpdate({ _id: driverData._id }, { $set: { paymentMode: 'Online', paymentStatus: 'paid', collectedStatus: "Collected" } }, { new: true })
+        orders.push(update)
+      }
+      let update = await User.findByIdAndUpdate({ _id: wallet._id }, { $set: { pendingAmount: 0, advancedAmount: advancedAmount, } }, { new: true });
+      let id = await reffralCode()
+      let obj = {
+        user: wallet._id,
+        id: id,
+        order: req.body.orderIds,
+        pendingAmount: 0,
+        advancedAmount: advancedAmount,
+        orderAmount: req.body.ordersAmount,
+        paidAmount: req.body.paidAmount,
+        month: req.body.month,
+        Status: "Paid"
+      }
+      const faq = await orderTransaction.create(obj);
+      return res.status(200).json({ message: "ok", result: orders });
+    } else if (req.body.paidAmount < req.body.ordersAmount) {
+      let pendingAmount = req.body.ordersAmount - req.body.paidAmount;
+      for (let i = 0; i < req.body.orderIds.length; i++) {
+        const driverData = await Order.findOne({ _id: req.body.orderIds[i] })
+        let update = await Order.findByIdAndUpdate({ _id: driverData._id }, { $set: { paymentMode: 'Online', paymentStatus: 'paid', collectedStatus: "Collected" } }, { new: true })
+        orders.push(update)
+      }
+      let update = await User.findByIdAndUpdate({ _id: wallet._id }, { $set: { pendingAmount: pendingAmount, advancedAmount: 0, } }, { new: true })
+      let id = await reffralCode()
+      let month = new Date(Date.now()).getMonth() + 1;
+      let obj = {
+        user: wallet._id,
+        id: id,
+        order: req.body.orderIds,
+        pendingAmount: pendingAmount,
+        advancedAmount: 0,
+        orderAmount: req.body.ordersAmount,
+        paidAmount: req.body.paidAmount,
+        month: month,
+        Status: "Paid"
+      }
+      const faq = await orderTransaction.create(obj);
+      return res.status(200).json({ message: "ok", result: orders });
+    } else {
+      for (let i = 0; i < req.body.orderIds.length; i++) {
+        const driverData = await Order.findOne({ _id: req.body.orderIds[i] })
+        let update = await Order.findByIdAndUpdate({ _id: driverData._id }, { $set: { paymentMode: 'Online', paymentStatus: 'paid', collectedStatus: "Collected" } }, { new: true })
+        orders.push(update)
+      }
+      let update = await User.findByIdAndUpdate({ _id: wallet._id }, { $set: { pendingAmount: 0, advancedAmount: 0, } }, { new: true });
+      let id = await reffralCode()
+      let month = new Date(Date.now()).getMonth() + 1;
+      let obj = {
+        user: wallet._id,
+        id: id,
+        order: req.body.orderIds,
+        pendingAmount: 0,
+        advancedAmount: 0,
+        orderAmount: req.body.ordersAmount,
+        paidAmount: req.body.paidAmount,
+        month: month,
+        Status: "Paid"
+      }
+      const faq = await orderTransaction.create(obj);
+      return res.status(200).json({ message: "ok", result: orders })
+    }
   } catch (err) {
     console.log(err);
     return res.status(400).json({ error: err.message })
   }
 };
+const reffralCode = async () => {
+  var digits = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let OTP = '';
+  for (let i = 0; i < 9; i++) {
+    OTP += digits[Math.floor(Math.random() * 36)];
+  }
+  return OTP;
+}
 const returnBottleOrder = async (req, res) => {
   try {
     const data = await Order.find({ user: req.params.userId, productType: "Bottle", isPickUpBottle: false }).populate('user product');

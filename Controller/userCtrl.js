@@ -6,7 +6,6 @@ require("dotenv").config();
 const jwt = require('jsonwebtoken')
 const OTP = require("../utils/OTP-Generate")
 const token = require("../utils/Token")
-const Wallet = require("../Model/myWalletModel");
 const twilio = require('twilio');
 const vacation = require("../Model/vacation");
 const rechargeTransaction = require("../Model/rechargeTransaction");

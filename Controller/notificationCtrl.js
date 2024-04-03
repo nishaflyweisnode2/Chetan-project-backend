@@ -15,7 +15,6 @@ const storage = new CloudinaryStorage({
     allowed_formats: ["jpg", "jpeg", "png", "PNG", "xlsx", "xls", "pdf", "PDF"],
   },
 });
-
 const upload = multer({ storage: storage });
 exports.AddNotification = async (req, res) => {
   try {
@@ -69,8 +68,6 @@ exports.GetAllNotification = async (req, res) => {
     })
   }
 }
-
-
 exports.GetBYNotifyID = async (req, res) => {
   try {
     const data = await notify.findById({ _id: req.params.id })
@@ -83,8 +80,6 @@ exports.GetBYNotifyID = async (req, res) => {
     })
   }
 }
-
-
 exports.deleteNotification = async (req, res) => {
   try {
     await notify.findByIdAndDelete({ _id: req.params.id });

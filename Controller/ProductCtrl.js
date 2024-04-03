@@ -218,39 +218,45 @@ exports.updateProduct = catchAsyncErrors(async (req, res, next) => {
 exports.deleteProduct = catchAsyncErrors(async (req, res, next) => {
   const product = await Product.findById({ _id: req.params.id });
   if (!product) {
-    return next(new ErrorHander("Product not found", 404));
+    return res.status(404).json({ success: 404, message: "Product not found", data: {} });
   }
-  // await deleteOrderSubscription(req.params.id)
+  await deleteOrderMorningOrder(req.params.id)
+  await deleteOrderEveningOrder(req.params.id)
+  await deleteSubscription(req.params.id)
   await product.deleteOne();
   return res.status(200).json({ success: true, message: "Product Delete Successfully", });
 });
-
-async function deleteOrder(productId) {
+async function deleteOrderMorningOrder(productId) {
   try {
-    const currentTime = new Date();
-    const currentHour = currentTime.getHours();
-    const currentMinute = currentTime.getMinutes();
-    const currentSecond = currentTime.getSeconds();
-    let currentSecond1, currentMinute1;
-    if (currentSecond < 10) { currentSecond1 = '' + 0 + currentSecond; } else { currentSecond1 = currentSecond };
-    if (currentMinute < 10) { currentMinute1 = '' + 0 + currentMinute; } else { currentMinute1 = currentMinute };
-    let cutOffOrderType;
-    const currentTimeString = `${currentHour}:${currentMinute1}:${currentSecond1}`;
-    // const CutOffTimes = await cutOffTime.findOne({ _id: user.cutOffTimeId });
-    // if (CutOffTimes) {
-    //   cutOffOrderType = CutOffTimes.type;
-    // }
-
-    let order = await Order.find({ product: productId, startDate: { $gte: currentTime } });
-    if (order.length > 0) {
-      for (let i = 0; i < order.length; i++) {
-        if (order[i].cutOffOrderType == 'morningOrder') {
-          console.log("morningOrder----------------------------", order[i]);
-
+    const currentDate = new Date();
+    const currentHour = currentDate.getHours();
+    const currentMinute = currentDate.getMinutes();
+    const currentSecond = currentDate.getSeconds();
+    const currentTimeString = `${currentHour}:${currentMinute}:${currentSecond}`;
+    currentDate.setHours(0, 0, 0, 0);
+    console.log("morningOrder currentTimeString----------------------------", currentTimeString);
+    const CutOffTimes = await cutOffTime.findOne({ type: "morningOrder" });
+    console.log("morningOrder CutOffTimes----------------------------", CutOffTimes.time);
+    const currentTimeParts = currentTimeString.split(":");
+    const currentHours = parseInt(currentTimeParts[0]);
+    const currentMinutes = parseInt(currentTimeParts[1]);
+    const currentSeconds = parseInt(currentTimeParts[2]);
+    const cutOffTimeParts = CutOffTimes.time.split(":");
+    const cutOffHours = parseInt(cutOffTimeParts[0]);
+    const cutOffMinutes = parseInt(cutOffTimeParts[1]);
+    const cutOffSeconds = parseInt(cutOffTimeParts[2]);
+    if ((cutOffHours > currentHours) || (cutOffHours === currentHours && cutOffMinutes > currentMinutes) || (cutOffHours === currentHours && cutOffMinutes === currentMinutes && cutOffSeconds > currentSeconds)) {
+      let orders = await Order.find({ product: productId, startDate: { $gt: currentDate }, cutOffOrderType: "morningOrder" });
+      if (orders.length > 0) {
+        for (let i = 0; i < orders.length; i++) {
+          await Order.findByIdAndDelete({ _id: orders[i]._id });
         }
-        if (order[i].cutOffOrderType == 'eveningOrder') {
-          console.log("eveningOrder----------------------------", order[i]);
-
+      }
+    } else {
+      let orders = await Order.find({ product: productId, startDate: { $gte: currentDate }, cutOffOrderType: "morningOrder" });
+      if (orders.length > 0) {
+        for (let i = 0; i < orders.length; i++) {
+          await Order.findByIdAndDelete({ _id: orders[i]._id });
         }
       }
     }
@@ -258,7 +264,49 @@ async function deleteOrder(productId) {
     console.log("562----------------------------", error);
   }
 };
-
+async function deleteOrderEveningOrder(productId) {
+  try {
+    const currentDate = new Date();
+    const currentHour = currentDate.getHours();
+    const currentMinute = currentDate.getMinutes();
+    const currentSecond = currentDate.getSeconds();
+    const currentTimeString = `${currentHour}:${currentMinute}:${currentSecond}`;
+    currentDate.setHours(0, 0, 0, 0);
+    console.log("currentTimeString----------------------------", currentTimeString);
+    const CutOffTimes = await cutOffTime.findOne({ type: "eveningOrder" });
+    console.log("CutOffTimes----------------------------", CutOffTimes.time);
+    const currentTimeParts = currentTimeString.split(":");
+    const currentHours = parseInt(currentTimeParts[0]);
+    const currentMinutes = parseInt(currentTimeParts[1]);
+    const currentSeconds = parseInt(currentTimeParts[2]);
+    const cutOffTimeParts = CutOffTimes.time.split(":");
+    const cutOffHours = parseInt(cutOffTimeParts[0]);
+    const cutOffMinutes = parseInt(cutOffTimeParts[1]);
+    const cutOffSeconds = parseInt(cutOffTimeParts[2]);
+    if ((cutOffHours > currentHours) || (cutOffHours === currentHours && cutOffMinutes > currentMinutes) || (cutOffHours === currentHours && cutOffMinutes === currentMinutes && cutOffSeconds > currentSeconds)) {
+      let orders = await Order.find({ product: productId, startDate: { $gte: currentDate }, cutOffOrderType: "eveningOrder" });
+      if (orders.length > 0) {
+        for (let i = 0; i < orders.length; i++) {
+          await Order.findByIdAndDelete({ _id: orders[i]._id });
+        }
+      }
+    }
+  } catch (error) {
+    console.log("562----------------------------", error);
+  }
+};
+async function deleteSubscription(productId) {
+  try {
+    let orders = await Subscription.find({ product: productId, });
+    if (orders.length > 0) {
+      for (let i = 0; i < orders.length; i++) {
+        await Subscription.findByIdAndDelete({ _id: orders[i]._id });
+      }
+    }
+  } catch (error) {
+    console.log("562----------------------------", error);
+  }
+};
 // Create New Review or Update the review
 exports.createProductReview = catchAsyncErrors(async (req, res, next) => {
   try {

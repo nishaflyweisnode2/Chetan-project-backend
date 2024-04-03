@@ -1,14 +1,9 @@
 const driver = require('../Model/DriverRegistration');
 const order = require('../Model/ShoppingCartOrderModel');
 const User = require('../Model/userModel')
-const rejectOrder = require('../Model/RejectReasonsModel')
-const address = require('../Model/addressModel')
-const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
 const otpHelper = require("../utils/OTP-Generate");
 const { error } = require('console');
-const product = require('../Model/productModel')
 const JWTkey = process.env.JWT_SECRET
 const OTP = require("../utils/OTP-Generate")
 const enquiry = require('../Model/enquiry');
