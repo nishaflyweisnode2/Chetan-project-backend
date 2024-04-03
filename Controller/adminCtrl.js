@@ -23,6 +23,7 @@ const notDelivered = require('../Model/notDelivered');
 const Category = require("../Model/categoryModel");
 const SubCategory = require("../Model/SubCategoryModel");
 const collectedAmount = require("../Model/collectedAmount");
+const orderTransaction = require("../Model/orderTransaction");
 exports.dashboard = async (req, res) => {
   try {
     let totalUser = await User.find({ role: "User" }).count();
@@ -686,6 +687,31 @@ exports.getAllLogs = async (req, res) => {
     return res.status(400).json({ message: err.message })
   }
 };
+exports.getAllOrderTransaction = async (req, res) => {
+  try {
+    const Driver = await orderTransaction.find().populate('user order');
+    if (Driver.length > 0) {
+      return res.status(200).json({ status: 200, message: "orderTransaction found successfully", data: Driver });
+    } else {
+      return res.status(404).json({ status: 404, message: "orderTransaction Not found", data: {} })
+    }
+  } catch (err) {
+    return res.status(400).json({ message: err.message })
+  }
+};
+exports.getOrderTransactionById = async (req, res) => {
+  try {
+    const OrderTransactions = await orderTransaction.findById({ _id: req.params.id }).populate('user order');
+    if (OrderTransactions) {
+      return res.status(200).json({ message: "orderTransaction found successfully.", status: 200, data: OrderTransactions })
+    } else {
+      return res.status(404).json({ message: "orderTransaction Not found", status: 404, data: {} })
+    }
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ message: err.message })
+  }
+}
 exports.getAllNotDelivered = async (req, res) => {
   try {
     const Driver = await notDelivered.find().populate('product driverId user orderId');

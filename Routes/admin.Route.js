@@ -40,5 +40,7 @@ router.put('/api/v1/changeUserStatus/:id', admin.changeUserStatus);
 router.put('/api/v1/prePostPaidUser/:userId', admin.prePostPaidUser);
 router.put("/api/v1/admin/updateSubscription/:subscriptionId", admin.updateSubscription);
 router.delete("/api/v1/admin/deleteSubscription/:subscriptionId", admin.deleteSubscription);
+router.get('/api/v1/getAllOrderTransaction', admin.getAllOrderTransaction);
+router.get('/api/v1/getOrderTransactionById/:id', admin.getOrderTransactionById);
 
 module.exports = router;
