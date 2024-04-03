@@ -45,6 +45,7 @@ router.get('/api/v1/driver/todayOrder/order/:id', driver_Controllers.getTodayOrd
 router.delete('/api/v1/driver/:id', driver_Controllers.DeleteDriver);
 router.put('/api/v1/driver/status/:id', driver_Controllers.ChangeStatus)
 router.post('/api/v1/driver/ChangePickUpBottleStatus/:id', driver_Controllers.ChangePickUpBottleStatus)
+router.post('/api/v1/driver/ChangePickUpBottleStatusFromAdmin/:id', driver_Controllers.ChangePickUpBottleStatusFromAdmin)
 router.post('/api/v1/driver/submitPickUpBottle/:id', driver_Controllers.submitPickUpBottle)
 router.post('/api/v1/driver/addEnquiry/:id', driver_Controllers.addEnquiry)
 router.get('/api/v1/driver/getAllTodayEnquiry/:id', driver_Controllers.getAllTodayEnquiry)
