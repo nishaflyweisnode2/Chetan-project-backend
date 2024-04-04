@@ -352,7 +352,7 @@ const myOrders = catchAsyncErrors(async (req, res, next) => {
 const getSingleOrder = catchAsyncErrors(async (req, res, next) => {
   const order = await Order.findById(req.params.id).populate('user product');
   if (!order) {
-    return next(new ErrorHander("Order not found with this Id", 404));
+    return res.status(404).json({ error: 'Order not found with this Id', status: 404 });
   }
   return res.status(200).json({ success: true, order, });
 });
@@ -360,7 +360,7 @@ const updateOrderDetails = catchAsyncErrors(async (req, res, next) => {
   try {
     const order = await Order.findByIdAndUpdate(req.params.id);
     if (!order) {
-      return next(new ErrorHandler("Order not found with this Id", 404));
+      return res.status(404).json({ error: 'Order not found with this Id', status: 404 });
     }
     const user = await User.findOne({ _id: req.user._id });
     if (!user) {
