@@ -4,6 +4,10 @@ const transactionSchema = mongoose.Schema({
                 type: mongoose.Schema.ObjectId,
                 ref: "User",
         },
+        collectionBoyId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "driver",
+        },
         order: [{
                 type: mongoose.Schema.Types.ObjectId,
                 ref: "Order"

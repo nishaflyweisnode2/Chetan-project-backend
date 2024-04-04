@@ -17,6 +17,7 @@ const axios = require('axios');
 const username = 'GIRORGANIC';
 const password = 'Girorganic@789';
 const from = 'GIRORG';
+const orderTransaction = require("../Model/orderTransaction");
 const indiaDltContentTemplateId = '1207170970346789539';
 const indiaDltPrincipalEntityId = '1201162297097138491';
 exports.sendOtp = async (req, res) => {
@@ -365,7 +366,6 @@ exports.allPendingCollectedOrder = async (req, res) => {
                 return res.status(400).json({ message: err.message })
         }
 }
-
 exports.allDriverOfCollectionBoy = async (req, res) => {
         try {
                 const collectionBoyId = req.params.collectionBoyId;
@@ -383,34 +383,45 @@ exports.allDriverOfCollectionBoy = async (req, res) => {
                 return res.status(500).json({ message: "Server error.", error: err.message });
         }
 };
-
-
-
-
 exports.ChangeStatus = async (req, res) => {
         try {
                 const driverData = await order.findOne({ _id: req.params.id })
                 if (!driverData) {
                         return res.status(404).json({ message: "Not found", result: {} })
                 }
-                if ((driverData.collectedAmount - Number(req.query.collectedAmount)) == 0) {
+                let pendingAmount = 0, advancedAmount = 0;
+                if (driverData.collectedAmount == Number(req.query.collectedAmount)) {
+                        collectedStatus = "Collected";
+                }
+                if (driverData.collectedAmount > Number(req.query.collectedAmount)) {
+                        collectedStatus = "pending";
+                        pendingAmount = driverData.collectedAmount - Number(req.query.collectedAmount)
+                }
+                if (driverData.collectedAmount < Number(req.query.collectedAmount)) {
                         collectedStatus = "Collected"
-                } else {
-                        collectedStatus = "pending"
+                        advancedAmount = Number(req.query.collectedAmount) - driverData.collectedAmount;
                 }
                 let obj = {
                         collectedAmount: driverData.collectedAmount - Number(req.query.collectedAmount),
                         paymentMode: req.query.paymentMode1,
                         collectedStatus: collectedStatus
                 }
+                let order = [];
+                order.push(driverData._id)
                 let obj1 = {
-                        amount: req.query.collectedAmount,
-                        driverId: driverData.collectionBoyId,
-                        user: driverData.user
+                        user: wallet._id,
+                        collectionBoyId: wallet.collectionBoyId,
+                        id: id,
+                        order: order,
+                        pendingAmount: pendingAmount,
+                        advancedAmount: advancedAmount,
+                        orderAmount: driverData.amountToBePaid,
+                        paidAmount: req.query.collectedAmount,
+                        Status: "Paid"
                 }
                 let update = await Order.findByIdAndUpdate({ _id: driverData._id }, { $set: obj }, { new: true })
                 if (update) {
-                        await collectedAmount.create(obj1);
+                        await orderTransaction.create(obj1);
                         return res.status(200).json({ message: "ok", result: update })
                 }
         } catch (err) {

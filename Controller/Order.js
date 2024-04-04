@@ -554,6 +554,7 @@ const payBillStatusUpdate = async (req, res) => {
       let id = await reffralCode()
       let obj = {
         user: wallet._id,
+        collectionBoyId: wallet.collectionBoyId,
         id: id,
         order: req.body.orderIds,
         pendingAmount: 0,
@@ -577,6 +578,7 @@ const payBillStatusUpdate = async (req, res) => {
       let month = new Date(Date.now()).getMonth() + 1;
       let obj = {
         user: wallet._id,
+        collectionBoyId: wallet.collectionBoyId,
         id: id,
         order: req.body.orderIds,
         pendingAmount: pendingAmount,
@@ -599,6 +601,7 @@ const payBillStatusUpdate = async (req, res) => {
       let month = new Date(Date.now()).getMonth() + 1;
       let obj = {
         user: wallet._id,
+        collectionBoyId: wallet.collectionBoyId,
         id: id,
         order: req.body.orderIds,
         pendingAmount: 0,
