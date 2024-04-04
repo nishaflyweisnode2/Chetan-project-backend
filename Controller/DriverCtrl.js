@@ -624,6 +624,61 @@ exports.driverCompleted = async (req, res) => {
         return res.status(400).json({ message: err.message })
     }
 }
+
+exports.getAllDriverCompletedOrderForAdmin = async (req, res, next) => {
+    try {
+        const { toStartDate, fromStartDate, fromDate, toDate, page, limit, orderType, userId, driverId, companyName } = req.query;
+        let query = { orderStatus: "Deliverd" };
+        if (orderType) {
+            query.orderType = orderType;
+        }
+        if (userId) {
+            query.user = userId
+        }
+        if (driverId) {
+            query.driverId = driverId
+        }
+        if (companyName) {
+            query.companyName = companyName
+        }
+        if (fromStartDate && !toStartDate) {
+            query.startDate = { $gte: fromStartDate };
+        }
+        if (!fromStartDate && toStartDate) {
+            query.startDate = { $lte: toStartDate };
+        }
+        if (fromStartDate && toStartDate) {
+            query.$and = [
+                { startDate: { $gte: fromStartDate } },
+                { startDate: { $lte: toStartDate } },
+            ]
+        }
+        if (fromDate && !toDate) {
+            query.createdAt = { $gte: fromDate };
+        }
+        if (!fromDate && toDate) {
+            query.createdAt = { $lte: toDate };
+        }
+        if (fromDate && toDate) {
+            query.$and = [
+                { createdAt: { $gte: fromDate } },
+                { createdAt: { $lte: toDate } },
+            ]
+        }
+        let options = {
+            page: Number(page) || 1,
+            limit: Number(limit) || 100,
+            sort: { createdAt: -1 },
+            populate: [{ path: 'user', populate: { path: "addressId" } }, { path: 'product' }]
+        };
+        let data = await order.paginate(query, options);
+        return res.status(200).json({ status: 200, message: "User data found.", data: data });
+
+    } catch (err) {
+        console.log(err);
+        return res.status(500).send({ msg: "internal server error ", error: err.message, });
+    }
+};
 exports.driverCanceledOrder = async (req, res) => {
     try {
         const data = await order.find({ driverId: req.params.driverId, orderStatus: "canceled" }).populate('user product');
