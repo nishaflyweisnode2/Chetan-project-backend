@@ -398,8 +398,10 @@ const updateOrderDetails = catchAsyncErrors(async (req, res, next) => {
     if ((req.body.price != (null || undefined)) && (req.body.quantity != (null || undefined))) {
       TotalAmount = TotalAmount + (req.body.price * req.body.quantity);
       total = (req.body.price * req.body.quantity);
+      req.body.quantity = req.body.quantity;
     } else {
       total = order.total;
+      req.body.quantity = order.quantity;
     }
     if (TotalAmount < 80) {
       return res.status(403).json({ message: "Minimum 80 Rs order on that day." })
@@ -419,7 +421,7 @@ const updateOrderDetails = catchAsyncErrors(async (req, res, next) => {
       unitPrice: req.body.price || order.unitPrice,
       size: req.body.size || order.size,
       product: order.product,
-      quantity: req.body.quantity || order.quantity,
+      quantity: req.body.quantity,
       total: total,
       ringTheBell: order.ringTheBell,
       instruction: order.instruction,
@@ -430,8 +432,8 @@ const updateOrderDetails = catchAsyncErrors(async (req, res, next) => {
       shippingPrice: order.shippingPrice,
       startDate: order.startDate,
       cutOffOrderType: cutOffOrderType,
-      amountToBePaid: total || (order.amountToBePaid),
-      collectedAmount: total || (order.collectedAmount),
+      amountToBePaid: total,
+      collectedAmount: total,
       orderType: order.orderType,
       mode: order.paymentMode
     }
