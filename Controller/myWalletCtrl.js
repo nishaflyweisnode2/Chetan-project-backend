@@ -72,6 +72,10 @@ const addAdvanceMoney = async (req, res) => {
         wallet.pendingAmount = 0;
         await wallet.save();
       }
+      if (wallet.pendingAmount == parseFloat(balance)) {
+        wallet.pendingAmount = 0;
+        await wallet.save();
+      }
     }
     if (wallet.pendingAmount <= 0) {
       wallet.advancedAmount = wallet.advancedAmount + parseFloat(balance);
