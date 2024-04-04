@@ -708,7 +708,7 @@ exports.submitPickUpBottle = async (req, res) => {
 }
 exports.AllSubmitPickUpBottle = async (req, res) => {
     try {
-        const driverData = await order.find({}).populate('user product');
+        const driverData = await order.find({ isPickUpBottle: false }).populate('user product');
         if (driverData.length > 0) {
             return res.status(200).json({ message: "ok", result: driverData })
         } else {
