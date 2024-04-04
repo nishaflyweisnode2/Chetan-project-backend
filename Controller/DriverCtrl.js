@@ -478,47 +478,48 @@ exports.DeliveredOrder = async (req, res) => {
         if (!Data) {
             return res.status(201).json({ message: "No Data Found " })
         } else {
-            if (Data.mode == "PrePaid") {
+            const wallet = await User.findOne({ _id: Data.user, });
+            if (!wallet) {
+                return res.status(404).json({ error: 'User not found' });
+            }
+            if (wallet.paymentMode == "PrePaid") {
                 let update = await order.updateOne({ _id: req.params.id }, { delivered: true, orderStatus: "Deliverd" }, { new: true })
                 if (update) {
-                    const wallet = await User.findOne({ _id: Data.user, });
-                    if (!wallet) {
-                        return res.status(404).json({ error: 'User not found' });
+
+                    if (wallet.balance < update.collectedAmount) {
+                        return res.status(200).json({ message: "Delivered " })
                     } else {
-                        if (wallet.balance < update.collectedAmount) {
-                            return res.status(200).json({ message: "Delivered " })
-                        } else {
-                            let balance = parseInt(wallet.balance - Data.collectedAmount);
-                            wallet.balance = balance;
-                            await wallet.save();
-                            console.log(wallet)
-                            let id = await reffralCode();
-                            let month = new Date(Date.now()).getMonth() + 1;
+                        let balance = parseInt(wallet.balance - Data.collectedAmount);
+                        wallet.balance = balance;
+                        await wallet.save();
+                        console.log(wallet)
+                        let id = await reffralCode();
+                        let month = new Date(Date.now()).getMonth() + 1;
+                        let obj = {
+                            user: Data.user,
+                            order: Data._id,
+                            amount: parseFloat(Data.collectedAmount),
+                            month: month,
+                            paymentMode: "Online",
+                            id: id,
+                            type: "Wallet",
+                            Status: "Paid",
+                        }
+                        const faq = await walletTransaction.create(obj);
+                        if (faq) {
                             let obj = {
-                                user: Data.user,
-                                order: Data._id,
-                                amount: parseFloat(Data.collectedAmount),
-                                month: month,
+                                collectedAmount: Data.collectedAmount - Number(Data.collectedAmount),
                                 paymentMode: "Online",
-                                id: id,
-                                type: "Wallet",
-                                Status: "Paid",
+                                collectedStatus: "Collected"
                             }
-                            const faq = await walletTransaction.create(obj);
-                            if (faq) {
-                                let obj = {
-                                    collectedAmount: Data.collectedAmount - Number(Data.collectedAmount),
-                                    paymentMode: "Online",
-                                    collectedStatus: "Collected"
-                                }
-                                let update = await order.findByIdAndUpdate({ _id: Data._id }, { $set: obj }, { new: true })
-                                return res.status(200).json({ message: "Delivered " })
-                            }
+                            let update = await order.findByIdAndUpdate({ _id: Data._id }, { $set: obj }, { new: true })
+                            return res.status(200).json({ message: "Delivered " })
                         }
                     }
+
                 }
             }
-            if (Data.mode == "PostPaid") {
+            if (wallet.paymentMode == "PostPaid") {
                 await order.updateOne({ _id: req.params.id }, { delivered: true, orderStatus: "Deliverd" }, { new: true })
                 return res.status(200).json({ message: "Delivered " })
             }
