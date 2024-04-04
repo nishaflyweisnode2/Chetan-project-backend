@@ -669,8 +669,29 @@ exports.ChangePickUpBottleStatusFromAdmin = async (req, res) => {
         if (!driverData1) {
             return res.status(404).json({ message: "Not found", result: {} })
         }
-        const driverData = await order.findByIdAndUpdate({ _id: req.params.id }, { $set: { pickUpBottleQuantity: driverData1.pickUpBottleQuantity - req.body.pickUpBottleQuantity } }, { new: true })
-        return res.status(200).json({ message: "ok", result: driverData })
+        if (driverData1.pickUpBottleQuantity > 0) {
+            if (driverData1.pickUpBottleQuantity < req.body.pickUpBottleQuantity) {
+                const driverData = await order.findByIdAndUpdate({ _id: req.params.id }, { $set: { pickUpBottleQuantity: 0, isPickUpBottle: true } }, { new: true })
+                return res.status(200).json({ message: "ok", result: driverData })
+            }
+            else if (driverData1.pickUpBottleQuantity == req.body.pickUpBottleQuantity) {
+                const driverData = await order.findByIdAndUpdate({ _id: req.params.id }, { $set: { pickUpBottleQuantity: 0, isPickUpBottle: true } }, { new: true })
+                return res.status(200).json({ message: "ok", result: driverData })
+            } else {
+                if ((driverData1.pickUpBottleQuantity - req.body.pickUpBottleQuantity) <= 0) {
+                    const driverData = await order.findByIdAndUpdate({ _id: req.params.id }, { $set: { pickUpBottleQuantity: 0, isPickUpBottle: true } }, { new: true })
+                    return res.status(200).json({ message: "ok", result: driverData })
+                }
+                if ((driverData1.pickUpBottleQuantity - req.body.pickUpBottleQuantity) > 0) {
+                    const driverData = await order.findByIdAndUpdate({ _id: req.params.id }, { $set: { pickUpBottleQuantity: driverData1.pickUpBottleQuantity - req.body.pickUpBottleQuantity } }, { new: true })
+                    return res.status(200).json({ message: "ok", result: driverData })
+                }
+            }
+        }
+        if (driverData1.pickUpBottleQuantity == 0) {
+            const driverData = await order.findByIdAndUpdate({ _id: req.params.id }, { $set: { pickUpBottleQuantity: 0, isPickUpBottle: true } }, { new: true })
+            return res.status(200).json({ message: "ok", result: driverData })
+        }
     } catch (err) {
         console.log(err);
         return res.status(400).json({ error: err.message })
