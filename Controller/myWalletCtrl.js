@@ -53,8 +53,54 @@ const deleteWallet = async (req, res) => {
     return res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+const addAdvanceMoney = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { balance } = req.body;
+    let wallet = await User.findOne({ _id: userId });
+    if (!wallet) {
+      return res.status(404).json({ message: 'Wallet not found for the user' });
+    }
+    if (wallet.pendingAmount > 0) {
+      if (wallet.pendingAmount > parseFloat(balance)) {
+        wallet.pendingAmount = wallet.pendingAmount - parseFloat(balance);
+        await wallet.save();
+      }
+      if (wallet.pendingAmount < parseFloat(balance)) {
+        wallet.advancedAmount = wallet.advancedAmount + (wallet.pendingAmount - parseFloat(balance));
+        wallet.pendingAmount = 0;
+        await wallet.save();
+      }
+    }
+    if (wallet.pendingAmount <= 0) {
+      wallet.advancedAmount = wallet.advancedAmount + parseFloat(balance);
+      await wallet.save();
+    }
+    return res.status(200).json({ data: wallet, success: true, message: `${balance} added to wallet`, status: 200, });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+const addPendingMoney = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { balance } = req.body;
+    let wallet = await User.findOne({ _id: userId });
+    if (!wallet) {
+      return res.status(404).json({ message: 'Wallet not found for the user' });
+    }
+    wallet.pendingAmount = wallet.pendingAmount + parseFloat(balance);
+    await wallet.save();
+    return res.status(200).json({ data: wallet, success: true, message: `${balance} added to pending Amount`, status: 200, });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
 module.exports = {
   addMoney,
   getWallet,
-  deleteWallet
+  deleteWallet,
+  addAdvanceMoney,
+  addPendingMoney
 }
