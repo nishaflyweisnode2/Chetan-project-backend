@@ -389,6 +389,11 @@ exports.ChangeStatus = async (req, res) => {
                 if (!driverData) {
                         return res.status(404).json({ message: "Not found", result: {} })
                 }
+                let wallet = await User.findOne({ _id: driverData.user });
+                if (!wallet) {
+                        return res.status(404).json({ message: 'Wallet not found for the user' });
+                }
+                let id = await reffralCode()
                 let pendingAmount = 0, advancedAmount = 0;
                 if (driverData.collectedAmount == Number(req.query.collectedAmount)) {
                         collectedStatus = "Collected";
@@ -406,20 +411,20 @@ exports.ChangeStatus = async (req, res) => {
                         paymentMode: req.query.paymentMode1,
                         collectedStatus: collectedStatus
                 }
-                let order = [];
-                order.push(driverData._id)
+                let order1 = [];
+                order1.push(driverData._id)
                 let obj1 = {
                         user: wallet._id,
                         collectionBoyId: wallet.collectionBoyId,
                         id: id,
-                        order: order,
+                        order: order1,
                         pendingAmount: pendingAmount,
                         advancedAmount: advancedAmount,
                         orderAmount: driverData.amountToBePaid,
                         paidAmount: req.query.collectedAmount,
                         Status: "Paid"
                 }
-                let update = await Order.findByIdAndUpdate({ _id: driverData._id }, { $set: obj }, { new: true })
+                let update = await order.findByIdAndUpdate({ _id: driverData._id }, { $set: obj }, { new: true })
                 if (update) {
                         await orderTransaction.create(obj1);
                         return res.status(200).json({ message: "ok", result: update })
@@ -638,3 +643,11 @@ const hourCalculate = async (hour, minute, second) => {
         let punchIn = hr1 + ':' + min1 + ':' + sec1;
         return punchIn;
 };
+const reffralCode = async () => {
+        var digits = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        let OTP = '';
+        for (let i = 0; i < 9; i++) {
+                OTP += digits[Math.floor(Math.random() * 36)];
+        }
+        return OTP;
+}
