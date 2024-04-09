@@ -285,21 +285,17 @@ exports.allAssignUserToDriver = async (req, res) => {
         if (!collectionBoy) {
             return res.status(404).json({ message: "Driver not found", data: {} });
         }
-        const searchQuery = req.query.search;
         let query = { driverId };
-        if (searchQuery) {
-            query.$or = [
-                { name: { $regex: searchQuery, $options: "i" } },
-            ];
-            const addressMatches = await Address.find({ $or: [{ address2: { $regex: searchQuery, $options: "i" } }, { country: { $regex: searchQuery, $options: "i" } }] });
-            if (addressMatches.length > 0) {
-                const addressIds = addressMatches.map(address => address._id);
-                query.addressId = { $in: addressIds };
-            }
-        }
-        const users = await User.find(query).populate('addressId');
+        const users = await User.find(query).populate('addressId').select();
         if (users.length > 0) {
-            return res.status(200).json({ success: true, message: users });
+            const transformedUsers = users.map(user => {
+                return {
+                    latitude: user.location.coordinates[1],
+                    longitude: user.location.coordinates[0],
+                    ...user.toObject()
+                };
+            });
+            return res.status(200).json({ success: true, message: transformedUsers });
         } else {
             return res.status(200).json({ success: false, message: "No users found matching the search criteria." });
         }
