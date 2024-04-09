@@ -394,7 +394,7 @@ exports.ChangeStatus = async (req, res) => {
                         return res.status(404).json({ message: 'Wallet not found for the user' });
                 }
                 let id = await reffralCode()
-                let pendingAmount = 0, advancedAmount = 0;
+                let pendingAmount = 0, advancedAmount = 0, collectedStatus;
                 if (driverData.collectedAmount == Number(req.query.collectedAmount)) {
                         collectedStatus = "Collected";
                 }
