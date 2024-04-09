@@ -66,9 +66,9 @@ exports.updateAddressStatus = catchAsyncErrors(async (req, res, next) => {
     const findAddress = await Address.findOne({ user: users._id, addressType: "My" });
     const findAddress1 = await Address.findOne({ user: users._id, addressType: "Change" });
     if (req.body.addressStatus == "approved") {
-      await Address.findByIdAndUpdate({ _id: findAddress1._id }, { $set: { addressStatus: "My" } }, { new: true, });
+      await Address.findByIdAndUpdate({ _id: findAddress1._id }, { $set: { addressType: "My" } }, { new: true, });
       await Address.findByIdAndDelete({ _id: findAddress._id });
-      let update = await User.findByIdAndUpdate({ _id: users._id }, { $set: { addressStatus: req.body.addressStatus, changeAddressId: null, addressId: findAddress1._id } }, { new: true, });
+      let update = await User.findByIdAndUpdate({ _id: users._id }, { $set: { addressStatus: req.body.addressStatus, addressStatus: "approved", changeAddressId: null, addressId: findAddress1._id } }, { new: true, });
       let data12 = {
         message: "User address has been changed, so please check first order you delivered.",
         driverId: users.driverId,
