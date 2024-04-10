@@ -66,5 +66,6 @@ router.post("/api/v1/driver/endDelivery/:id", driver_Controllers.endDelivery);
 
 router.put('/api/v1/activeBlockDriver/:driverId', driver_Controllers.activeBlockDriver);
 router.get('/api/v1/driver/getAllDriver/CompletedOrderForAdmin', driver_Controllers.getAllDriverCompletedOrderForAdmin)
+router.get('/api/v1/driver/getAllDriver/CompletedOrderForInvoice', driver_Controllers.getAllDriverCompletedOrderForInvoice)
 
 module.exports = router;

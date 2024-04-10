@@ -621,7 +621,67 @@ exports.driverCompleted = async (req, res) => {
         return res.status(400).json({ message: err.message })
     }
 }
-
+exports.getAllDriverCompletedOrderForInvoice = async (req, res, next) => {
+    try {
+        const { toStartDate, fromStartDate, fromDate, orderStatus, toDate, page, limit, orderType, userId, driverId, companyName } = req.query;
+        const users = await User.find({});
+        let userData = [];
+        let query = {
+        };
+        if (orderStatus) {
+            query.orderStatus = orderStatus;
+        }
+        if (orderType) {
+            query.orderType = orderType;
+        }
+        if (companyName) {
+            query.companyName = companyName
+        }
+        if (fromStartDate && !toStartDate) {
+            query.startDate = { $gte: fromStartDate };
+        }
+        if (!fromStartDate && toStartDate) {
+            query.startDate = { $lte: toStartDate };
+        }
+        if (driverId) {
+            query.driverId = driverId
+        }
+        if (fromStartDate && toStartDate) {
+            query.$and = [
+                { startDate: { $gte: fromStartDate } },
+                { startDate: { $lte: toStartDate } },
+            ]
+        }
+        if (fromDate && !toDate) {
+            query.createdAt = { $gte: fromDate };
+        }
+        if (!fromDate && toDate) {
+            query.createdAt = { $lte: toDate };
+        }
+        if (fromDate && toDate) {
+            query.$and = [
+                { createdAt: { $gte: fromDate } },
+                { createdAt: { $lte: toDate } },
+            ]
+        }
+        for (const user of users) {
+            console.log(user)
+            if (userId) {
+                query.user = userId
+            } else {
+                query.user = (user._id).toString()
+            }
+            const userOrders = await order.find(query).populate([{ path: 'user', populate: { path: "addressId" } }, { path: 'product' }]).sort({ createdAt: -1 }).limit(Number(limit) || 100);
+            if (userOrders.length > 0) {
+                userData.push({ user: user.toObject(), orders: userOrders });
+            }
+        }
+        return res.status(200).json({ status: 200, message: "User data found.", data: userData });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).send({ msg: "internal server error ", error: err.message });
+    }
+};
 exports.getAllDriverCompletedOrderForAdmin = async (req, res, next) => {
     try {
         const { toStartDate, fromStartDate, fromDate, toDate, page, limit, orderType, userId, driverId, companyName } = req.query;
