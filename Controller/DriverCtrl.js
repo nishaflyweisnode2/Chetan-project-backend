@@ -306,7 +306,7 @@ exports.allAssignUserToDriver = async (req, res) => {
 };
 exports.getUserbyId = async (req, res, next) => {
     const id = req.params.id;
-    const users = await User.findById({ _id: id });
+    const users = await User.findById({ _id: id }).populate('addressId');
     if (!users) {
         return next(new ErrorHander(`User does not exist with Id: ${req.params.id}`, 400));
     }
