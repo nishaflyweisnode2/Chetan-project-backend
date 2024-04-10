@@ -527,7 +527,13 @@ exports.DeliveredOrder = async (req, res) => {
 }
 exports.reasonOfReduceQuantity = async (req, res) => {
     try {
-        const driverData = await order.findOne({ _id: req.params.id })
+        const driverData = await order.findOne({ _id: req.params.id }).populate('product');
+        driverData.reasonOfReduce = req.body.reasonOfReduce;
+        driverData.quantity = req.body.quantity;
+        driverData.total = req.body.quantity * driverData.product.price;
+        driverData.amountToBePaid = (req.body.quantity * driverData.product.price) + driverData.shippingPrice;
+        driverData.collectedAmount = (req.body.quantity * driverData.product.price) + driverData.shippingPrice;
+        driverData.save();
         let obj = {
             user: driverData.user,
             driverId: driverData.driverId,
@@ -537,11 +543,6 @@ exports.reasonOfReduceQuantity = async (req, res) => {
             quantity: driverData.quantity - req.body.quantity,
             reasonOfReduce: req.body.reasonOfReduce
         }
-        driverData.reasonOfReduce = req.body.reasonOfReduce;
-        driverData.quantity = req.body.quantity;
-        driverData.total = req.body.quantity * driverData.unitPrice;
-        driverData.amountToBePaid = (req.body.quantity * driverData.unitPrice) + driverData.shippingPrice;
-        driverData.save();
         await notDelivered.create(obj);
         return res.status(200).json({ message: "ok", result: driverData })
     } catch (err) {
@@ -833,7 +834,7 @@ exports.AllSubmitPickUpBottle = async (req, res) => {
 }
 exports.PendingOrder = async (req, res) => {
     try {
-        const data = await order.find({ driverId: req.params.id, orderStatus: "pending" }).populate('user product');
+        const data = await order.find({ driverId: req.params.id, orderStatus: "pending" }).populate([{ path: 'product', }, { path: 'user', populate: { path: 'addressId' } }]);
         if (!data || data.length == 0) {
             return res.status(404).json({ message: "Pending Order not found" })
         }

@@ -264,7 +264,8 @@ const checkout = async (req, res, next) => {
                     amountToBePaid: (cart.products[i].quantity * cart.products[i].product.price),
                     collectedAmount: (cart.products[i].quantity * cart.products[i].product.price),
                     orderType: "once",
-                    mode: user.paymentMode
+                    mode: order.mode,
+                    paymentMode: order.paymentMode
                   }
                   if (user.paymentMode == "PrePaid") {
                     let TotalAmount = (cart.products[i].quantity * cart.products[i].product.price)
@@ -435,7 +436,8 @@ const updateOrderDetails = catchAsyncErrors(async (req, res, next) => {
       amountToBePaid: total,
       collectedAmount: total,
       orderType: order.orderType,
-      mode: order.paymentMode
+      mode: order.mode,
+      paymentMode: order.paymentMode
     }
     let update = await Order.findByIdAndUpdate({ _id: order._id }, { $set: obj }, { new: true })
     return res.status(200).json({ success: true, message: "Order successfully updated", data: update });

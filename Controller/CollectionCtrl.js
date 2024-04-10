@@ -356,7 +356,7 @@ exports.ChangeToFeaturedOrder = async (req, res) => {
 }
 exports.allPendingCollectedOrder = async (req, res) => {
         try {
-                const data = await Order.find({ collectionBoyId: req.params.collectionBoyId, driverId: req.params.driverId, collectedStatus: "pending" }).populate('product user');
+                const data = await Order.find({ collectionBoyId: req.params.collectionBoyId, driverId: req.params.driverId, collectedStatus: "pending" }).populate([{ path: 'product', }, { path: 'user', populate: { path: 'addressId' } }]);
                 if (!data || data.length == 0) {
                         return res.status(404).json({ message: "Pending Order not found" })
                 }
