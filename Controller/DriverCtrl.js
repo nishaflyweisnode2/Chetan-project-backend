@@ -336,7 +336,7 @@ exports.getUserbyId = async (req, res, next) => {
                 }
             }
         });
-        return res.status(200).json({ success: true, productQuantities, grandTotal: grandTotal, totalPcs: totalQuantities });
+        return res.status(200).json({ success: true, users: users, productQuantities, grandTotal: grandTotal, totalPcs: totalQuantities });
     } else {
         return res.status(200).json({ success: false, });
     }
