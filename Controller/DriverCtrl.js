@@ -305,19 +305,40 @@ exports.allAssignUserToDriver = async (req, res) => {
     }
 };
 exports.getUserbyId = async (req, res, next) => {
-    try {
-        const id = req.params.id;
-        const users = await User.findById({ _id: id });
-        if (!users) {
-            return next(new ErrorHander(`User does not exist with Id: ${req.params.id}`, 400));
-        }
-        const Data = await order.find({ user: users._id }).populate('product user');
-        if (Data.length == 0) {
-            return res.status(201).json({ message: "No Data Found " })
-        }
-        return res.status(200).json({ success: true, users, order: Data });
-    } catch (error) {
-        return res.status(200).json({ error: `Something went wrong with Id: ${req.params}` });
+    const id = req.params.id;
+    const users = await User.findById({ _id: id });
+    if (!users) {
+        return next(new ErrorHander(`User does not exist with Id: ${req.params.id}`, 400));
+    }
+    const todayDate = moment().startOf('day').format('YYYY-MM-DD');
+    const orders = await order.find({ user: users.id, startDate: { $gte: new Date(todayDate), $lt: moment(todayDate).add(1, 'days').toDate() } }).populate('user product');
+    if (orders.length > 0) {
+        let productQuantities = [], grandTotal = 0, totalQuantities = 0;
+        orders.forEach(order => {
+            if (order.product) {
+                let existingProduct = productQuantities.find(item => item.productId === order.product._id);
+                if (existingProduct) {
+                    existingProduct.quantity += order.quantity;
+                    existingProduct.total += order.total;
+                    grandTotal += order.total;
+                    totalQuantities += order.quantity;
+                } else {
+                    productQuantities.push({
+                        productId: order.product._id,
+                        productName: order.product.name,
+                        size: order.size ? order.size : null,
+                        product: order.product,
+                        quantity: order.quantity,
+                        total: order.total
+                    });
+                    grandTotal += order.total;
+                    totalQuantities += order.quantity;
+                }
+            }
+        });
+        return res.status(200).json({ success: true, productQuantities, grandTotal: grandTotal, totalPcs: totalQuantities });
+    } else {
+        return res.status(200).json({ success: false, });
     }
 };
 exports.createAddress = async (req, res, next) => {
