@@ -500,9 +500,8 @@ exports.DeliveredOrder = async (req, res) => {
                 return res.status(404).json({ error: 'User not found' });
             }
             if (wallet.paymentMode == "PrePaid") {
-                let update = await order.updateOne({ _id: req.params.id }, { delivered: true, orderStatus: "Deliverd" }, { new: true })
+                let update = await order.findByIdAndUpdate({ _id: req.params.id }, { $set: { delivered: true, orderStatus: "Deliverd" } }, { new: true })
                 if (update) {
-
                     if (wallet.balance < update.collectedAmount) {
                         return res.status(200).json({ message: "Delivered " })
                     } else {
@@ -537,7 +536,7 @@ exports.DeliveredOrder = async (req, res) => {
                 }
             }
             if (wallet.paymentMode == "PostPaid") {
-                await order.updateOne({ _id: req.params.id }, { delivered: true, orderStatus: "Deliverd" }, { new: true })
+                let update = await order.findByIdAndUpdate({ _id: req.params.id }, { $set: { delivered: true, orderStatus: "Deliverd" } }, { new: true })
                 return res.status(200).json({ message: "Delivered " })
             }
         }
