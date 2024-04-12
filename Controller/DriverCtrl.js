@@ -312,8 +312,8 @@ exports.getUserbyId = async (req, res, next) => {
     }
     const todayDate = moment().startOf('day').format('YYYY-MM-DD');
     const orders = await order.find({ user: users.id, startDate: { $gte: new Date(todayDate), $lt: moment(todayDate).add(1, 'days').toDate() } }).populate('user product');
+    let productQuantities = [], grandTotal = 0, totalQuantities = 0;
     if (orders.length > 0) {
-        let productQuantities = [], grandTotal = 0, totalQuantities = 0;
         orders.forEach(order => {
             if (order.product) {
                 let existingProduct = productQuantities.find(item => item.productId === order.product._id);
@@ -338,7 +338,7 @@ exports.getUserbyId = async (req, res, next) => {
         });
         return res.status(200).json({ success: true, users: users, productQuantities, grandTotal: grandTotal, totalPcs: totalQuantities });
     } else {
-        return res.status(200).json({ success: false, });
+        return res.status(200).json({ success: true, users: users, productQuantities, grandTotal: grandTotal, totalPcs: totalQuantities });
     }
 };
 exports.createAddress = async (req, res, next) => {
