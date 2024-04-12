@@ -322,7 +322,7 @@ exports.allAssignUserToCollectionBoy = async (req, res) => {
 };
 exports.allCollectedOrder = async (req, res) => {
         try {
-                const data = await Order.find({ collectionBoyId: req.params.collectionBoyId, collectedStatus: "Collected" }).populate('product user');
+                const data = await Order.find({ collectionBoyId: req.params.collectionBoyId, collectedStatus: "Collected" }).populate([{ path: 'product', }, { path: 'user', populate: { path: 'addressId' } }]);
                 if (data.length == 0) {
                         return res.status(201).json({ message: "No Delivered Order " })
                 } else {
@@ -334,7 +334,7 @@ exports.allCollectedOrder = async (req, res) => {
 }
 exports.allFeaturedOrder = async (req, res) => {
         try {
-                const data = await Order.find({ collectionBoyId: req.params.collectionBoyId, collectedStatus: "featured" }).populate('product user');
+                const data = await Order.find({ collectionBoyId: req.params.collectionBoyId, collectedStatus: "featured" }).populate([{ path: 'product', }, { path: 'user', populate: { path: 'addressId' } }]);
                 if (data.length == 0) {
                         return res.status(201).json({ message: "No Delivered Order " })
                 } else {
