@@ -85,6 +85,7 @@ const orderSchema = new mongoose.Schema({
   },
   ringTheBell: {
     type: Boolean,
+    default: false
   },
   instruction: {
     type: String,
