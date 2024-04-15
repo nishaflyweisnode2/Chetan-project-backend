@@ -294,7 +294,7 @@ const checkout = async (req, res, next) => {
           return res.status(401).json({ message: "You cannot place an order,  delivery boy not assigned." });
         }
       } else if (user.userStatus == "UnApproved") {
-        return res.status(401).json({ message: "You cannot place order, as we are not serviceable at provided address." });
+        return res.status(401).json({ message: "You cannot place order, waiting for Admin approval." });
       } else {
         return res.status(401).json({ message: 'You cannot place order, waiting for admin approval.' });
       }
@@ -1365,6 +1365,12 @@ const createSubscriptionFromAdmin = async (req, res, next) => {
           if (selectedDate.isBefore(currentDate, 'day')) {
             return res.status(403).json({ success: 403, msg: "Please select a future date." });
           } else {
+            if (user.paymentMode == "PrePaid") {
+              let TotalAmount = (req.body.quantity * req.body.price)
+              if (user.balance < parseFloat(TotalAmount)) {
+                return res.status(403).json({ message: "InSufficent balance." })
+              }
+            }
             let obj1 = {
               userId: user._id,
               driverId: user.driverId,
@@ -1395,6 +1401,12 @@ const createSubscriptionFromAdmin = async (req, res, next) => {
           if (selectedDate.isBefore(currentDate, 'day')) {
             return res.status(403).json({ success: 403, msg: "Please select a future date." });
           } else {
+            if (user.paymentMode == "PrePaid") {
+              let TotalAmount = (req.body.quantity * req.body.price)
+              if (user.balance < parseFloat(TotalAmount)) {
+                return res.status(403).json({ message: "InSufficent balance." })
+              }
+            }
             let obj1 = {
               userId: user._id,
               driverId: user.driverId,
@@ -1428,6 +1440,12 @@ const createSubscriptionFromAdmin = async (req, res, next) => {
           } else if (selectedDate.isSame(currentDate, 'day')) {
             return res.status(403).json({ success: 403, msg: "Please select a future date." });
           } else {
+            if (user.paymentMode == "PrePaid") {
+              let TotalAmount = (req.body.quantity * req.body.price)
+              if (user.balance < parseFloat(TotalAmount)) {
+                return res.status(403).json({ message: "InSufficent balance." })
+              }
+            }
             let obj1 = {
               userId: user._id,
               driverId: user.driverId,
@@ -1460,6 +1478,12 @@ const createSubscriptionFromAdmin = async (req, res, next) => {
           } else if (selectedDate.isSame(currentDate, 'day')) {
             return res.status(403).json({ success: 403, msg: "Please select a future date." });
           } else {
+            if (user.paymentMode == "PrePaid") {
+              let TotalAmount = (req.body.quantity * req.body.price)
+              if (user.balance < parseFloat(TotalAmount)) {
+                return res.status(403).json({ message: "InSufficent balance." })
+              }
+            }
             let obj1 = {
               userId: user._id,
               driverId: user.driverId,
@@ -1485,7 +1509,6 @@ const createSubscriptionFromAdmin = async (req, res, next) => {
               return res.status(201).json({ message: 'Create subscription successfully', banner });
             }
           }
-
         }
       }
     } else {
