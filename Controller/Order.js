@@ -698,164 +698,169 @@ const createSubscription = async (req, res, next) => {
             cutOffOrderType = CutOffTimes.type;
           }
           console.log(cart)
-          let orders = [], TotalAmount = 0;
-          for (let i = 0; i < cart.products.length; i++) {
-            TotalAmount = cart.products[i].price * cart.products[i].quantity;
-          }
-          if (TotalAmount < 80) {
-            return res.status(403).json({ message: "Minimum 80 Rs order only subscribed." })
-          }
-          for (let i = 0; i < cart.products.length; i++) {
-            let dax = cart.products[i].startDate
-            let currentDate = moment();
-            let selectedDate = moment(dax);
-            if (currentTimeString < CutOffTimes.time) {
-              if (CutOffTimes.type == "morningOrder") {
-                if (selectedDate.isBefore(currentDate, 'day')) {
-                  return res.status(403).json({ success: 403, msg: "Please select a future date." });
-                } else {
-                  let obj = {
-                    userId: req.user._id,
-                    driverId: user.driverId,
-                    collectionBoyId: user.collectionBoyId,
-                    product: cart.products[i].product,
-                    price: cart.products[i].price,
-                    size: cart.products[i].size,
-                    quantity: cart.products[i].quantity,
-                    startDate: cart.products[i].startDate,
-                    orderCreateTill: cart.products[i].startDate,
-                    ringTheBell: cart.products[i].ringTheBell,
-                    instruction: cart.products[i].instruction,
-                    days: cart.products[i].days,
-                    daysWiseQuantity: cart.products[i].daysWiseQuantity,
-                    type: cart.products[i].type,
-                    alternateDay: cart.products[i].alternateDay,
-                    cutOffOrderType: cutOffOrderType,
-                  }
-                  console.log(obj)
-                  const banner = await Subscription.create(obj);
-                  if (banner) {
-                    orders.push(banner);
-                    let obj1 = { description: `Subscription has been create by ${req.user.name}.`, title: 'Create subscription', user: req.user._id, Subscription: banner._id }
-                    await logs.create(obj1);
-                  }
-                  if (orders.length > 0) {
-                    return res.status(201).json({ message: 'Create subscription successfully', orders });
-                  } else {
-                    return res.status(201).json({ message: 'Create subscription successfully', orders });
-                  }
-                }
-              }
-              if (CutOffTimes.type == "eveningOrder") {
-                if (selectedDate.isBefore(currentDate, 'day')) {
-                  return res.status(403).json({ success: 403, msg: "Please select a future date." });
-                } else {
-                  let obj = {
-                    userId: req.user._id,
-                    driverId: user.driverId,
-                    collectionBoyId: user.collectionBoyId,
-                    product: cart.products[i].product,
-                    price: cart.products[i].price,
-                    size: cart.products[i].size,
-                    quantity: cart.products[i].quantity,
-                    startDate: cart.products[i].startDate,
-                    orderCreateTill: cart.products[i].startDate,
-                    ringTheBell: cart.products[i].ringTheBell,
-                    instruction: cart.products[i].instruction,
-                    days: cart.products[i].days,
-                    daysWiseQuantity: cart.products[i].daysWiseQuantity,
-                    type: cart.products[i].type,
-                    alternateDay: cart.products[i].alternateDay,
-                    cutOffOrderType: cutOffOrderType,
-                  }
-                  console.log(obj)
-                  const banner = await Subscription.create(obj);
-                  if (banner) {
-                    orders.push(banner);
-                    let obj1 = { description: `Subscription has been create by ${req.user.name}.`, title: 'Create subscription', user: req.user._id, Subscription: banner._id }
-                    await logs.create(obj1);
-                  }
-                  if (orders.length > 0) {
-                    return res.status(201).json({ message: 'Create subscription successfully', orders });
-                  } else {
-                    return res.status(201).json({ message: 'Create subscription successfully', orders });
-                  }
-                }
-              }
+          let orders = [], TotalAmount = 0, count = 0;
+          if (count < cart.products.length) {
+            for (let i = 0; i < cart.products.length; i++) {
+              TotalAmount = cart.products[i].price * cart.products[i].quantity;
+              count++;
+            }
+          } else {
+            if (TotalAmount < 80) {
+              return res.status(403).json({ message: "Minimum 80 Rs order only subscribed." })
             } else {
-              if (CutOffTimes.type == "morningOrder") {
-                if (selectedDate.isBefore(currentDate, 'day')) {
-                  return res.status(403).json({ success: 403, msg: "Please select a future date." });
-                } else if (selectedDate.isSame(currentDate, 'day')) {
-                  return res.status(403).json({ success: 403, msg: "Please select a future date." });
+              for (let i = 0; i < cart.products.length; i++) {
+                let dax = cart.products[i].startDate
+                let currentDate = moment();
+                let selectedDate = moment(dax);
+                if (currentTimeString < CutOffTimes.time) {
+                  if (CutOffTimes.type == "morningOrder") {
+                    if (selectedDate.isBefore(currentDate, 'day')) {
+                      return res.status(403).json({ success: 403, msg: "Please select a future date." });
+                    } else {
+                      let obj = {
+                        userId: req.user._id,
+                        driverId: user.driverId,
+                        collectionBoyId: user.collectionBoyId,
+                        product: cart.products[i].product,
+                        price: cart.products[i].price,
+                        size: cart.products[i].size,
+                        quantity: cart.products[i].quantity,
+                        startDate: cart.products[i].startDate,
+                        orderCreateTill: cart.products[i].startDate,
+                        ringTheBell: cart.products[i].ringTheBell,
+                        instruction: cart.products[i].instruction,
+                        days: cart.products[i].days,
+                        daysWiseQuantity: cart.products[i].daysWiseQuantity,
+                        type: cart.products[i].type,
+                        alternateDay: cart.products[i].alternateDay,
+                        cutOffOrderType: cutOffOrderType,
+                      }
+                      console.log(obj)
+                      const banner = await Subscription.create(obj);
+                      if (banner) {
+                        orders.push(banner);
+                        let obj1 = { description: `Subscription has been create by ${req.user.name}.`, title: 'Create subscription', user: req.user._id, Subscription: banner._id }
+                        await logs.create(obj1);
+                      }
+                      if (orders.length > 0) {
+                        return res.status(201).json({ message: 'Create subscription successfully', orders });
+                      } else {
+                        return res.status(201).json({ message: 'Create subscription successfully', orders });
+                      }
+                    }
+                  }
+                  if (CutOffTimes.type == "eveningOrder") {
+                    if (selectedDate.isBefore(currentDate, 'day')) {
+                      return res.status(403).json({ success: 403, msg: "Please select a future date." });
+                    } else {
+                      let obj = {
+                        userId: req.user._id,
+                        driverId: user.driverId,
+                        collectionBoyId: user.collectionBoyId,
+                        product: cart.products[i].product,
+                        price: cart.products[i].price,
+                        size: cart.products[i].size,
+                        quantity: cart.products[i].quantity,
+                        startDate: cart.products[i].startDate,
+                        orderCreateTill: cart.products[i].startDate,
+                        ringTheBell: cart.products[i].ringTheBell,
+                        instruction: cart.products[i].instruction,
+                        days: cart.products[i].days,
+                        daysWiseQuantity: cart.products[i].daysWiseQuantity,
+                        type: cart.products[i].type,
+                        alternateDay: cart.products[i].alternateDay,
+                        cutOffOrderType: cutOffOrderType,
+                      }
+                      console.log(obj)
+                      const banner = await Subscription.create(obj);
+                      if (banner) {
+                        orders.push(banner);
+                        let obj1 = { description: `Subscription has been create by ${req.user.name}.`, title: 'Create subscription', user: req.user._id, Subscription: banner._id }
+                        await logs.create(obj1);
+                      }
+                      if (orders.length > 0) {
+                        return res.status(201).json({ message: 'Create subscription successfully', orders });
+                      } else {
+                        return res.status(201).json({ message: 'Create subscription successfully', orders });
+                      }
+                    }
+                  }
                 } else {
-                  let obj = {
-                    userId: req.user._id,
-                    driverId: user.driverId,
-                    collectionBoyId: user.collectionBoyId,
-                    product: cart.products[i].product,
-                    price: cart.products[i].price,
-                    size: cart.products[i].size,
-                    quantity: cart.products[i].quantity,
-                    startDate: cart.products[i].startDate,
-                    orderCreateTill: cart.products[i].startDate,
-                    ringTheBell: cart.products[i].ringTheBell,
-                    instruction: cart.products[i].instruction,
-                    days: cart.products[i].days,
-                    daysWiseQuantity: cart.products[i].daysWiseQuantity,
-                    type: cart.products[i].type,
-                    alternateDay: cart.products[i].alternateDay,
-                    cutOffOrderType: cutOffOrderType,
+                  if (CutOffTimes.type == "morningOrder") {
+                    if (selectedDate.isBefore(currentDate, 'day')) {
+                      return res.status(403).json({ success: 403, msg: "Please select a future date." });
+                    } else if (selectedDate.isSame(currentDate, 'day')) {
+                      return res.status(403).json({ success: 403, msg: "Please select a future date." });
+                    } else {
+                      let obj = {
+                        userId: req.user._id,
+                        driverId: user.driverId,
+                        collectionBoyId: user.collectionBoyId,
+                        product: cart.products[i].product,
+                        price: cart.products[i].price,
+                        size: cart.products[i].size,
+                        quantity: cart.products[i].quantity,
+                        startDate: cart.products[i].startDate,
+                        orderCreateTill: cart.products[i].startDate,
+                        ringTheBell: cart.products[i].ringTheBell,
+                        instruction: cart.products[i].instruction,
+                        days: cart.products[i].days,
+                        daysWiseQuantity: cart.products[i].daysWiseQuantity,
+                        type: cart.products[i].type,
+                        alternateDay: cart.products[i].alternateDay,
+                        cutOffOrderType: cutOffOrderType,
+                      }
+                      console.log(obj)
+                      const banner = await Subscription.create(obj);
+                      if (banner) {
+                        orders.push(banner);
+                        let obj1 = { description: `Subscription has been create by ${req.user.name}.`, title: 'Create subscription', user: req.user._id, Subscription: banner._id }
+                        await logs.create(obj1);
+                      }
+                      if (orders.length > 0) {
+                        return res.status(201).json({ message: 'Create subscription successfully', orders });
+                      } else {
+                        return res.status(201).json({ message: 'Create subscription successfully', orders });
+                      }
+                    }
                   }
-                  console.log(obj)
-                  const banner = await Subscription.create(obj);
-                  if (banner) {
-                    orders.push(banner);
-                    let obj1 = { description: `Subscription has been create by ${req.user.name}.`, title: 'Create subscription', user: req.user._id, Subscription: banner._id }
-                    await logs.create(obj1);
-                  }
-                  if (orders.length > 0) {
-                    return res.status(201).json({ message: 'Create subscription successfully', orders });
-                  } else {
-                    return res.status(201).json({ message: 'Create subscription successfully', orders });
-                  }
-                }
-              }
-              if (CutOffTimes.type == "eveningOrder") {
-                if (selectedDate.isBefore(currentDate, 'day')) {
-                  return res.status(403).json({ success: 403, msg: "Please select a future date." });
-                } else if (selectedDate.isSame(currentDate, 'day')) {
-                  return res.status(403).json({ success: 403, msg: "Please select a future date." });
-                } else {
-                  let obj = {
-                    userId: req.user._id,
-                    driverId: user.driverId,
-                    collectionBoyId: user.collectionBoyId,
-                    product: cart.products[i].product,
-                    price: cart.products[i].price,
-                    size: cart.products[i].size,
-                    quantity: cart.products[i].quantity,
-                    startDate: cart.products[i].startDate,
-                    orderCreateTill: cart.products[i].startDate,
-                    ringTheBell: cart.products[i].ringTheBell,
-                    instruction: cart.products[i].instruction,
-                    days: cart.products[i].days,
-                    daysWiseQuantity: cart.products[i].daysWiseQuantity,
-                    type: cart.products[i].type,
-                    alternateDay: cart.products[i].alternateDay,
-                    cutOffOrderType: cutOffOrderType,
-                  }
-                  console.log(obj)
-                  const banner = await Subscription.create(obj);
-                  if (banner) {
-                    orders.push(banner);
-                    let obj1 = { description: `Subscription has been create by ${req.user.name}.`, title: 'Create subscription', user: req.user._id, Subscription: banner._id }
-                    await logs.create(obj1);
-                  }
-                  if (orders.length > 0) {
-                    return res.status(201).json({ message: 'Create subscription successfully', orders });
-                  } else {
-                    return res.status(201).json({ message: 'Create subscription successfully', orders });
+                  if (CutOffTimes.type == "eveningOrder") {
+                    if (selectedDate.isBefore(currentDate, 'day')) {
+                      return res.status(403).json({ success: 403, msg: "Please select a future date." });
+                    } else if (selectedDate.isSame(currentDate, 'day')) {
+                      return res.status(403).json({ success: 403, msg: "Please select a future date." });
+                    } else {
+                      let obj = {
+                        userId: req.user._id,
+                        driverId: user.driverId,
+                        collectionBoyId: user.collectionBoyId,
+                        product: cart.products[i].product,
+                        price: cart.products[i].price,
+                        size: cart.products[i].size,
+                        quantity: cart.products[i].quantity,
+                        startDate: cart.products[i].startDate,
+                        orderCreateTill: cart.products[i].startDate,
+                        ringTheBell: cart.products[i].ringTheBell,
+                        instruction: cart.products[i].instruction,
+                        days: cart.products[i].days,
+                        daysWiseQuantity: cart.products[i].daysWiseQuantity,
+                        type: cart.products[i].type,
+                        alternateDay: cart.products[i].alternateDay,
+                        cutOffOrderType: cutOffOrderType,
+                      }
+                      console.log(obj)
+                      const banner = await Subscription.create(obj);
+                      if (banner) {
+                        orders.push(banner);
+                        let obj1 = { description: `Subscription has been create by ${req.user.name}.`, title: 'Create subscription', user: req.user._id, Subscription: banner._id }
+                        await logs.create(obj1);
+                      }
+                      if (orders.length > 0) {
+                        return res.status(201).json({ message: 'Create subscription successfully', orders });
+                      } else {
+                        return res.status(201).json({ message: 'Create subscription successfully', orders });
+                      }
+                    }
                   }
                 }
               }
