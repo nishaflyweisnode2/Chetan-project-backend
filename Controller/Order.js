@@ -264,8 +264,7 @@ const checkout = async (req, res, next) => {
                     amountToBePaid: (cart.products[i].quantity * cart.products[i].product.price),
                     collectedAmount: (cart.products[i].quantity * cart.products[i].product.price),
                     orderType: "once",
-                    mode: order.mode,
-                    paymentMode: order.paymentMode
+                    mode: user.paymentMode,
                   }
                   if (user.paymentMode == "PrePaid") {
                     let TotalAmount = (cart.products[i].quantity * cart.products[i].product.price)
@@ -297,7 +296,7 @@ const checkout = async (req, res, next) => {
       } else if (user.userStatus == "UnApproved") {
         return res.status(401).json({ message: "You cannot place order, as we are not serviceable at provided address." });
       } else {
-        return res.status(401).json({ message: 'You cannot place order, Waiting for Amin approval.' });
+        return res.status(401).json({ message: 'You cannot place order, waiting for admin approval.' });
       }
     }
   } catch (error) {
