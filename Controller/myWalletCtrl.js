@@ -1,4 +1,5 @@
 const User = require("../Model/userModel");
+const logs = require("../Model/logs");
 const addMoney = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -9,6 +10,9 @@ const addMoney = async (req, res) => {
     }
     wallet.balance = wallet.balance + parseFloat(balance);
     await wallet.save();
+    let obj1 = { description: `Add ${balance} money to wallet by ${wallet.name}.`, title: 'Add money', user: wallet._id }
+    await logs.create(obj1);
+
     return res.status(200).json({ data: wallet, success: true, message: `${balance} added to wallet`, status: 200, });
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -47,6 +51,8 @@ const deleteWallet = async (req, res) => {
     }
     wallet.balance = wallet.balance - parseFloat(amount);
     await wallet.save();
+    let obj1 = { description: `Deduct ${balance} money to wallet by ${wallet.name}.`, title: 'Add money', user: wallet._id }
+    await logs.create(obj1);
     return res.status(200).json({ data: wallet, success: true, message: `${amount} deducted from the wallet successfully`, });
   } catch (error) {
     console.error(error);
