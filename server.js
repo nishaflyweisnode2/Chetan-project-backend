@@ -11,7 +11,7 @@ require("./Cronjob/customizedOrder");
 require("./Cronjob/alternateDayOrder");
 const nodemailer = require("nodemailer");
 const app = express();
-app.use(compression({ threshold: 500 }));
+app.use(compression({ threshold: 500 })); 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
