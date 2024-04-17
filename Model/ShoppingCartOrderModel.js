@@ -77,6 +77,9 @@ const orderSchema = new mongoose.Schema({
   quantity: {
     type: Number
   },
+  notDeliveredQuantity: {
+    type: Number
+  },
   total: {
     type: Number
   },

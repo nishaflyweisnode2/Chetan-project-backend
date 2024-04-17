@@ -550,6 +550,7 @@ exports.reasonOfReduceQuantity = async (req, res) => {
         const driverData = await order.findOne({ _id: req.params.id }).populate('product');
         driverData.reasonOfReduce = req.body.reasonOfReduce;
         driverData.quantity = req.body.quantity;
+        driverData.notDeliveredQuantity = driverData.quantity - req.body.quantity;
         driverData.total = req.body.quantity * driverData.product.price;
         driverData.amountToBePaid = (req.body.quantity * driverData.product.price) + driverData.shippingPrice;
         driverData.collectedAmount = (req.body.quantity * driverData.product.price) + driverData.shippingPrice;
