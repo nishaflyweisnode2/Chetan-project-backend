@@ -61,7 +61,7 @@ const checkout = async (req, res, next) => {
             if (currentTimeString < CutOffTimes.time) {
               if (CutOffTimes.type == "morningOrder") {
                 if (selectedDateOnly.isBefore(currentDateOnly, 'day')) {
-                  return res.status(403).json({ success: 403, msg: "Please select a future date.", data: { selectedDateOnly, currentDateOnly } });
+                  return res.status(403).json({ success: 403, msg: "Please select a future date.", data: { selectedDateOnly, currentDateOnly, CutOffTimes: CutOffTimes.type } });
                 } else {
                   let obj = {
                     user: req.user._id,
@@ -117,7 +117,7 @@ const checkout = async (req, res, next) => {
               }
               if (CutOffTimes.type == "eveningOrder") {
                 if (selectedDateOnly.isBefore(currentDateOnly, 'day')) {
-                  return res.status(403).json({ success: 403, msg: "Please select a future date.", data: { selectedDateOnly, currentDateOnly } });
+                  return res.status(403).json({ success: 403, msg: "Please select a future date.", data: { selectedDateOnly, currentDateOnly, CutOffTimes: CutOffTimes.type } });
                 } else {
                   let obj = {
                     user: req.user._id,
@@ -174,9 +174,9 @@ const checkout = async (req, res, next) => {
             } else {
               if (CutOffTimes.type == "morningOrder") {
                 if (selectedDateOnly.isBefore(currentDateOnly, 'day')) {
-                  return res.status(403).json({ success: 403, msg: "Please select a future date.", data: { selectedDateOnly, currentDateOnly } });
+                  return res.status(403).json({ success: 403, msg: "Please select a future date.", data: { selectedDateOnly, currentDateOnly, CutOffTimes: CutOffTimes.type } });
                 } else if (selectedDateOnly.isSame(currentDateOnly, 'day')) {
-                  return res.status(403).json({ success: 403, msg: "Please select a future date.", data: { selectedDateOnly, currentDateOnly } });
+                  return res.status(403).json({ success: 403, msg: "Please select a future date.", data: { selectedDateOnly, currentDateOnly, CutOffTimes: CutOffTimes.type } });
                 } else {
                   let obj = {
                     user: req.user._id,
@@ -233,9 +233,9 @@ const checkout = async (req, res, next) => {
               }
               if (CutOffTimes.type == "eveningOrder") {
                 if (selectedDateOnly.isBefore(currentDateOnly, 'day')) {
-                  return res.status(403).json({ success: 403, msg: "Please select a future date.", data: { selectedDateOnly, currentDateOnly } });
+                  return res.status(403).json({ success: 403, msg: "Please select a future date.", data: { selectedDateOnly, currentDateOnly, CutOffTimes: CutOffTimes.type } });
                 } else if (selectedDateOnly.isSame(currentDateOnly, 'day')) {
-                  return res.status(403).json({ success: 403, msg: "Please select a future date.", data: { selectedDateOnly, currentDateOnly } });
+                  return res.status(403).json({ success: 403, msg: "Please select a future date.", data: { selectedDateOnly, currentDateOnly, CutOffTimes: CutOffTimes.type } });
                 } else {
                   let obj = {
                     user: req.user._id,
@@ -719,7 +719,7 @@ const createSubscription = async (req, res, next) => {
                 if (currentTimeString < CutOffTimes.time) {
                   if (CutOffTimes.type == "morningOrder") {
                     if (selectedDateOnly.isBefore(currentDateOnly, 'day')) {
-                      return res.status(403).json({ success: 403, msg: "Please select a future date.", data: { selectedDateOnly, currentDateOnly } });
+                      return res.status(403).json({ success: 403, msg: "Please select a future date.", data: { selectedDateOnly, currentDateOnly, CutOffTimes: CutOffTimes.type } });
                     } else {
                       let obj = {
                         userId: req.user._id,
@@ -755,7 +755,7 @@ const createSubscription = async (req, res, next) => {
                   }
                   if (CutOffTimes.type == "eveningOrder") {
                     if (selectedDateOnly.isBefore(currentDateOnly, 'day')) {
-                      return res.status(403).json({ success: 403, msg: "Please select a future date.", data: { selectedDateOnly, currentDateOnly } });
+                      return res.status(403).json({ success: 403, msg: "Please select a future date.", data: { selectedDateOnly, currentDateOnly, CutOffTimes: CutOffTimes.type } });
                     } else {
                       let obj = {
                         userId: req.user._id,
@@ -792,9 +792,9 @@ const createSubscription = async (req, res, next) => {
                 } else {
                   if (CutOffTimes.type == "morningOrder") {
                     if (selectedDateOnly.isBefore(currentDateOnly, 'day')) {
-                      return res.status(403).json({ success: 403, msg: "Please select a future date.", data: { selectedDateOnly, currentDateOnly } });
+                      return res.status(403).json({ success: 403, msg: "Please select a future date.", data: { selectedDateOnly, currentDateOnly, CutOffTimes: CutOffTimes.type } });
                     } else if (selectedDateOnly.isSame(currentDateOnly, 'day')) {
-                      return res.status(403).json({ success: 403, msg: "Please select a future date.", data: { selectedDateOnly, currentDateOnly } });
+                      return res.status(403).json({ success: 403, msg: "Please select a future date.", data: { selectedDateOnly, currentDateOnly, CutOffTimes: CutOffTimes.type } });
                     } else {
                       let obj = {
                         userId: req.user._id,
@@ -830,9 +830,9 @@ const createSubscription = async (req, res, next) => {
                   }
                   if (CutOffTimes.type == "eveningOrder") {
                     if (selectedDateOnly.isBefore(currentDateOnly, 'day')) {
-                      return res.status(403).json({ success: 403, msg: "Please select a future date.", data: { selectedDateOnly, currentDateOnly } });
+                      return res.status(403).json({ success: 403, msg: "Please select a future date.", data: { selectedDateOnly, currentDateOnly, CutOffTimes: CutOffTimes.type } });
                     } else if (selectedDateOnly.isSame(currentDateOnly, 'day')) {
-                      return res.status(403).json({ success: 403, msg: "Please select a future date.", data: { selectedDateOnly, currentDateOnly } });
+                      return res.status(403).json({ success: 403, msg: "Please select a future date.", data: { selectedDateOnly, currentDateOnly, CutOffTimes: CutOffTimes.type } });
                     } else {
                       let obj = {
                         userId: req.user._id,
