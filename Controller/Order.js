@@ -682,6 +682,9 @@ const createSubscription = async (req, res, next) => {
           if (!cart) {
             return res.status(400).json({ success: false, msg: "Cart not found or empty." });
           }
+          if (cart.products.length === 0) {
+            return res.status(400).json({ success: false, msg: "Cart not found or empty." });
+          }
           const allAddress = await Address.findById({ _id: user.addressId });
           if (!allAddress) {
             return res.status(404).json({ error: 'Address not found' });
