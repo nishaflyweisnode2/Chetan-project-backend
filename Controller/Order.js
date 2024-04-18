@@ -53,12 +53,14 @@ const checkout = async (req, res, next) => {
               pickUpBottleQuantity = 0;
               isPickUpBottle = true;
             }
-            let dax = cart.products[i].startDate
+            let dax = cart.products[i].startDate;
             let currentDate = moment();
-            let selectedDate = moment(dax);
+            let selectedDate = moment.utc(dax);
+            let currentDateOnly = moment.utc(currentDate).startOf('day');
+            let selectedDateOnly = moment.utc(selectedDate).startOf('day');
             if (currentTimeString < CutOffTimes.time) {
               if (CutOffTimes.type == "morningOrder") {
-                if (selectedDate.isBefore(currentDate, 'day')) {
+                if (selectedDateOnly.isBefore(currentDateOnly, 'day')) {
                   return res.status(403).json({ success: 403, msg: "Please select a future date." });
                 } else {
                   let obj = {
@@ -114,7 +116,7 @@ const checkout = async (req, res, next) => {
                 }
               }
               if (CutOffTimes.type == "eveningOrder") {
-                if (selectedDate.isBefore(currentDate, 'day')) {
+                if (selectedDateOnly.isBefore(currentDateOnly, 'day')) {
                   return res.status(403).json({ success: 403, msg: "Please select a future date." });
                 } else {
                   let obj = {
@@ -171,9 +173,9 @@ const checkout = async (req, res, next) => {
               }
             } else {
               if (CutOffTimes.type == "morningOrder") {
-                if (selectedDate.isBefore(currentDate, 'day')) {
+                if (selectedDateOnly.isBefore(currentDateOnly, 'day')) {
                   return res.status(403).json({ success: 403, msg: "Please select a future date." });
-                } else if (selectedDate.isSame(currentDate, 'day')) {
+                } else if (selectedDateOnly.isSame(currentDateOnly, 'day')) {
                   return res.status(403).json({ success: 403, msg: "Please select a future date." });
                 } else {
                   let obj = {
@@ -230,9 +232,9 @@ const checkout = async (req, res, next) => {
                 }
               }
               if (CutOffTimes.type == "eveningOrder") {
-                if (selectedDate.isBefore(currentDate, 'day')) {
+                if (selectedDateOnly.isBefore(currentDateOnly, 'day')) {
                   return res.status(403).json({ success: 403, msg: "Please select a future date." });
-                } else if (selectedDate.isSame(currentDate, 'day')) {
+                } else if (selectedDateOnly.isSame(currentDateOnly, 'day')) {
                   return res.status(403).json({ success: 403, msg: "Please select a future date." });
                 } else {
                   let obj = {
@@ -709,12 +711,14 @@ const createSubscription = async (req, res, next) => {
               return res.status(403).json({ message: "Minimum 80 Rs order only subscribed." })
             } else {
               for (let i = 0; i < cart.products.length; i++) {
-                let dax = cart.products[i].startDate
+                let dax = cart.products[i].startDate;
                 let currentDate = moment();
-                let selectedDate = moment(dax);
+                let selectedDate = moment.utc(dax);
+                let currentDateOnly = moment.utc(currentDate).startOf('day');
+                let selectedDateOnly = moment.utc(selectedDate).startOf('day');
                 if (currentTimeString < CutOffTimes.time) {
                   if (CutOffTimes.type == "morningOrder") {
-                    if (selectedDate.isBefore(currentDate, 'day')) {
+                    if (selectedDateOnly.isBefore(currentDateOnly, 'day')) {
                       return res.status(403).json({ success: 403, msg: "Please select a future date." });
                     } else {
                       let obj = {
@@ -750,7 +754,7 @@ const createSubscription = async (req, res, next) => {
                     }
                   }
                   if (CutOffTimes.type == "eveningOrder") {
-                    if (selectedDate.isBefore(currentDate, 'day')) {
+                    if (selectedDateOnly.isBefore(currentDateOnly, 'day')) {
                       return res.status(403).json({ success: 403, msg: "Please select a future date." });
                     } else {
                       let obj = {
@@ -787,9 +791,9 @@ const createSubscription = async (req, res, next) => {
                   }
                 } else {
                   if (CutOffTimes.type == "morningOrder") {
-                    if (selectedDate.isBefore(currentDate, 'day')) {
+                    if (selectedDateOnly.isBefore(currentDateOnly, 'day')) {
                       return res.status(403).json({ success: 403, msg: "Please select a future date." });
-                    } else if (selectedDate.isSame(currentDate, 'day')) {
+                    } else if (selectedDateOnly.isSame(currentDateOnly, 'day')) {
                       return res.status(403).json({ success: 403, msg: "Please select a future date." });
                     } else {
                       let obj = {
@@ -825,9 +829,9 @@ const createSubscription = async (req, res, next) => {
                     }
                   }
                   if (CutOffTimes.type == "eveningOrder") {
-                    if (selectedDate.isBefore(currentDate, 'day')) {
+                    if (selectedDateOnly.isBefore(currentDateOnly, 'day')) {
                       return res.status(403).json({ success: 403, msg: "Please select a future date." });
-                    } else if (selectedDate.isSame(currentDate, 'day')) {
+                    } else if (selectedDateOnly.isSame(currentDateOnly, 'day')) {
                       return res.status(403).json({ success: 403, msg: "Please select a future date." });
                     } else {
                       let obj = {
