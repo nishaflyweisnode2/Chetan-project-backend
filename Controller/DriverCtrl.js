@@ -24,13 +24,14 @@ exports.sendOtp = async (req, res) => {
     try {
         const Data = await driver.findOne({ phone: req.body.phone, role: req.body.role })
         if (!Data) {
-            const otp = await otpHelper.generateOTP(4);
-            const to = `91${req.body.phone}`;
-            const text = `${otp} is your OTP for GIRORGANIC. Please do not share it with anyone.`;
-            const apiUrl = 'http://api.ask4sms.in/sms/1/text/query';
-            await axios.get(apiUrl, { params: { username, password, from, to, text, indiaDltContentTemplateId, indiaDltPrincipalEntityId } });
-            const data = await driver.create({ phone: req.body.phone, otp: otp, });
-            return res.status(200).json({ otp: data.otp, })
+            return res.status(404).json({ data: {}, message: "User not found.", status: 404 });
+            // const otp = await otpHelper.generateOTP(4);
+            // const to = `91${req.body.phone}`;
+            // const text = `${otp} is your OTP for GIRORGANIC. Please do not share it with anyone.`;
+            // const apiUrl = 'http://api.ask4sms.in/sms/1/text/query';
+            // await axios.get(apiUrl, { params: { username, password, from, to, text, indiaDltContentTemplateId, indiaDltPrincipalEntityId } });
+            // const data = await driver.create({ phone: req.body.phone, otp: otp, });
+            // return res.status(200).json({ otp: data.otp, })
         } else {
             const otp = await otpHelper.generateOTP(4);
             const to = `91${req.body.phone}`;
