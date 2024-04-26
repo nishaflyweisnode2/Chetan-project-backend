@@ -53,7 +53,10 @@ exports.UpdatePhoneUser = catchAsyncErrors(async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ error: "User not found", });
     }
-
+    const existingUser = await User.findOne({ phone: phone, role: "User", _id: { $ne: id } });
+    if (existingUser) {
+      return res.status(409).json({ status: 409, message: "Phone already exists", });
+    }
     user.phone = phone;
     await user.save();
 
@@ -68,10 +71,7 @@ exports.UpdatePhoneUser = catchAsyncErrors(async (req, res, next) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(500).json({
-      error: error,
-      message: "Something went wrong. Please try again",
-    });
+    res.status(500).json({ error: error, message: "Something went wrong. Please try again", });
   }
 });
 exports.registerEmailUser = catchAsyncErrors(async (req, res, next) => {
@@ -84,7 +84,7 @@ exports.registerEmailUser = catchAsyncErrors(async (req, res, next) => {
   if (!user) {
     return res.status(404).json({ error: "User not found", });
   }
-  const existingUser = await User.findOne({ email });
+  const existingUser = await User.findOne({ email, role: "User" });
   if (existingUser && existingUser.id !== id) {
     return res.status(409).json({ error: "Email already exists", });
   }
@@ -167,6 +167,18 @@ exports.userPhoto = async (req, res, next) => {
       image = req.file.path;
     } else {
       image = users.profilePicture
+    }
+    if (req.body.phone) {
+      const existingUser = await User.findOne({ phone: req.body.phone, role: "User", _id: { $ne: users._id } });
+      if (existingUser) {
+        return res.status(409).json({ status: 409, message: "Phone already exists", });
+      }
+    }
+    if (req.body.email) {
+      const existingUser1 = await User.findOne({ email: req.body.email, role: "User", _id: { $ne: users._id } });
+      if (existingUser1) {
+        return res.status(409).json({ status: 409, message: "email already exists", });
+      }
     }
     let location;
     if (req.body.currentLat && req.body.currentLong) {
