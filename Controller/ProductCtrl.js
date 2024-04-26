@@ -508,7 +508,6 @@ exports.paginateProductSearch = async (req, res) => {
     if (search) {
       query.$or = [
         { "name": { $regex: req.query.search, $options: "i" }, },
-        { "description": { $regex: req.query.search, $options: "i" }, },
       ]
     }
     if (status) {
