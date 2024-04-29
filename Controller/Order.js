@@ -499,13 +499,11 @@ const updateOrder = catchAsyncErrors(async (req, res, next) => {
     return res.status(500).json({ message: error.message });
   }
 });
-const payBills = async (req, res) => {
+const payBills1 = async (req, res) => {
   try {
     const { fromDate, toDate } = req.body;
     const body = { user: req.user._id, paymentStatus: { $ne: "paid" } };
-    if (fromDate && toDate) {
-      body.createdAt = { $gte: new Date(fromDate), $lte: new Date(toDate) };
-    }
+    if (fromDate && toDate) { body.createdAt = { $gte: new Date(fromDate), $lte: new Date(toDate) }; }
     let total = 0, orderIds = [];
     let wallet = await User.findOne({ _id: req.user._id });
     if (!wallet) {
@@ -539,6 +537,56 @@ const payBills = async (req, res) => {
     return res.status(400).json({ message: err.message });
   }
 };
+const payBills = async (req, res) => {
+  try {
+    const { fromDate, toDate } = req.body;
+    const body = { user: req.user._id, paymentStatus: { $ne: "paid" } };
+    const body1 = { user: req.user._id };
+    if (fromDate && toDate) { body.createdAt = { $gte: new Date(fromDate), $lte: new Date(toDate) }; }
+    let total = 0, orderIds = [];
+    let wallet = await User.findOne({ _id: req.user._id });
+    if (!wallet) {
+      return res.status(404).json({ message: 'Wallet not found for the user' });
+    }
+    const orders1 = await Order.find(body1).populate('product');
+    const orders = await Order.find(body).populate('product');
+    if ((orders.length > 0) || (orders1.length > 0)) {
+      const productQuantities = [];
+      orders1.forEach(order => {
+        if (order.product) {
+          let existingProduct = productQuantities.find(item => item.productId === order.product._id);
+          if (existingProduct) {
+            existingProduct.quantity += order.quantity;
+            existingProduct.total += (order.price * order.quantity);
+          } else {
+            productQuantities.push({ productId: order.product._id, productName: order.product.name, quantity: order.quantity, total: (order.price * order.quantity) });
+          }
+        }
+        for (let i = 0; i < orders.length; i++) {
+          total = total + orders[i].collectedAmount
+          orderIds.push(orders[i]._id);
+          console.log(orderIds);
+        }
+        if (wallet.advancedAmount > 0) {
+          let pendingAmount = 0;
+          let advancedAmount = wallet.advancedAmount;
+          let paidAmount = total - advancedAmount;
+          return res.status(200).json({ data: orders, total, advancedAmount, paidAmount, pendingAmount, fromDate, toDate, orderIds, productQuantities });
+        }
+        if (wallet.pendingAmount > 0) {
+          let pendingAmount = wallet.pendingAmount;
+          let advancedAmount = 0;
+          let paidAmount = total + pendingAmount;
+          return res.status(200).json({ data: orders, total, advancedAmount, paidAmount, pendingAmount, fromDate, toDate, orderIds, productQuantities });
+        }
+      });
+    }
+  } catch (err) {
+    return res.status(400).json({ success: false, message: err.message });
+  }
+}
+
+
 const payBillStatusUpdate = async (req, res) => {
   try {
     let orders = [];
@@ -707,6 +755,9 @@ const createSubscription = async (req, res, next) => {
           if (count < cart.products.length) {
             for (let i = 0; i < cart.products.length; i++) {
               TotalAmount = cart.products[i].price * cart.products[i].quantity;
+              if (user.balance < parseFloat(TotalAmount)) {
+                return res.status(403).json({ message: "InSufficent balance." })
+              }
               count++;
             }
           }

@@ -1,5 +1,6 @@
 const Category = require("../Model/categoryModel");
 const SubCategory = require("../Model/SubCategoryModel");
+const Product = require("../Model/productModel");
 
 const catchAsyncErrors = require("../Middleware/catchAsyncErrors");
 
@@ -156,8 +157,12 @@ const getCategory = catchAsyncErrors(async (req, res) => {
   console.log("hi");
   const { id } = req.params;
   try {
-    const getaCategory = await Category.findById(id);
-    res.json(getaCategory);
+    const getCategory = await Category.findById(id);
+    if (!getCategory) {
+      return res.status(404).json({ message: "No Category Found", status: 404, data: {} });
+    } else {
+      return res.json(getaCategory);
+    }
   } catch (error) {
     throw new Error(error);
   }
@@ -165,18 +170,34 @@ const getCategory = catchAsyncErrors(async (req, res) => {
 
 ////////////////////////////////////////// GET ALL CATEGORY  //////////////////////////////////
 
+// const getallCategory = catchAsyncErrors(async (req, res) => {
+//   try {
+//     const categories = await Category.find();
+//     return res.status(201).json({ success: true, categories, });
+//   } catch (error) {
+//     throw new Error(error);
+//   }
+// });
+
 const getallCategory = catchAsyncErrors(async (req, res) => {
   try {
-    const categories = await Category.find();
-    res.status(201).json({
-      success: true,
-      categories,
-    });
+    const categories1 = await Category.find();
+    if (categories1.length === 0) {
+      return res.status(404).json({ message: "No Category Found", status: 404, data: {} });
+    } else {
+      const categoriesWithData = await Promise.all(categories1.map(async (item) => {
+        const productsCount = await Product.countDocuments({ category: item._id });
+        if (productsCount > 0) {
+          return item;
+        }
+      }));
+      const categories = categoriesWithData.filter((category) => category !== undefined);
+      return res.status(200).json({ success: true, categories });
+    }
   } catch (error) {
     throw new Error(error);
   }
 });
-
 ////////////////////////////////////////// CREATE SUB-CATEGORY  //////////////////////////////////
 
 const createSubCategory = catchAsyncErrors(async (req, res, next) => {
