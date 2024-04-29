@@ -1914,8 +1914,8 @@ const deleteproductinOrder = async (req, res, next) => {
 };
 const getAllOrdersForUser = catchAsyncErrors(async (req, res, next) => {
   const orders = await Order.find({ user: req.user.id, startDate: { $gte: req.query.fromStartDate, $lte: req.query.toStartDate } }).populate('user product');
+  const productQuantities = []; let grandTotal = 0;
   if (orders.length > 0) {
-    const productQuantities = []; let grandTotal = 0;
     orders.forEach(order => {
       if (order.product) {
         let existingProduct = productQuantities.find(item => item.productId === order.product._id);
@@ -1935,9 +1935,9 @@ const getAllOrdersForUser = catchAsyncErrors(async (req, res, next) => {
         }
       }
     });
-    return res.status(200).json({ success: true, productQuantities, grandTotal: grandTotal, ordersLength: orders.length, orders, });
+    return res.status(200).json({ status: 200, success: true, productQuantities, grandTotal: grandTotal, ordersLength: orders.length, orders, });
   } else {
-    return res.status(200).json({ success: false, });
+    return res.status(404).json({ status: 404, success: false, productQuantities, grandTotal: grandTotal, ordersLength: orders.length, orders, });
   }
 });
 module.exports = { createSubscriptionFromAdmin, deleteOrder, resumeSubscription, getAllOrdersForUser, getAllOneTimeOrdersForAdmin, getAllOrdersForInvoice, getSubscriptionById, checkoutForAdmin, updateOrderDetailsByAdmin, getAllOrdersForAdmin, returnBottleOrderForAdmin, updateOrderDetails, subscription, payBillStatusUpdate, returnBottleOrder, updateCollectedDate, createSubscription, pauseSubscription, updateSubscription, deleteSubscription, deleteproductinOrder, mySubscriptionOrders, payBills, addproductinOrder, mySubscription, getAllSubscription, insertNewProduct, getSingleOrder, myOrders, getAllOrders, getAllOrdersVender, updateOrder, checkout, placeOrder, getAllProductOrdersForInvoice, placeOrderCOD, getOrders, orderReturn, GetAllReturnOrderbyUserId, AllReturnOrder, GetReturnByOrderId, getUnconfirmedOrders }
