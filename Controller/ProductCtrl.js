@@ -5,9 +5,9 @@ const Wishlist = require("../Model/WishlistModel");
 const mongoose = require("mongoose");
 const ErrorHander = require("../utils/errorhander");
 cloudinary.config({
-  cloud_name: "dvwecihog",
-  api_key: '364881266278834',
-  api_secret: '5_okbyciVx-7qFz7oP31uOpuv7Q'
+  cloud_name: 'djgrqoefp',
+  api_key: '274167243253962',
+  api_secret: '3mkqkDDusI5Hf4flGNkJNz4PHYg'
 });
 const cutOffTime = require('../Model/cutOffTime');
 const Order = require("../Model/ShoppingCartOrderModel");

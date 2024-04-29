@@ -4,7 +4,7 @@ const router = express();
 const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("cloudinary").v2;
-cloudinary.config({ cloud_name: 'dtijhcmaa', api_key: '624644714628939', api_secret: 'tU52wM1-XoaFD2NrHbPrkiVKZvY' });
+cloudinary.config({ cloud_name: 'djgrqoefp', api_key: '274167243253962', api_secret: '3mkqkDDusI5Hf4flGNkJNz4PHYg' });
 const storage = new CloudinaryStorage({ cloudinary: cloudinary, params: { folder: "images/image", allowed_formats: ["jpg", "jpeg", "png", "PNG", "xlsx", "xls", "pdf", "PDF"], }, });
 const upload = multer({ storage: storage });
 router.post('/api/v1/driver/create', driver_Controllers.createDriver);
