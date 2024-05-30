@@ -143,7 +143,6 @@ async function createOrder(push, subscriptionId) {
           subscriptionStatus: "start"
         };
         console.log(obj)
-        return
         let findData = await Order.findOne({ subscription: findState._id, user: findState.userId._id, product: findState.product._id, startDate: push[i] });
         if (findData) {
           console.log("666")

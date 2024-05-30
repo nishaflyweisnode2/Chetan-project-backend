@@ -542,7 +542,9 @@ const payBills = async (req, res) => {
     const { fromDate, toDate } = req.body;
     const body = { user: req.user._id, paymentStatus: { $ne: "paid" } };
     const body1 = { user: req.user._id };
-    if (fromDate && toDate) { body.createdAt = { $gte: new Date(fromDate), $lte: new Date(toDate) }; }
+    if (fromDate && toDate) {
+      body.createdAt = { $gte: new Date(fromDate), $lte: new Date(toDate) };
+    }
     let total = 0, orderIds = [];
     let wallet = await User.findOne({ _id: req.user._id });
     if (!wallet) {
@@ -562,31 +564,29 @@ const payBills = async (req, res) => {
             productQuantities.push({ productId: order.product._id, productName: order.product.name, quantity: order.quantity, total: (order.price * order.quantity) });
           }
         }
-        for (let i = 0; i < orders.length; i++) {
-          total = total + orders[i].collectedAmount
-          orderIds.push(orders[i]._id);
-          console.log(orderIds);
-        }
-        if (wallet.advancedAmount > 0) {
-          let pendingAmount = 0;
-          let advancedAmount = wallet.advancedAmount;
-          let paidAmount = total - advancedAmount;
-          return res.status(200).json({ data: orders, total, advancedAmount, paidAmount, pendingAmount, fromDate, toDate, orderIds, productQuantities });
-        }
-        if (wallet.pendingAmount > 0) {
-          let pendingAmount = wallet.pendingAmount;
-          let advancedAmount = 0;
-          let paidAmount = total + pendingAmount;
-          return res.status(200).json({ data: orders, total, advancedAmount, paidAmount, pendingAmount, fromDate, toDate, orderIds, productQuantities });
-        }
       });
+      orders.forEach(order => {
+        total += order.collectedAmount;
+        orderIds.push(order._id);
+      });
+      let advancedAmount = wallet.advancedAmount || 0;
+      let pendingAmount = wallet.pendingAmount || 0;
+      let paidAmount = total;
+      if (advancedAmount > 0) {
+        paidAmount = total - advancedAmount;
+        pendingAmount = 0;
+      } else if (pendingAmount > 0) {
+        paidAmount = total + pendingAmount;
+        advancedAmount = 0;
+      }
+      return res.status(200).json({ data: orders, total, advancedAmount, paidAmount, pendingAmount, fromDate, toDate, orderIds, productQuantities });
+    } else {
+      return res.status(200).json({ data: [], total: 0, advancedAmount: 0, paidAmount: 0, pendingAmount: 0, fromDate, toDate, orderIds: [], productQuantities: [] });
     }
   } catch (err) {
     return res.status(400).json({ success: false, message: err.message });
   }
 }
-
-
 const payBillStatusUpdate = async (req, res) => {
   try {
     let orders = [];
