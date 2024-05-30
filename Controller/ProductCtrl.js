@@ -4,11 +4,7 @@ const catchAsyncErrors = require("../Middleware/catchAsyncErrors");
 const Wishlist = require("../Model/WishlistModel");
 const mongoose = require("mongoose");
 const ErrorHander = require("../utils/errorhander");
-cloudinary.config({
-  cloud_name: 'djgrqoefp',
-  api_key: '274167243253962',
-  api_secret: '3mkqkDDusI5Hf4flGNkJNz4PHYg'
-});
+cloudinary.config({ cloud_name: "djgrqoefp", api_key: "274167243253962", api_secret: "3mkqkDDusI5Hf4flGNkJNz4PHYg", });
 const cutOffTime = require('../Model/cutOffTime');
 const Order = require("../Model/ShoppingCartOrderModel");
 const Subscription = require("../Model/subscriptionModel");

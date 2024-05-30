@@ -4,11 +4,7 @@ const { isAuthenticatedUser, authorizeRoles } = require("../Middleware/auth");
 const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("cloudinary").v2;
-cloudinary.config({
-  cloud_name: "dbrvq9uxa",
-  api_key: "567113285751718",
-  api_secret: "rjTsz9ksqzlDtsrlOPcTs_-QtW4",
-});
+cloudinary.config({ cloud_name: "djgrqoefp", api_key: "274167243253962", api_secret: "3mkqkDDusI5Hf4flGNkJNz4PHYg", });
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
