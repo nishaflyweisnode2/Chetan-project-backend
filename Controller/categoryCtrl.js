@@ -52,21 +52,19 @@ const updateCategory = catchAsyncErrors(async (req, res, next) => {
     if (!category) {
       return res.status(404).json({ message: "Category Not Found", status: 404, data: {} });
     }
-
-    upload.single("image")(req, res, async (err) => {
-      if (err) {
-        return res.status(400).json({ msg: err.message });
-      }
+    let fileUrl;
+    if (req.file) {
       if (req.file.size > 5 * 1024 * 1024) {
         res.status(403).json({ message: "image size more than  5 mb.", status: 403, data: {} });
       }
-      const fileUrl = req.file ? req.file.path : "";
-      category.image = fileUrl || category.image;
-      category.name = req.body.name;
-
-      let update = await category.save();
-      res.status(200).json({ message: "Updated Successfully", data: update });
-    });
+      fileUrl = req.file ? req.file.path : "";
+    } else {
+      fileUrl = category.image;
+    }
+    category.image = fileUrl
+    category.name = req.body.name;
+    let update = await category.save();
+    res.status(200).json({ message: "Updated Successfully", data: update });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error", status: 500, error: error.message });
@@ -78,18 +76,20 @@ const updateSubcategory = async (req, res) => {
   if (!subcategory) {
     res.status(404).json({ message: "Subcategory Not Found", status: 404, data: {} });
   }
-  upload.single("image")(req, res, async (err) => {
-    if (err) { return res.status(400).json({ msg: err.message }); }
+  let fileUrl;
+  if (req.file) {
     if (req.file.size > 5 * 1024 * 1024) {
       res.status(403).json({ message: "image size more than  5 mb.", status: 403, data: {} });
     }
-    const fileUrl = req.file ? req.file.path : "";
-    subcategory.image = fileUrl || subcategory.image;
-    subcategory.subCategory = req.body.subCategory;
-    subcategory.parentCategory = req.body.parentCategory;
-    let update = await subcategory.save();
-    res.status(200).json({ message: "Updated Successfully", data: update });
-  })
+    fileUrl = req.file ? req.file.path : "";
+  } else {
+    fileUrl = subcategory.image;
+  }
+  subcategory.image = fileUrl;
+  subcategory.subCategory = req.body.subCategory;
+  subcategory.parentCategory = req.body.parentCategory;
+  let update = await subcategory.save();
+  res.status(200).json({ message: "Updated Successfully", data: update });
 };
 ////////////////////////////////////////// DELETE CATEGORY  //////////////////////////////////
 

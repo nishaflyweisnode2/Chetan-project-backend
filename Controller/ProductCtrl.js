@@ -157,8 +157,12 @@ exports.updateProduct = catchAsyncErrors(async (req, res, next) => {
       return next(new ErrorHander("Product not found", 404));
     }
     let images = [];
-    for (var i = 0; i < req.files.length; i++) {
-      images.push({ img: req.files[i].path })
+    if (req.files.length > 0) {
+      for (var i = 0; i < req.files.length; i++) {
+        images.push({ img: req.files[i].path })
+      }
+    } else {
+      images = product.images;
     }
     let multipleSize = []
     if (req.body.isMultiple == 'true') {
