@@ -1,4 +1,4 @@
-const { createCategory, updateCategory, getCategory, getallCategory, deleteCategory, removeCategory, createSubCategory, lengthCategory, getSubcategory, getSubcategorybyId, deletesubCategory, updateSubcategory } = require("../Controller/categoryCtrl");
+const { createCategory, updateCategory, getCategory, getallCategory, getallCategoryForAdmin, deleteCategory, removeCategory, createSubCategory, lengthCategory, getSubcategory, getSubcategorybyId, deletesubCategory, updateSubcategory } = require("../Controller/categoryCtrl");
 const { authorizeRoles } = require("../Middleware/auth");
 const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
