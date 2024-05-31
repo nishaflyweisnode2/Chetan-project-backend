@@ -55,7 +55,7 @@ exports.updateAddress = catchAsyncErrors(async (req, res, next) => {
   const newAddressData = req.body;
   const allAddress = await Address.findByIdAndUpdate({ _id: findData._id }, { $set: newAddressData }, { new: true });
   if (allAddress) {
-    await User.findByIdAndUpdate({ _id: allAddress.user }, { $set: { location: allAddress.location, addressStatus: "Upload" } }, { new: true });
+    await User.findByIdAndUpdate({ _id: allAddress.user }, { $set: { location: allAddress.location, changeAddressId: allAddress._id, addressStatus: "Upload" } }, { new: true });
     return res.status(200).json({ success: true, allAddress });
   }
 });
