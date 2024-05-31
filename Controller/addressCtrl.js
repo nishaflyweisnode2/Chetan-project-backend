@@ -52,6 +52,7 @@ exports.updateAddress = catchAsyncErrors(async (req, res, next) => {
   } else {
     req.body.location = findData.location;
   }
+  req.body.addressStatus = "Upload";
   const newAddressData = req.body;
   const allAddress = await Address.findByIdAndUpdate({ _id: findData._id }, { $set: newAddressData }, { new: true });
   if (allAddress) {
