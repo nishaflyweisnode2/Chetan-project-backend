@@ -15,7 +15,14 @@ const app = express();
 app.use(compression({ threshold: 500 }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cors());
+const corsOptions = {
+        origin: 'https://d2cqpxw0xgflqm.cloudfront.net/api',
+        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+        credentials: true,
+        optionsSuccessStatus: 204
+};
+
+app.use(cors(corsOptions));
 app.get("/", (req, res) => {
         res.send("Hello World! Chetan");
 });
