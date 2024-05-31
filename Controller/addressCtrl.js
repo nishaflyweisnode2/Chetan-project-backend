@@ -18,7 +18,7 @@ exports.createAddress = catchAsyncErrors(async (req, res, next) => {
         req.body.location = { type: "Point", coordinates };
       }
       const address = await Address.findByIdAndUpdate({ _id: findAddress1._id }, { $set: req.body }, { new: true, });
-      await User.findByIdAndUpdate({ _id: users._id }, { $set: { changeAddressId: findAddress1._id, addressStatus: "Upload" } }, { new: true, });
+      await User.findByIdAndUpdate({ _id: users._id }, { $set: { changeAddressId: findAddress1._id, addressStatus: "Upload", location: address.location } }, { new: true, });
       return res.status(201).json({ success: true, address, });
     } else {
       req.body.user = users._id;
@@ -28,13 +28,13 @@ exports.createAddress = catchAsyncErrors(async (req, res, next) => {
         req.body.location = { type: "Point", coordinates };
       }
       const address = await Address.create(req.body);
-      await User.findByIdAndUpdate({ _id: users._id }, { $set: { changeAddressId: address._id, addressStatus: "Upload" } }, { new: true, });
+      await User.findByIdAndUpdate({ _id: users._id }, { $set: { changeAddressId: address._id, addressStatus: "Upload", location: address.location } }, { new: true, });
       return res.status(201).json({ success: true, address, });
     }
   }
   req.body.user = users._id;
   const address = await Address.create(req.body);
-  await User.findByIdAndUpdate({ _id: users._id }, { $set: { addressStatus: "approved", addressId: address._id } }, { new: true, });
+  await User.findByIdAndUpdate({ _id: users._id }, { $set: { addressStatus: "approved", addressId: address._id, location: address.location } }, { new: true, });
   return res.status(201).json({ success: true, address, });
 });
 exports.getAddressById = catchAsyncErrors(async (req, res, next) => {
@@ -55,6 +55,7 @@ exports.updateAddress = catchAsyncErrors(async (req, res, next) => {
   const newAddressData = req.body;
   const allAddress = await Address.findByIdAndUpdate({ _id: findData._id }, { $set: newAddressData }, { new: true });
   if (allAddress) {
+    await User.findByIdAndUpdate({ _id: allAddress.user }, { $set: { location: allAddress.location } }, { new: true });
     return res.status(200).json({ success: true, allAddress });
   }
 });
