@@ -26,16 +26,16 @@ const createCategory = async (req, res) => {
     if (findCategory) {
       res.status(409).json({ message: "category already exit.", status: 404, data: {} });
     } else {
-      upload.single("image")(req, res, async (err) => {
-        if (err) { return res.status(400).json({ msg: err.message }); }
+      let fileUrl;
+      if (req.file) {
         if (req.file.size > 5 * 1024 * 1024) {
           res.status(403).json({ message: "image size more than  5 mb.", status: 403, data: {} });
         }
-        const fileUrl = req.file ? req.file.path : "";
-        const data = { name: req.body.name, image: fileUrl };
-        const category = await Category.create(data);
-        res.status(200).json({ message: "category add successfully.", status: 200, data: category });
-      })
+        fileUrl = req.file ? req.file.path : "";
+      }
+      const data = { name: req.body.name, image: fileUrl };
+      const category = await Category.create(data);
+      res.status(200).json({ message: "category add successfully.", status: 200, data: category });
     }
 
   } catch (error) {
