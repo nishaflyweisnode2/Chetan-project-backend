@@ -203,15 +203,17 @@ const createSubCategory = catchAsyncErrors(async (req, res, next) => {
     if (findSubCategorys) {
       res.status(409).json({ message: "SubCategory already exit.", status: 404, data: {} });
     } else {
-      upload.single("image")(req, res, async (err) => {
-        if (err) { return res.status(400).json({ msg: err.message }); }
-        const fileUrl = req.file ? req.file.path : "";
-        const data = { parentCategory: req.body.parentCategory, subCategory: req.body.subCategory, image: fileUrl };
-        const SubCategorys = await SubCategory.create(data);
-        res.status(200).json({ message: "SubCategory add successfully.", status: 200, data: SubCategorys });
-      })
+      let fileUrl;
+      if (req.file) {
+        if (req.file.size > 5 * 1024 * 1024) {
+          res.status(403).json({ message: "image size more than  5 mb.", status: 403, data: {} });
+        }
+        fileUrl = req.file ? req.file.path : "";
+      }
+      const data = { parentCategory: req.body.parentCategory, subCategory: req.body.subCategory, image: fileUrl };
+      const SubCategorys = await SubCategory.create(data);
+      res.status(200).json({ message: "SubCategory add successfully.", status: 200, data: SubCategorys });
     }
-
   } catch (error) {
     res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
   }
