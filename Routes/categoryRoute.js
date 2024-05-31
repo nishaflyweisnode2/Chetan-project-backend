@@ -18,6 +18,7 @@ router.put("/api/v1/catg/update/:id", upload.single("image"), updateCategory);
 router.put("/api/v1/catg/update/sub/:id", upload.single("image"), updateSubcategory);
 router.get("/api/v1/catg/new/:id", /* authorizeRoles("admin"), */ getCategory);
 router.get("/api/v1/catg/", /* authorizeRoles("admin"), */ getallCategory);
+router.get("/api/v1/catg/CategoryForAdmin", /* authorizeRoles("admin"), */ getallCategoryForAdmin);
 router.delete("/api/v1/catg/delete/category/:id", deleteCategory);
 router.delete("/api/v1/catg/delete/sub/category/:id", deletesubCategory);
 router.delete("/api/v1/catg/delete/:id", authorizeRoles("admin"), removeCategory);

@@ -166,14 +166,14 @@ const getCategory = catchAsyncErrors(async (req, res) => {
 
 ////////////////////////////////////////// GET ALL CATEGORY  //////////////////////////////////
 
-// const getallCategory = catchAsyncErrors(async (req, res) => {
-//   try {
-//     const categories = await Category.find();
-//     return res.status(201).json({ success: true, categories, });
-//   } catch (error) {
-//     throw new Error(error);
-//   }
-// });
+const getallCategoryForAdmin = catchAsyncErrors(async (req, res) => {
+  try {
+    const categories = await Category.find();
+    return res.status(201).json({ success: true, categories, });
+  } catch (error) {
+    throw new Error(error);
+  }
+});
 
 const getallCategory = catchAsyncErrors(async (req, res) => {
   try {
@@ -297,5 +297,6 @@ module.exports = {
   createSubCategory,
   lengthCategory,
   getSubcategory,
-  deletesubCategory
+  deletesubCategory,
+  getallCategoryForAdmin
 }
