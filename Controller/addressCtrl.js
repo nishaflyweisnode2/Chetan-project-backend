@@ -42,13 +42,21 @@ exports.getAddressById = catchAsyncErrors(async (req, res, next) => {
   return res.status(201).json({ success: true, allAddress, });
 });
 exports.updateAddress = catchAsyncErrors(async (req, res, next) => {
+  const findData = await Address.findOne({ _id: req.params.id });
+  if (!findData) {
+    return res.status(404).json({ success: false, });
+  }
   if (req.body.currentLat && req.body.currentLong) {
     let coordinates = [req.body.currentLat, req.body.currentLong];
     req.body.location = { type: "Point", coordinates };
+  } else {
+    req.body.location = findData.location;
   }
   const newAddressData = req.body;
-  await Address.findByIdAndUpdate(req.params.id, newAddressData, { new: true });
-  return res.status(200).json({ success: true, });
+  const allAddress = await Address.findByIdAndUpdate({ _id: findData._id }, { $set: newAddressData }, { new: true });
+  if (allAddress) {
+    return res.status(200).json({ success: true, allAddress });
+  }
 });
 exports.deleteAddress = catchAsyncErrors(async (req, res, next) => {
   const address = await Address.findById(req.params.id);
