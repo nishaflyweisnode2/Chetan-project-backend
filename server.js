@@ -16,7 +16,7 @@ app.use(compression({ threshold: 500 }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 const corsOptions = {
-        origin: 'https://d2cqpxw0xgflqm.cloudfront.net/api',
+        origin: 'https://d2cqpxw0xgflqm.cloudfront.net',
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         credentials: true,
         optionsSuccessStatus: 204
