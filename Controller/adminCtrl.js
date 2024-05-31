@@ -689,7 +689,7 @@ exports.getAllLogs = async (req, res) => {
 };
 exports.getAllOrderTransaction = async (req, res) => {
   try {
-    const Driver = await orderTransaction.find().populate('user order');
+    const Driver = await orderTransaction.find().populate('user order collectionBoyId');
     if (Driver.length > 0) {
       return res.status(200).json({ status: 200, message: "orderTransaction found successfully", data: Driver });
     } else {
@@ -701,7 +701,7 @@ exports.getAllOrderTransaction = async (req, res) => {
 };
 exports.getOrderTransactionById = async (req, res) => {
   try {
-    const OrderTransactions = await orderTransaction.findById({ _id: req.params.id }).populate('user order');
+    const OrderTransactions = await orderTransaction.findById({ _id: req.params.id }).populate('user order collectionBoyId');
     if (OrderTransactions) {
       return res.status(200).json({ message: "orderTransaction found successfully.", status: 200, data: OrderTransactions })
     } else {
