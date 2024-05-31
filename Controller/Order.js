@@ -30,6 +30,8 @@ const checkout = async (req, res, next) => {
           const allAddress = await Address.findById({ _id: user.addressId });
           if (!allAddress) {
             return res.status(404).json({ error: 'Address not found' });
+          } else {
+            await User.findByIdAndUpdate({ _id: user._id }, { $set: { location: allAddress.location } }, { new: true });
           }
           const currentTime = new Date();
           const currentHour = currentTime.getHours();
