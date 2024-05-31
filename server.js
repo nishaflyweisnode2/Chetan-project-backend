@@ -19,6 +19,7 @@ app.use(cors());
 app.get("/", (req, res) => {
         res.send("Hello World! Chetan");
 });
+
 const router = require("./Routes/routes");
 app.use("/", router);
 mongoose.Promise = global.Promise;
