@@ -2,7 +2,7 @@ const imagePattern = "[^\\s]+(.*?)\\.(jpg|jpeg|png|gif|JPG|JPEG|PNG|GIF)$";
 const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("cloudinary").v2;
-cloudinary.config({ cloud_name: "djgrqoefp", api_key: "274167243253962", api_secret: "3mkqkDDusI5Hf4flGNkJNz4PHYg", });
+cloudinary.config({ cloud_name: "dbcnha741", api_key: "865815848694583", api_secret: "j90xHfvjplpGsIlQxLw0De0SiwU", });
 const storage = new CloudinaryStorage({ cloudinary: cloudinary, params: { folder: "images/image", allowed_formats: ["jpg", "jpeg", "png", "PNG", "xlsx", "xls", "pdf", "PDF", "webp", "WEBP"], }, });
 const upload = multer({ storage: storage });
 const userCtrl = require("../Controller/userCtrl");
