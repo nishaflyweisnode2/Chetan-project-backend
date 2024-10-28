@@ -35,9 +35,10 @@ const checkout = async (req, res, next) => {
             } else {
               await User.findByIdAndUpdate({ _id: user._id }, { $set: { location: allAddress?.location } }, { new: true });
             }
-          } else {
-            return res.status(404).json({ status: 404, error: 'Address not found' });
           }
+          // else {
+          //   return res.status(404).json({ status: 404, error: 'Address not found' });
+          // }
           const currentTime = new Date();
           const currentHour = currentTime.getHours();
           const currentMinute = currentTime.getMinutes();
@@ -748,9 +749,10 @@ const createSubscription = async (req, res, next) => {
             } else {
               await User.findByIdAndUpdate({ _id: user._id }, { $set: { location: allAddress?.location } }, { new: true });
             }
-          } else {
-            return res.status(404).json({ status: 404, error: 'Address not found' });
           }
+          //  else {
+          //   return res.status(404).json({ status: 404, error: 'Address not found' });
+          // }
           const currentTime = new Date();
           const currentHour = currentTime.getHours();
           const currentMinute = currentTime.getMinutes();
