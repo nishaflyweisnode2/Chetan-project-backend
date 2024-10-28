@@ -30,9 +30,7 @@ const checkout = async (req, res, next) => {
           let allAddress;
           if (user.addressId != (null || undefined)) {
             allAddress = await Address.findById({ _id: user.addressId });
-            if (!allAddress) {
-              return res.status(404).json({ error: 'Address not found' });
-            } else {
+            if (allAddress) {
               await User.findByIdAndUpdate({ _id: user._id }, { $set: { location: allAddress?.location } }, { new: true });
             }
           }
@@ -377,9 +375,9 @@ const updateOrderDetails = catchAsyncErrors(async (req, res, next) => {
       return res.status(404).json({ error: 'User not found' });
     }
     const allAddress = await Address.findById({ _id: user.addressId });
-    if (!allAddress) {
-      return res.status(404).json({ error: 'Address not found' });
-    }
+    // if (!allAddress) {
+    //   return res.status(404).json({ error: 'Address not found' });
+    // }
     let TotalAmount = 0, total = 0;
     const allOrder = await Order.find({ _id: { $ne: req.params.id }, user: order.user, startDate: { $gte: order.startDate }, startDate: { $lte: order.startDate } });
     if (allOrder.length > 0) {
@@ -744,11 +742,12 @@ const createSubscription = async (req, res, next) => {
           let allAddress;
           if (user.addressId != (null || undefined)) {
             allAddress = await Address.findById({ _id: user.addressId });
-            if (!allAddress) {
-              return res.status(404).json({ error: 'Address not found' });
-            } else {
+            if (allAddress) {
               await User.findByIdAndUpdate({ _id: user._id }, { $set: { location: allAddress?.location } }, { new: true });
             }
+            // else {
+            //   return res.status(404).json({ error: 'Address not found' });
+            // }
           }
           //  else {
           //   return res.status(404).json({ status: 404, error: 'Address not found' });
@@ -1318,9 +1317,9 @@ const checkoutForAdmin = async (req, res, next) => {
       if (user.userStatus == "Approved") {
         if (user.driverAssign == true) {
           const allAddress = await Address.findById({ _id: user.addressId });
-          if (!allAddress) {
-            return res.status(404).json({ error: 'Address not found' });
-          }
+          // if (!allAddress) {
+          //   return res.status(404).json({ error: 'Address not found' });
+          // }
           const currentTime = new Date();
           const currentHour = currentTime.getHours();
           const currentMinute = currentTime.getMinutes();
