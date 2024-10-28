@@ -15,39 +15,37 @@ const storage = new CloudinaryStorage({
 const upload = multer({ storage: storage });
 exports.AddNotification = async (req, res) => {
   try {
-    upload.single("image")(req, res, async (err) => {
-      if (err) {
-        return res.status(400).json({ msg: err.message });
-      }
-      const fileUrl = req.file ? req.file.path : "";
-      let data;
-      if (req.body.type == 'driver') {
-        data = {
-          message: req.body.message,
-          image: fileUrl,
-          driverId: req.body.userId,
-          for: "Driver",
-        };
-      }
-      if (req.body.type == 'collectionBoy') {
-        data = {
-          message: req.body.message,
-          image: fileUrl,
-          collectionBoyId: req.body.userId,
-          for: "CollectionBoy",
-        };
-      }
-      if (req.body.type == 'user') {
-        data = {
-          message: req.body.message,
-          image: fileUrl,
-          user: req.body.userId,
-          for: "user",
-        };
-      }
-      const Data = await notify.create(data);
-      return res.status(200).json({ message: Data, });
-    });
+    let fileUrl;
+    if (req.file) {
+      fileUrl = req.file ? req.file.path : "";
+    }
+    let data;
+    if (req.body.type == 'driver') {
+      data = {
+        message: req.body.message,
+        image: fileUrl,
+        driverId: req.body.userId,
+        for: "Driver",
+      };
+    }
+    if (req.body.type == 'collectionBoy') {
+      data = {
+        message: req.body.message,
+        image: fileUrl,
+        collectionBoyId: req.body.userId,
+        for: "CollectionBoy",
+      };
+    }
+    if (req.body.type == 'user') {
+      data = {
+        message: req.body.message,
+        image: fileUrl,
+        user: req.body.userId,
+        for: "user",
+      };
+    }
+    const Data = await notify.create(data);
+    return res.status(200).json({ message: Data, });
   } catch (err) {
     res.status(400).json({ message: err.message, });
   }

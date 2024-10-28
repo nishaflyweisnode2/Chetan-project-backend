@@ -32,10 +32,10 @@ exports.registerUser = catchAsyncErrors(async (req, res, next) => {
       const otp = OTP.generateOTP();
       const user = await User.create({ phone, otp, name, email });
       if (user) {
-        const to = `91${phone}`;
-        const text = `${otp} is your OTP for GIRORGANIC. Please do not share it with anyone.`;
-        const apiUrl = 'http://api.ask4sms.in/sms/1/text/query';
-        await axios.get(apiUrl, { params: { username, password, from, to, text, indiaDltContentTemplateId, indiaDltPrincipalEntityId } });
+        // const to = `91${phone}`;
+        // const text = `${otp} is your OTP for GIRORGANIC. Please do not share it with anyone.`;
+        // const apiUrl = 'http://api.ask4sms.in/sms/1/text/query';
+        // await axios.get(apiUrl, { params: { username, password, from, to, text, indiaDltContentTemplateId, indiaDltPrincipalEntityId } });
         return res.status(201).json({ status: 200, message: "Registration successfully", data: user });
       }
     }
@@ -107,10 +107,10 @@ exports.loginUser = catchAsyncErrors(async (req, res, next) => {
       return res.status(404).json({ error: 'User not found' });
     }
     const otp = await OTP.generateOTP();
-    const to = `91${phone}`;
-    const text = `${otp} is your OTP for GIRORGANIC. Please do not share it with anyone.`;
-    const apiUrl = 'http://api.ask4sms.in/sms/1/text/query';
-    await axios.get(apiUrl, { params: { username, password, from, to, text, indiaDltContentTemplateId, indiaDltPrincipalEntityId } });
+    // const to = `91${phone}`;
+    // const text = `${otp} is your OTP for GIRORGANIC. Please do not share it with anyone.`;
+    // const apiUrl = 'http://api.ask4sms.in/sms/1/text/query';
+    // await axios.get(apiUrl, { params: { username, password, from, to, text, indiaDltContentTemplateId, indiaDltPrincipalEntityId } });
     let update = await User.findByIdAndUpdate({ _id: user._id }, { $set: { otp: otp } }, { new: true });
     return res.status(201).json({ success: true, Id: update._id, otp: otp });
   } catch (error) {
@@ -146,10 +146,10 @@ exports.resendOTP = catchAsyncErrors(async (req, res) => {
     const otp = OTP.generateOTP();
     user.otp = otp;
     await user.save();
-    const to = `91${user.phone}`;
-    const text = `${otp} is your OTP for GIRORGANIC. Please do not share it with anyone.`;
-    const apiUrl = 'http://api.ask4sms.in/sms/1/text/query';
-    await axios.get(apiUrl, { params: { username, password, from, to, text, indiaDltContentTemplateId, indiaDltPrincipalEntityId } });
+    // const to = `91${user.phone}`;
+    // const text = `${otp} is your OTP for GIRORGANIC. Please do not share it with anyone.`;
+    // const apiUrl = 'http://api.ask4sms.in/sms/1/text/query';
+    // await axios.get(apiUrl, { params: { username, password, from, to, text, indiaDltContentTemplateId, indiaDltPrincipalEntityId } });
     return res.status(200).send({ message: "OTP resent successfully", data: user.otp });
   } catch (error) {
     res.status(400).send({ error: error.message });
