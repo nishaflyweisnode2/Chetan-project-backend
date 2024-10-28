@@ -35,6 +35,8 @@ const checkout = async (req, res, next) => {
             } else {
               await User.findByIdAndUpdate({ _id: user._id }, { $set: { location: allAddress?.location } }, { new: true });
             }
+          } else {
+            return res.status(404).json({ status: 404, error: 'Address not found' });
           }
           const currentTime = new Date();
           const currentHour = currentTime.getHours();
@@ -738,9 +740,16 @@ const createSubscription = async (req, res, next) => {
           if (cart.products.length === 0) {
             return res.status(400).json({ success: false, msg: "Cart not found or empty." });
           }
-          const allAddress = await Address.findById({ _id: user.addressId });
-          if (!allAddress) {
-            return res.status(404).json({ error: 'Address not found' });
+          let allAddress;
+          if (user.addressId != (null || undefined)) {
+            allAddress = await Address.findById({ _id: user.addressId });
+            if (!allAddress) {
+              return res.status(404).json({ error: 'Address not found' });
+            } else {
+              await User.findByIdAndUpdate({ _id: user._id }, { $set: { location: allAddress?.location } }, { new: true });
+            }
+          } else {
+            return res.status(404).json({ status: 404, error: 'Address not found' });
           }
           const currentTime = new Date();
           const currentHour = currentTime.getHours();
